@@ -1,0 +1,42 @@
+#config file
+
+#PIPELINE DIRECTORIES
+
+#Will update the one in PYVM globals
+data_dir=/data3/hand_track
+
+pipe_path=/home/danhan/Documents/pipeline
+scripts=${pipe_path}/pipeline-scripts
+pyvm=${pipe_path}/setup/pyvm_all/pyvm
+expt_files=${pipe_path}/setup/pyvm_all/pyvm/metadata
+draw_monk=${pipe_path}/setup/drawmonkey_/drawmonkey
+
+#NUMBER OF CAMERAS ON THIS DAY
+NCAMS=4
+
+
+##PROGRAMS
+
+#You will need to have installed MATLAB runtime and DLTdv8a installed for the easywand portion of the pipeline. Run the wand module with the --setup flag to install the programs (./pipeline wand --setup). Below paste the directory for you easy wand install (up to and including DLTdv8a or whichever version) and MATLAB runtime (up to and including the folder with v912, or whatever you matlab rt install version is). The DLTdv8a installer will ask you to set these directories. DLT link: https://biomech.web.unc.edu/dltdv/
+
+dlt_dir=/data1/programs/application/run_DLTdv8a.sh
+matrun_dir=/data1/programs/MATLAB/v912
+
+#Input directory to regular matlab (i.e. wherever you MATLAB/Ryyyya folder is) here. 
+matfull_dir=/data1/programs/MATLAB/R2024a
+
+##IMPORTANT
+##If you are using a pretrained model please enter it here. If you are only using one condition just enter a nonsense string for the other, it will not be used but needs a value. If you plan to train a new model in this run you can leave this field empty, it will not be used (i.e. do not use the analyze module, only the train module).
+
+wand_model_dir=/home/danhan/Documents/pipeline/models/wand-model/iteration-0/combined-fly2_bfs2_fly1_flea_bfs1Aug14-trainset95shuffle1
+
+behavior_model_dir=/home/danhan/Documents/pipeline/models/beh-model/iteration-0/combined-fly2_bfs2_flea_bfs1_fly1Jul25-trainset95shuffle1
+
+
+#Add two files in same dir with same name prefix for dlt coeffs and columns 
+# E.G. 220914_dltCoefs.csv and 220914_columns.csv
+# [name]_dltCoefs.csv and [name]_columns.csv
+
+calib_prefix=opt_axis
+# calib_prefix=220317
+checkb_dir=/home/danhan/Documents/pipeline/checkerboard_calib/220914_calib
