@@ -1,0 +1,55 @@
+# Things that dont depend on condition
+list_camnames: ["flea",
+    "bfs1", # Blackfly S BFS-U3-63S4C (old)
+    "bfs2", # Blackfly S BFS-U3-16S2C
+    "ffly"]
+dirname: "220317_chunkbyshape4"
+
+######## DLC models: DOES DEPEND ON CONDITION
+list_conditions: ["behavior", "wand", "checkerboard"]
+list_bodyparts: [
+    ["fingertip"],
+    ["green", "red"],
+    null
+]
+list_skeletons: [[], [], null]
+list_start: [0.15, 0., null] # fraction of video, for extraction frmaes.
+list_stop: [0.85, 1., null]
+list_combinecams: [True, True, False]
+
+# One per condition
+list_vidnums: [
+    [4, 587], # trials where there is behavior (start, end)
+    null,
+    null
+]
+list_numframes2pick: [10, 100, null] # frames per video, so make low if many videos. [condition1, condition2]
+
+########## VideoClass:
+# Checkerboard, good frames
+# Assumes only one "condition" is checkerboard.
+# Assumes only one video per condition. Otherwise should link to video, not to 
+# group (as is done here)
+good_frames_checkerboard: [
+    [54, 63, 95, 117, 141, 171, 195, 213, 243, 278, 315, 346, 367, 393, 433, 460, 509, 549, 598, 688, 719, 725, 753, 797, 785, 743],
+    [27,39, 40, 49, 68, 83, 113, 149, 182, 190, 215, 238, 299, 322, 345, 341, 389, 449, 473, 491, 521, 575, 623, 677, 648,
+578, 495, 462, 380, 253, 103],
+    [26, 31, 40, 56, 59, 97, 192, 155, 161, 166, 190, 254, 263, 287, 320, 327, 353, 365, 394, 421, 448, 467, 481, 494, 526, 550, 546, 592, 608, 639, 676, 701, 704],
+    [47, 67, 106, 130, 145, 165, 193, 209, 233, 263, 286, 308, 334, 394, 401, 409, 442, 463, 501, 545, 585, 620, 661, 669, 728]
+]
+
+# --- Things that depend on condition
+# DLC iternum, for trained model
+list_dlciternum: [100000, 100000, None]
+
+# NOTE: for wand, extract good frames useing automated method.
+# These are identical across cams, so just one list
+# These indices are context-dependnet, within the N extracted frames...
+
+# If ntoget = 400
+# bad_frames_wand: [
+#     31, 42, 52, 65
+# ]
+
+# If ntoget = 800, just ignore checking bad frames
+bad_frames_wand: []

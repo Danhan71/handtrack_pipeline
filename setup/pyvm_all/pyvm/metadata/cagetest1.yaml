@@ -1,0 +1,21 @@
+# Things that dont depend on condition
+list_camnames: ["bfu", "bfs", "flea"]
+dirname: "210903_cagetest1"
+
+######## DOES DEPEND ON CONDITION
+list_conditions: ["behavior", "wand"]
+list_bodyparts: [
+    ["fingertip"],
+    ["blue", "red"]
+]
+list_skeletons: [[], []]
+list_start: [0.15, 0.] # fraction of video, for extraction frmaes.
+list_stop: [0.85, 1.]
+list_combinecams: [True, True]
+
+# One per condition
+list_vidnums: [
+    [22, 102], # trials where there is behavior (start, end)
+    null
+]
+list_numframes2pick: [2, 75] # frames per video, so make low if many videos.

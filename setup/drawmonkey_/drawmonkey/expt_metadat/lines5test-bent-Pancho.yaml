@@ -1,0 +1,45 @@
+## 7/7/22 - to test out latest code, whether can use Dataset for these old tasks (for Kedar, for Luca)
+sdate: 200925
+edate: 201001
+
+# ==== STROKES MOTOR MODEL PARAMS
+strokmodel_kind: "spatial"
+strokmodel_tstamp: "201006_032853_lines5"
+
+# ==== expt schedule
+datecategories: null
+dates_for_summary: [200929, 200930, 201001]
+matchedstrokes: null # these strokes are aggregated on each day. expect these to be comaprable across days.
+
+# -- diff expt anmes were used in real life
+exptnames: [] # null
+
+# T1: []
+# G1: []
+# G2: [
+#   [C, []],
+#   [triangle, []],
+#   [S, []],
+#   [h, []],
+#   [tristar, []],
+#   [F, []],
+#   [linePlusLv2, []],
+# ]
+# G3: [
+#   [2linePlusL, []],
+#   [LplusL, []],
+#   [3linePlusL, []],
+# ]
+# G4: []
+
+# Use old version, since uses bunch of conditionals to make this correct for lines5
+# Keep linePlusLv2 in both G2 and G3 (?)
+tasknames_G1: []
+tasknames_G2: ["C", "triangle", "S", "h", "tristar", "F", "linePlusLv2"]
+tasknames_G3: ["2linePlusL", "LplusL", "linePlusLv2", "3linePlusL"]
+
+
+# - note to self
+description: ""
+finalized: true # 
+good_expt: true #

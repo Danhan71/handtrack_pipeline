@@ -1,0 +1,22 @@
+sdate: 210304
+edate: 210304
+
+# ==== STROKES MOTOR MODEL PARAMS
+strokmodel_kind: null
+strokmodel_tstamp: null
+
+# ==== expt schedule
+datecategories: null
+dates_for_summary: ["210304"] # for epoch 1 vs. epoch 2. pick peak of learning.
+# assert False, "need to allow all strokenums, change matched strokes." 
+matchedstrokes: null # these strokes are aggregated on each day. expect these to be comaprable across days.
+
+# -- diff expt anmes were used in real life
+exptnames: [figures8, figures8v2] # null
+
+tasknames_G1: []
+tasknames_G2: [mixture2]
+tasknames_G3: [mixture1, mixture2]
+
+# - note to self
+description: "pilot"

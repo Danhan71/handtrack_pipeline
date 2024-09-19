@@ -1,0 +1,77 @@
+#!/usr/bin/env bash
+
+#######################################################
+#Main modlue for hand track video pipeline.
+#Written bt Daniel Hanuska
+#Freiwald Lab
+#07/08/2024
+#######################################################
+
+help_message () {
+	echo ""
+	echo "Hand Track Pipeline"
+	echo "Usage: pipeline [module] [options]"
+	echo ""
+	echo "Modules:"
+	echo "	env-setup	Sets up the necessary conda environments, ensure you do not have environments named '_drawcamera' or '_dlc'"
+	echo "	init		Initialize directories and metadata (will automatically gen metadata but check to make sure its how you want)"
+	echo "	checkerb	Checkerboard calibration"
+	echo "	dlc-setup	Set up for DLC train/analyze module"
+	echo "	train		DLC train module (must run dlc-setup first). Will also analyze videos."
+	echo "	analyze		Only run analysis steps, do not need to train. Must run dlc-setup first."
+	echo "	campy		Extract campy data"
+	echo "	wand		Wand clibration/3D grid stuff/easyWand"
+	echo ""
+	echo "See /pipeline-modules for module code"
+	echo "See /pipeline-scripts for some useful little scripts"
+	echo "See /setup for a majority of the source code"
+	echo "Don't contact me with issues"
+	echo ""
+}
+
+this_dir="$(dirname "$0")"
+config_file=${this_dir}/config
+source $config_file
+echo "Ensure the config file is updated with the path of this directory"
+if [[ $? -ne 0 ]]; then 
+	echo "no config file."
+	exit 1
+fi
+
+comm () { ${pipe_path}/pipeline_scripts/print_comment.py "$1" "-"; }
+
+if [ "$1" = env-setup ]; then
+	echo pipeline env-setup ${@:2}
+	time ${pipe_path}/pipeline-modules/env-setup.sh ${@:2}
+elif [ "$1" = init ]; then
+    echo pipeline intializer ${@:2}
+    time ${pipe_path}/pipeline-modules/init.sh ${@:2}
+elif [ "$1" = checkerb ]; then
+	echo pipeline checkerboard calibration ${@:2}
+	time ${pipe_path}/pipeline-modules/checkerb.sh ${@:2}
+elif [ "$1" = dlc-setup ]; then
+    echo dlc training setup ${@:2}
+    time ${pipe_path}/pipeline-modules/dlc-setup.sh ${@:2}
+elif [ "$1" = train ]; then
+    echo dlc train ${@:2}
+	time ${pipe_path}/pipeline-modules/train.sh ${@:2}
+# elif [ "$1" = campy ]; then
+# 	echo "Don't use this module, use wand step 4/5 instead"
+# 	exit 1
+#     echo model evaluation ${@:2}
+	# time ${pipe_path}/pipeline-modules/campy.sh ${@:2}
+elif [ "$1" = wand ]; then
+	echo wand and 3d coords ${@:2}
+	time ${pipe_path}/pipeline-modules/wand.sh ${@:2}
+elif [ "$1" = analyze ]; then
+	echo model evaluation ${@:2}
+	time ${pipe_path}/pipeline-modules/analyze.sh ${@:2}
+elif [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+	help_message
+else
+	echo "Please select a proper module" &&
+	help_message &&
+	exit 1
+fi
+
+

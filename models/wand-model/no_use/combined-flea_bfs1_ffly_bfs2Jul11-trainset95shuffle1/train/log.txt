@@ -1,0 +1,240 @@
+2024-07-12 14:38:12 Config:
+{'all_joints': [[0], [1]],
+ 'all_joints_names': ['green', 'red'],
+ 'alpha_r': 0.02,
+ 'apply_prob': 0.5,
+ 'batch_size': 1,
+ 'contrast': {'clahe': True,
+              'claheratio': 0.1,
+              'histeq': True,
+              'histeqratio': 0.1},
+ 'convolution': {'edge': False,
+                 'emboss': {'alpha': [0.0, 1.0], 'strength': [0.5, 1.5]},
+                 'embossratio': 0.1,
+                 'sharpen': False,
+                 'sharpenratio': 0.3},
+ 'crop_pad': 0,
+ 'cropratio': 0.4,
+ 'dataset': 'training-datasets/iteration-0/UnaugmentedDataSet_combined-flea_bfs1_ffly_bfs2Jul11/combined-flea_bfs1_ffly_bfs2_Lucas95shuffle1.mat',
+ 'dataset_type': 'default',
+ 'decay_steps': 30000,
+ 'deterministic': False,
+ 'display_iters': 1000,
+ 'fg_fraction': 0.25,
+ 'global_scale': 0.8,
+ 'init_weights': '/home/danhan/Documents/pipeline/setup/deeplabcut/deeplabcut/pose_estimation_tensorflow/models/pretrained/resnet_v1_50.ckpt',
+ 'intermediate_supervision': False,
+ 'intermediate_supervision_layer': 12,
+ 'location_refinement': True,
+ 'locref_huber_loss': True,
+ 'locref_loss_weight': 0.05,
+ 'locref_stdev': 7.2801,
+ 'log_dir': 'log',
+ 'lr_init': 0.0005,
+ 'max_input_size': 1500,
+ 'mean_pixel': [123.68, 116.779, 103.939],
+ 'metadataset': 'training-datasets/iteration-0/UnaugmentedDataSet_combined-flea_bfs1_ffly_bfs2Jul11/Documentation_data-combined-flea_bfs1_ffly_bfs2_95shuffle1.pickle',
+ 'min_input_size': 64,
+ 'mirror': False,
+ 'multi_stage': False,
+ 'multi_step': [[0.005, 10000],
+                [0.02, 430000],
+                [0.002, 730000],
+                [0.001, 1030000]],
+ 'net_type': 'resnet_50',
+ 'num_joints': 2,
+ 'optimizer': 'sgd',
+ 'pairwise_huber_loss': False,
+ 'pairwise_predict': False,
+ 'partaffinityfield_predict': False,
+ 'pos_dist_thresh': 17,
+ 'project_path': '/home/danhan/Documents/hand_track/data/Pancho/123456/wand/DLC/combined-flea_bfs1_ffly_bfs2-Lucas-2024-07-11',
+ 'regularize': False,
+ 'rotation': 25,
+ 'rotratio': 0.4,
+ 'save_iters': 50000,
+ 'scale_jitter_lo': 0.5,
+ 'scale_jitter_up': 1.25,
+ 'scoremap_dir': 'test',
+ 'shuffle': True,
+ 'snapshot_prefix': '/home/danhan/Documents/hand_track/data/Pancho/123456/wand/DLC/combined-flea_bfs1_ffly_bfs2-Lucas-2024-07-11/dlc-models/iteration-0/combined-flea_bfs1_ffly_bfs2Jul11-trainset95shuffle1/train/snapshot',
+ 'stride': 8.0,
+ 'weigh_negatives': False,
+ 'weigh_only_present_joints': False,
+ 'weigh_part_predictions': False,
+ 'weight_decay': 0.0001}
+2024-07-12 14:47:09 iteration: 1000 loss: 0.0194 lr: 0.005
+2024-07-12 14:49:55 iteration: 2000 loss: 0.0083 lr: 0.005
+2024-07-12 14:51:55 iteration: 3000 loss: 0.0063 lr: 0.005
+2024-07-12 14:53:31 iteration: 4000 loss: 0.0055 lr: 0.005
+2024-07-12 14:54:53 iteration: 5000 loss: 0.0049 lr: 0.005
+2024-07-12 14:56:11 iteration: 6000 loss: 0.0044 lr: 0.005
+2024-07-12 14:57:28 iteration: 7000 loss: 0.0042 lr: 0.005
+2024-07-12 14:58:41 iteration: 8000 loss: 0.0039 lr: 0.005
+2024-07-12 14:59:48 iteration: 9000 loss: 0.0039 lr: 0.005
+2024-07-12 15:00:59 iteration: 10000 loss: 0.0035 lr: 0.005
+2024-07-12 15:02:06 iteration: 11000 loss: 0.0051 lr: 0.02
+2024-07-12 15:03:10 iteration: 12000 loss: 0.0045 lr: 0.02
+2024-07-12 15:04:15 iteration: 13000 loss: 0.0040 lr: 0.02
+2024-07-12 15:05:19 iteration: 14000 loss: 0.0037 lr: 0.02
+2024-07-12 15:06:23 iteration: 15000 loss: 0.0035 lr: 0.02
+2024-07-12 15:07:28 iteration: 16000 loss: 0.0032 lr: 0.02
+2024-07-12 15:08:32 iteration: 17000 loss: 0.0032 lr: 0.02
+2024-07-12 15:09:36 iteration: 18000 loss: 0.0031 lr: 0.02
+2024-07-12 15:10:41 iteration: 19000 loss: 0.0029 lr: 0.02
+2024-07-12 15:11:45 iteration: 20000 loss: 0.0032 lr: 0.02
+2024-07-12 15:12:50 iteration: 21000 loss: 0.0029 lr: 0.02
+2024-07-12 15:13:54 iteration: 22000 loss: 0.0027 lr: 0.02
+2024-07-12 15:14:57 iteration: 23000 loss: 0.0027 lr: 0.02
+2024-07-12 15:16:01 iteration: 24000 loss: 0.0027 lr: 0.02
+2024-07-12 15:17:04 iteration: 25000 loss: 0.0026 lr: 0.02
+2024-07-12 15:18:08 iteration: 26000 loss: 0.0026 lr: 0.02
+2024-07-12 15:19:12 iteration: 27000 loss: 0.0026 lr: 0.02
+2024-07-12 15:20:16 iteration: 28000 loss: 0.0026 lr: 0.02
+2024-07-12 15:21:18 iteration: 29000 loss: 0.0025 lr: 0.02
+2024-07-12 15:22:21 iteration: 30000 loss: 0.0025 lr: 0.02
+2024-07-12 15:23:24 iteration: 31000 loss: 0.0024 lr: 0.02
+2024-07-12 15:24:27 iteration: 32000 loss: 0.0024 lr: 0.02
+2024-07-12 15:25:31 iteration: 33000 loss: 0.0025 lr: 0.02
+2024-07-12 15:26:34 iteration: 34000 loss: 0.0025 lr: 0.02
+2024-07-12 15:27:37 iteration: 35000 loss: 0.0025 lr: 0.02
+2024-07-12 15:28:38 iteration: 36000 loss: 0.0025 lr: 0.02
+2024-07-12 15:29:42 iteration: 37000 loss: 0.0022 lr: 0.02
+2024-07-12 15:30:45 iteration: 38000 loss: 0.0023 lr: 0.02
+2024-07-12 15:31:47 iteration: 39000 loss: 0.0024 lr: 0.02
+2024-07-12 15:32:51 iteration: 40000 loss: 0.0023 lr: 0.02
+2024-07-12 15:33:55 iteration: 41000 loss: 0.0024 lr: 0.02
+2024-07-12 15:34:59 iteration: 42000 loss: 0.0023 lr: 0.02
+2024-07-12 15:36:01 iteration: 43000 loss: 0.0022 lr: 0.02
+2024-07-12 15:37:04 iteration: 44000 loss: 0.0022 lr: 0.02
+2024-07-12 15:38:06 iteration: 45000 loss: 0.0022 lr: 0.02
+2024-07-12 15:39:08 iteration: 46000 loss: 0.0022 lr: 0.02
+2024-07-12 15:40:12 iteration: 47000 loss: 0.0022 lr: 0.02
+2024-07-12 15:41:15 iteration: 48000 loss: 0.0020 lr: 0.02
+2024-07-12 15:42:18 iteration: 49000 loss: 0.0022 lr: 0.02
+2024-07-12 15:43:21 iteration: 50000 loss: 0.0021 lr: 0.02
+2024-07-12 15:44:23 iteration: 51000 loss: 0.0022 lr: 0.02
+2024-07-12 15:45:26 iteration: 52000 loss: 0.0021 lr: 0.02
+2024-07-12 15:46:28 iteration: 53000 loss: 0.0021 lr: 0.02
+2024-07-12 15:47:30 iteration: 54000 loss: 0.0021 lr: 0.02
+2024-07-12 15:48:32 iteration: 55000 loss: 0.0021 lr: 0.02
+2024-07-12 15:49:34 iteration: 56000 loss: 0.0021 lr: 0.02
+2024-07-12 15:50:35 iteration: 57000 loss: 0.0022 lr: 0.02
+2024-07-12 15:51:37 iteration: 58000 loss: 0.0020 lr: 0.02
+2024-07-12 15:52:39 iteration: 59000 loss: 0.0020 lr: 0.02
+2024-07-12 15:53:41 iteration: 60000 loss: 0.0020 lr: 0.02
+2024-07-12 15:54:43 iteration: 61000 loss: 0.0020 lr: 0.02
+2024-07-12 15:55:46 iteration: 62000 loss: 0.0020 lr: 0.02
+2024-07-12 15:56:49 iteration: 63000 loss: 0.0020 lr: 0.02
+2024-07-12 15:57:50 iteration: 64000 loss: 0.0020 lr: 0.02
+2024-07-12 15:58:55 iteration: 65000 loss: 0.0020 lr: 0.02
+2024-07-12 15:59:57 iteration: 66000 loss: 0.0021 lr: 0.02
+2024-07-12 16:01:00 iteration: 67000 loss: 0.0022 lr: 0.02
+2024-07-12 16:02:02 iteration: 68000 loss: 0.0020 lr: 0.02
+2024-07-12 16:03:04 iteration: 69000 loss: 0.0021 lr: 0.02
+2024-07-12 16:04:06 iteration: 70000 loss: 0.0020 lr: 0.02
+2024-07-12 16:05:09 iteration: 71000 loss: 0.0020 lr: 0.02
+2024-07-12 16:06:11 iteration: 72000 loss: 0.0019 lr: 0.02
+2024-07-12 16:07:13 iteration: 73000 loss: 0.0021 lr: 0.02
+2024-07-12 16:08:16 iteration: 74000 loss: 0.0020 lr: 0.02
+2024-07-12 16:09:18 iteration: 75000 loss: 0.0019 lr: 0.02
+2024-07-12 16:10:22 iteration: 76000 loss: 0.0019 lr: 0.02
+2024-07-12 16:11:24 iteration: 77000 loss: 0.0019 lr: 0.02
+2024-07-12 16:12:28 iteration: 78000 loss: 0.0019 lr: 0.02
+2024-07-12 16:13:31 iteration: 79000 loss: 0.0019 lr: 0.02
+2024-07-12 16:14:34 iteration: 80000 loss: 0.0018 lr: 0.02
+2024-07-12 16:15:36 iteration: 81000 loss: 0.0019 lr: 0.02
+2024-07-12 16:16:39 iteration: 82000 loss: 0.0019 lr: 0.02
+2024-07-12 16:17:42 iteration: 83000 loss: 0.0019 lr: 0.02
+2024-07-12 16:18:45 iteration: 84000 loss: 0.0019 lr: 0.02
+2024-07-12 16:19:48 iteration: 85000 loss: 0.0019 lr: 0.02
+2024-07-12 16:20:51 iteration: 86000 loss: 0.0018 lr: 0.02
+2024-07-12 16:21:53 iteration: 87000 loss: 0.0019 lr: 0.02
+2024-07-12 16:22:56 iteration: 88000 loss: 0.0019 lr: 0.02
+2024-07-12 16:23:59 iteration: 89000 loss: 0.0019 lr: 0.02
+2024-07-12 16:25:01 iteration: 90000 loss: 0.0018 lr: 0.02
+2024-07-12 16:26:04 iteration: 91000 loss: 0.0019 lr: 0.02
+2024-07-12 16:27:05 iteration: 92000 loss: 0.0018 lr: 0.02
+2024-07-12 16:28:08 iteration: 93000 loss: 0.0019 lr: 0.02
+2024-07-12 16:29:10 iteration: 94000 loss: 0.0019 lr: 0.02
+2024-07-12 16:30:13 iteration: 95000 loss: 0.0018 lr: 0.02
+2024-07-12 16:31:16 iteration: 96000 loss: 0.0018 lr: 0.02
+2024-07-12 16:32:18 iteration: 97000 loss: 0.0019 lr: 0.02
+2024-07-12 16:33:18 iteration: 98000 loss: 0.0018 lr: 0.02
+2024-07-12 16:34:20 iteration: 99000 loss: 0.0018 lr: 0.02
+2024-07-12 16:35:22 iteration: 100000 loss: 0.0018 lr: 0.02
+2024-07-31 17:46:49 Config:
+{'all_joints': [[0], [1]],
+ 'all_joints_names': ['green', 'red'],
+ 'alpha_r': 0.02,
+ 'apply_prob': 0.5,
+ 'batch_size': 1,
+ 'contrast': {'clahe': True,
+              'claheratio': 0.1,
+              'histeq': True,
+              'histeqratio': 0.1},
+ 'convolution': {'edge': False,
+                 'emboss': {'alpha': [0.0, 1.0], 'strength': [0.5, 1.5]},
+                 'embossratio': 0.1,
+                 'sharpen': False,
+                 'sharpenratio': 0.3},
+ 'crop_pad': 0,
+ 'cropratio': 0.4,
+ 'dataset': 'training-datasets/iteration-0/UnaugmentedDataSet_combined-flea_bfs2_bfs1_fly1Jul31/combined-flea_bfs2_bfs1_fly1_Lucas95shuffle1.mat',
+ 'dataset_type': 'default',
+ 'decay_steps': 30000,
+ 'deterministic': False,
+ 'display_iters': 1000,
+ 'fg_fraction': 0.25,
+ 'global_scale': 0.8,
+ 'init_weights': '/home/danhan/Documents/pipeline/setup/deeplabcut/deeplabcut/pose_estimation_tensorflow/models/pretrained/resnet_v1_50.ckpt',
+ 'intermediate_supervision': False,
+ 'intermediate_supervision_layer': 12,
+ 'location_refinement': True,
+ 'locref_huber_loss': True,
+ 'locref_loss_weight': 0.05,
+ 'locref_stdev': 7.2801,
+ 'log_dir': 'log',
+ 'lr_init': 0.0005,
+ 'max_input_size': 1500,
+ 'mean_pixel': [123.68, 116.779, 103.939],
+ 'metadataset': 'training-datasets/iteration-0/UnaugmentedDataSet_combined-flea_bfs2_bfs1_fly1Jul31/Documentation_data-combined-flea_bfs2_bfs1_fly1_95shuffle1.pickle',
+ 'min_input_size': 64,
+ 'mirror': False,
+ 'multi_stage': False,
+ 'multi_step': [[0.005, 10000],
+                [0.02, 430000],
+                [0.002, 730000],
+                [0.001, 1030000]],
+ 'net_type': 'resnet_50',
+ 'num_joints': 2,
+ 'optimizer': 'sgd',
+ 'pairwise_huber_loss': False,
+ 'pairwise_predict': False,
+ 'partaffinityfield_predict': False,
+ 'pos_dist_thresh': 17,
+ 'project_path': '/data3/hand_track/Pancho/220503_chunkbygrid3_wand/wand/DLC/combined-flea_bfs2_bfs1_fly1-Lucas-2024-07-31',
+ 'regularize': False,
+ 'rotation': 25,
+ 'rotratio': 0.4,
+ 'save_iters': 50000,
+ 'scale_jitter_lo': 0.5,
+ 'scale_jitter_up': 1.25,
+ 'scoremap_dir': 'test',
+ 'shuffle': True,
+ 'snapshot_prefix': '/data3/hand_track/Pancho/220503_chunkbygrid3_wand/wand/DLC/combined-flea_bfs2_bfs1_fly1-Lucas-2024-07-31/dlc-models/iteration-0/combined-flea_bfs2_bfs1_fly1Jul31-trainset95shuffle1/train/snapshot',
+ 'stride': 8.0,
+ 'weigh_negatives': False,
+ 'weigh_only_present_joints': False,
+ 'weigh_part_predictions': False,
+ 'weight_decay': 0.0001}
+2024-07-31 17:56:15 iteration: 1000 loss: 0.0183 lr: 0.005
+2024-07-31 17:59:04 iteration: 2000 loss: 0.0080 lr: 0.005
+2024-07-31 18:01:07 iteration: 3000 loss: 0.0067 lr: 0.005
+2024-07-31 18:02:39 iteration: 4000 loss: 0.0058 lr: 0.005
+2024-07-31 18:04:05 iteration: 5000 loss: 0.0052 lr: 0.005
+2024-07-31 18:05:25 iteration: 6000 loss: 0.0047 lr: 0.005
+2024-07-31 18:06:43 iteration: 7000 loss: 0.0044 lr: 0.005
+2024-07-31 18:07:55 iteration: 8000 loss: 0.0040 lr: 0.005
+2024-07-31 18:09:05 iteration: 9000 loss: 0.0038 lr: 0.005
+2024-07-31 18:10:17 iteration: 10000 loss: 0.0035 lr: 0.005

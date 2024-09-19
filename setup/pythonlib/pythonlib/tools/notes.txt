@@ -1,0 +1,8 @@
+# Jupyter, if want stuff to run every time, put into:
+~/.ipython/profile_default/startup/00-first.py
+
+e.g., 00-first.py contents:
+get_ipython().magic(u"%reload_ext autoreload")
+get_ipython().magic(u"%autoreload 2")
+get_ipython().magic(u"%matplotlib notebook")
+get_ipython().magic(u"%config Completer.use_jedi = False")

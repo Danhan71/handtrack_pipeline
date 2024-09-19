@@ -1,0 +1,14 @@
+all_joints:
+- - 0
+- - 1
+all_joints_names:
+- green
+- red
+dataset: training-datasets/iteration-0/UnaugmentedDataSet_combined-fly2_bfs2_fly1_flea_bfs1Aug14/combined-fly2_bfs2_fly1_flea_bfs1_Lucas95shuffle1.mat
+global_scale: 0.8
+init_weights: /home/danhan/Documents/pipeline/setup/deeplabcut/deeplabcut/pose_estimation_tensorflow/models/pretrained/resnet_v1_50.ckpt
+location_refinement: true
+locref_stdev: 7.2801
+net_type: resnet_50
+num_joints: 2
+scoremap_dir: test

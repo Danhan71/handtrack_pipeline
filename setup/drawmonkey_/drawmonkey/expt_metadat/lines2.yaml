@@ -1,0 +1,27 @@
+sdate: 200902
+edate: 200907
+
+# ==== STROKES MOTOR MODEL PARAMS
+strokmodel_kind: "spatial"
+strokmodel_tstamp: "200922_093340_lines2"
+
+datecategories:
+  "200902": 1 
+  "200903": 1
+  "200904": 2
+  "200905": 2
+  "200906": 2
+  "200907": 2
+dates_for_summary: ["200902", "200903", "200906", "200907"] # for epoch 1 vs. epoch 2. pick peak of learning.
+# assert False, "need to allow all strokenums, change matched strokes." 
+matchedstrokes: [0, 1] # these strokes are aggregated on each day. expect these to be comaprable across days.
+
+# -- diff expt anmes were used in real life
+exptnames: [] # null
+
+tasknames_G1: []
+tasknames_G2: []
+tasknames_G3: []
+
+# - note to self
+description: ""

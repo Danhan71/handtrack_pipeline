@@ -1,0 +1,5 @@
+setup.py
+pyvm.egg-info/PKG-INFO
+pyvm.egg-info/SOURCES.txt
+pyvm.egg-info/dependency_links.txt
+pyvm.egg-info/top_level.txt

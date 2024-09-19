@@ -1,0 +1,2 @@
+model_checkpoint_path: "/data3/hand_track/Pancho/220503_chunkbygrid3_wand/wand/DLC/combined-flea_bfs2_bfs1_fly1-Lucas-2024-07-31/dlc-models/iteration-0/combined-flea_bfs2_bfs1_fly1Jul31-trainset95shuffle1/train/snapshot-10000"
+all_model_checkpoint_paths: "/data3/hand_track/Pancho/220503_chunkbygrid3_wand/wand/DLC/combined-flea_bfs2_bfs1_fly1-Lucas-2024-07-31/dlc-models/iteration-0/combined-flea_bfs2_bfs1_fly1Jul31-trainset95shuffle1/train/snapshot-10000"

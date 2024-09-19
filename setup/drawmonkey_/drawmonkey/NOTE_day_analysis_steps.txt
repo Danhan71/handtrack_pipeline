@@ -1,0 +1,10 @@
+==3/16/21 -
+
+1) Block transitions
+- walk thru
+- Look thru beh plots
+2) Any tasks really hard?
+3) beh Eval feeatures
+- update params
+- make sure probes are similar
+4) Visualize all 0, 5, 6

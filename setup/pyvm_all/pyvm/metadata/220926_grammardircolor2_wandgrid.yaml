@@ -1,0 +1,26 @@
+good_frames_checkerboard: []
+list_bodyparts:
+- - green
+  - red
+list_combinecams:
+- true
+list_conditions:
+- wand
+list_dlciternum:
+- 100000
+list_numframes2pick:
+- 100
+list_skeletons:
+- []
+list_start:
+- 0.0
+list_stop:
+- 1.0
+list_vidnums:
+- - 2
+  - 2
+vidnums_to_copy:
+  3dgrid: []
+  behavior: []
+  checker: []
+  wand: [2]
