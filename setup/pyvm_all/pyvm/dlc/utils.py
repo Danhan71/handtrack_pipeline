@@ -3,7 +3,7 @@ from pyvm.utils.experiments import get_params
 from pyvm.globals import BASEDIR
 
 
-def find_expt_config_paths(exptname, condition):
+def find_expt_config_paths(exptname, condition, animal):
     """
     Return dict, holding path of config file for all cameras under this expt and condition. 
     e..g,:
@@ -18,7 +18,7 @@ def find_expt_config_paths(exptname, condition):
     from pythonlib.tools.expttools import findPath
     # from pyvm.dlc.initialize import get_params
 
-    params = get_params(exptname)
+    params = get_params(exptname, animal)
 
     # Find the ind for the desired condition
     list_conditions = params["list_conditions"]

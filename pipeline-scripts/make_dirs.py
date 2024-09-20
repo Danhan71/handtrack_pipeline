@@ -70,7 +70,7 @@ def generate_expt_yaml (expt_name, pipe_path, data_dir, condition, animal):
 
 	for varname, var in zip(str_varlist, varlist):
 		TEMP[varname] = var 
-	with open(f"{pipe_path}/metadata/{name}.yaml", "w") as f:
+	with open(f"{pipe_path}/metadata/{animal}/{name}.yaml", "w") as f:
 		yaml.dump(TEMP,f, default_flow_style=False)
 
 	if condition == "checkerboard":

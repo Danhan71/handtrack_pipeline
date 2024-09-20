@@ -192,10 +192,10 @@ if __name__ == "__main__":
 	data_dir = args.data
 
 	#Get range of trials to analyze data from
-	config = load_yaml_config(f"{pipe_path}/metadata/{name}.yaml")
+	config = load_yaml_config(f"{pipe_path}/metadata/{animal}/{name}.yaml")
 	vid_inds = config["list_vidnums"][0]
 	trange = range(vid_inds[0]+1,vid_inds[1]+1)
-	# ind1_vid = vid_inds[0]
+	# ind1_vid = vid_inds[0]global
 
 	#Sort of a vestige but we'll keep it
 	if expt=="chunkbyshape4":
@@ -208,7 +208,7 @@ if __name__ == "__main__":
 	print("Vid", trange)
 
 	fd = loadSingleDataQuick(animal, date, expt, sess)
-	HT = HandTrack(ind1_vid, ind1_ml2, fd, date=date, expt=expt)
+	HT = HandTrack(ind1_vid, ind1_ml2, fd, animal=animal, date=date, expt=expt)
 	HT.load_campy_data(ind1_ml2, sess=sess_print)
 	trials_no_ts_data = []
 

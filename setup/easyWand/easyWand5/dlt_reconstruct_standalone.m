@@ -1,4 +1,4 @@
-function [xyz,rmse] = dlt_reconstruct(c,camPts)
+function [xyz,rmse] = dlt_reconstruct_standalone(c,camPts)
 
 % function [xyz,rmse] = dlt_reconstruct(c,camPts)
 %

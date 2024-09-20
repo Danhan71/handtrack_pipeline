@@ -12,15 +12,15 @@ from sklearn.linear_model import LinearRegression
 from pythonlib.tools.stroketools import strokesInterpolate2
 from pyvm.globals import BASEDIR, NCAMS
 
+
 ncams = NCAMS
-SAVEDIR = "/data3/hand_track/Pancho"
 
 class HandTrack(object):
     """ 
     NOTE:
     - Generally use a new Handtrack Instance for each filedata (fd).
     """
-    def __init__(self, ind1_vid, ind1_ml2, fd, date, expt, regressor = 0):
+    def __init__(self, ind1_vid, ind1_ml2, fd, date, expt, animal, regressor = 0):
         """
         PARAMS
         - ind1_vid, the first video ind with data. Should correspnd to
@@ -37,6 +37,7 @@ class HandTrack(object):
         self.Expt = expt
         self.Fd = fd
         self.regressor = regressor
+        self.animal = animal
 
         # trial_map = [1, 6] # if [1,6], then ml2 trial 1 is vid6
 
@@ -697,7 +698,7 @@ class HandTrack(object):
         RETURNS:
         - dataframe, each row a single frame.
         """
-        sdir = f"{SAVEDIR}/{self.Date}_{self.Expt}{sess}/behavior/extracted_campy_data/dat.pkl"
+        sdir = f"{BASEDIR}/{self.animal}/{self.Date}_{self.Expt}{sess}/behavior/extracted_campy_data/dat.pkl"
         df_campy = pd.read_pickle(sdir)
 
         # flatten by extracting campy trametimes
@@ -778,11 +779,11 @@ class HandTrack(object):
         trial_dlc = self.convert_trialnums(trial_ml2=trial_ml2)
         
         # 1) Load 3d pts.
-        path = f"{SAVEDIR}/{self.Date}_{self.Expt}/behavior/extracted_dlc_data/3d-part_{bodypart}-trial_{trial_dlc}-dat.npy"
+        path = f"{BASEDIR}/{self.animal}/{self.Date}_{self.Expt}/behavior/extracted_dlc_data/3d-part_{bodypart}-trial_{trial_dlc}-dat.npy"
         pts_raw = np.load(path)
         
         # 2) Load each camera data (e.g.,Likelihood)
-        list_path = findPath(f"{SAVEDIR}/{self.Date}_{self.Expt}/behavior/extracted_dlc_data", [["camera", f"trial_{trial_dlc}-", "dat"]], None)
+        list_path = findPath(f"{BASEDIR}/{self.animal}/{self.Date}_{self.Expt}/behavior/extracted_dlc_data", [["camera", f"trial_{trial_dlc}-", "dat"]], None)
         if len(list_path)!=NCAMS:
             print(list_path)
             assert False

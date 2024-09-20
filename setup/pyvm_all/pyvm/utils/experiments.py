@@ -5,10 +5,10 @@ from pyvm.globals import PYVM_DIR
 from pythonlib.tools.expttools import load_yaml_config
 
 
-def get_params(x):
-    return get_params_yaml(x)
+def get_params(x,animal):
+    return get_params_yaml(x,animal)
 
-def get_params_yaml(DATE):
+def get_params_yaml(DATE, animal):
     exptname_or_date = DATE
     """ Loads params from yaml file
     PARAMS;
@@ -20,7 +20,7 @@ def get_params_yaml(DATE):
 
     from pythonlib.tools.expttools import load_yaml_config
 
-    path = f"{PYVM_DIR}/metadata/{exptname_or_date}.yaml"
+    path = f"{PYVM_DIR}/metadata/{animal}/{exptname_or_date}.yaml"
     params = load_yaml_config(path)
     animal = params["animal"]
 

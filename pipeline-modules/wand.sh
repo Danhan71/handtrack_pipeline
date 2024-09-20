@@ -60,7 +60,6 @@ while true; do
 	case "$1" in
 		--setup) setup=true; shift 1; break;;
 		--step) step=$2; shift 2;;
-		--coeff) coeff="$2"; shift 2;;
 		--cond) cond="$2"; shift 2;;
 		# --rmcam) rmcam="$2"; shift 2;;
 		--noreg) reg=0; shift 1;;

@@ -323,7 +323,7 @@ class Videos(object):
         from pyvm.utils.experiments import get_params
 
         # 1) Load metadata
-        p = get_params(f"{date}_{expt}")
+        p = get_params(f"{date}_{expt}", animal)
 
         # 2) convert params to videoclass-expected
         p["camera_names"] = {i:name for i, name in enumerate(p["list_camnames"])}
@@ -1374,6 +1374,7 @@ class Videos(object):
         """ [GOOD], getter of all paths related to this video.
         - REPLACES _paths
         """
+        animal = self.Params["load_params"]["animal"]
 
         pathdict = {}
 
@@ -1407,7 +1408,7 @@ class Videos(object):
         if include_dlc:
             if self.Params["load_params"]["condition"] != "checkerboard":
                 # Then get DLC
-                x = self.path_get_dlc(idx_vid)
+                x = self.path_get_dlc(idx_vid, animal = animal)
                 for k,v in x.items():
                     pathdict[k] = v        
 
@@ -1946,7 +1947,7 @@ class Videos(object):
             print("Updated datv")
 
     ########################## DEEP LAB CUT
-    def path_get_dlc(self, idx_video, analysis_suffix = "allvideos", videos_in_orig_folder=False):
+    def path_get_dlc(self, idx_video, animal, analysis_suffix = "allvideos", videos_in_orig_folder=False):
         """
         Help find path to DLC data for a given video
         PARAMS:
@@ -1971,7 +1972,7 @@ class Videos(object):
         path_dict = {}
 
         # base dlc path
-        dict_path, base_paths = find_expt_config_paths(self.Params["load_params"]["dirname"], self.Params["load_params"]["condition"])
+        dict_path, base_paths = find_expt_config_paths(self.Params["load_params"]["dirname"], self.Params["load_params"]["condition"], animal)
         path_dict["config"] = dict_path["combined"]
         path_dict["dlc_base"] = base_paths["combined"]
 
@@ -2032,6 +2033,8 @@ class Videos(object):
         import pandas as pd
 
         # For each video find its markers
+        animal = self.Params["load_params"]["animal"]
+
         for dat in self.DatVideos:
                 
             for key in ["data_dlc_downscaled", "data_dlc"]:
@@ -2052,7 +2055,7 @@ class Videos(object):
                     print(f"Loading {path}, DLC data")
             elif ver=="separate_analysis_dir":
                 # analysis has own folder.
-                pathdict = self.path_get_dlc(dat["index"], analysis_suffix=analysis_suffix)
+                pathdict = self.path_get_dlc(dat["index"], analysis_suffix=analysis_suffix, animal = animal)
                 if use_filtered:
                     path = pathdict["analysis_path_thisvid_filtered"]
                 else:
