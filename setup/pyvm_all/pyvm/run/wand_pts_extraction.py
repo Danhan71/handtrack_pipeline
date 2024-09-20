@@ -66,7 +66,7 @@ def extract_save_easywand_pts(V, list_part =None, indgrp = 0):
     basedir = V.Params["load_params"]["basedir"]
     SDIR = f"{basedir}/wand_calibration"
     os.makedirs(SDIR, exist_ok = True)
-    fname = f"{SDIR}/wandPointsscreen.csv"
+    fname = f"{SDIR}/wandPointsScreen.csv"
     np.savetxt(fname, vals, delimiter=",")
 
     fname = f"{SDIR}/camera_names_in_order.txt"
@@ -179,7 +179,6 @@ if __name__=="__main__":
     parser = argparse.ArgumentParser(description="Description of your script.")
     parser.add_argument("name", type=str, help="Experiment name/date")
     parser.add_argument("animal", type=str,help="Your mother")
-    parser.add_argument("--step", type=int, help="Run step")
     # parser.add_argument("--rmcam", type=str, help="List of cams to remove from the wand points extraction", default = None, required= False )
 
     args = parser.parse_args()
@@ -188,7 +187,6 @@ if __name__=="__main__":
     date = name.split("_")[0]
     expt = '_'.join(name.split("_")[1:])
     animal = args.animal
-    step = args.step
     # if args.rmcam is not None:
         # rmcam = args.rmcam.split(',')
 
@@ -196,20 +194,12 @@ if __name__=="__main__":
     V.load_data_wrapper(date=date,expt=expt,animal=animal, condition="wand")
     V.import_dlc_data()
     
-    if step==0:
 
-        # 1) Extract uniformly all frames, same across all cameras.
-        V.sample_and_extract_auto_good_frames(ntoget=5000)
+    # 1) Extract uniformly all frames, same across all cameras.
+    V.sample_and_extract_auto_good_frames(ntoget=5000)
 
-        # 2) Prune, but only keeping those passing DLC threshold for likeli.
-        V.filter_good_frames_dan(screen=True)
+    # 2) Prune, but only keeping those passing DLC threshold for likeli.
+    V.filter_good_frames_dan(screen=True)
 
-    elif step==1:
-        # Extract pts for easywand
-        extract_save_easywand_pts(V)
-        # extract_save_checkerboard_calib(V)
-
-    else:
-        assert False
-
-    print(name, step)
+    extract_save_easywand_pts(V)
+    # extract_save_checkerboard_calib(V)

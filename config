@@ -37,6 +37,6 @@ behavior_model_dir=/home/danhan/Documents/pipeline/models/beh-model/iteration-0/
 # E.G. 220914_dltCoefs.csv and 220914_columns.csv
 # [name]_dltCoefs.csv and [name]_columns.csv
 
-calib_prefix=opt_axis
+calib_prefix=slight_shift
 # calib_prefix=220317
 checkb_dir=/home/danhan/Documents/pipeline/checkerboard_calib/220914_calib

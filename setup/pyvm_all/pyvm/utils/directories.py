@@ -13,7 +13,7 @@ MAP_SERIAL_TO_NAME = {
     18061552: "flea",
     21155487: "fly1",
     21495924: "bfs1", # older version, low res
-    20142776: "bfs2", # newer version
+    # 20142776: "bfs2", # newer version
     22131878: "fly2" #The mythical 5th camera
 }
 list_conditions_dirs = ["3dgrid", "behavior", "checkerboard", "wand"]
@@ -96,7 +96,11 @@ def get_metadata(DATE, animal, condition=None, allow_generate_from_scratch=True)
                     # dict_meta = load_campy_matadat_csv(f"{dirthis_cam}/metadata-t0.csv")
                     serialnum = int(dict_meta["cameraSerialNo"])
                     camname = MAP_SERIAL_TO_NAME[serialnum]
-
+                    
+                    #Outright discrimination against bfs2 if mroe than 4 cams
+                    if len(camera_dirs) > 4 and camname == 'bfs2':
+                        continue
+                     
                     # store
                     if camnum in map_camnum_to_serial_name.keys():
                         # check that the same camera num mappings are used across all data dirs

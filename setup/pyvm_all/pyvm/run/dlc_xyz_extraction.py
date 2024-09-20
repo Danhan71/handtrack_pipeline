@@ -39,6 +39,8 @@ def align_dlt_coefs(dlt_coefs, cols, V):
 
     print("Organizing dlt coeffs ~_~")
     for cam in cam_list:
+        if cam == 'bfs2':
+            continue
         org_array.append(list(df[cam]))
     org_array = np.array(org_array).T
 

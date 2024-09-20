@@ -24,9 +24,7 @@ help_message () {
 	echo "		--step		Step (see options below, run all steps in succession)"
 	echo "		#### SKIP STEPS 0-3 IF YOU ARE USING PRECALCULATED WAND COEFSS"
 	echo "		0-----------Extract wand frames good accross all cameras"
-	echo "		1-----------Extract and save easywand points and checkerboard calibration"
-	echo "			Extra Option for step 0/1:
-						--rmcam	STR	Comma sparated list of cameras to remove from wands pts (eg bfs2)"
+	echo "		1-----------The Lord, God, Watches Us All"
 	echo "		2-----------Open DLTdv8 to extract axis pts from 3d grid photos. Refer to documentation for labelling instructions"
 	echo "		MAKE SURE TO DELETE THE NaN ROWS IN CSV data_xypts.csv FILE AFTER DONE"
 	echo "		3-----------Runs the easyWand calibration step, follow the instructions closely."
@@ -88,8 +86,10 @@ while true; do
     esac
 done
 
-if [ $step -lt 2 ]; then
-	python3 ${pyvm}/run/wand_pts_extraction.py ${name} ${animal} --step ${step} #--rmcam ${rmcam}
+if [ $step == 0 ]; then
+	python3 ${pyvm}/run/wand_pts_extraction.py ${name} ${animal}
+elif [ $step == 1 ]; then
+	echo "2 Corinthians 4:16-18 ~ So we do not lose heart. Though our outer self is wasting away, our inner self is being renewed day by day. For this light momentary affliction is preparing for us an eternal weight of glory beyond all comparison, as we look not to the things that are seen but to the things that are unseen. For the things that are seen are transient, but the things that are unseen are eternal."
 elif [ $step == 2 ]; then
 	if [ ! -f "${dlt_dir}" -o ! -d "${matrun_dir}" ]; then
     	echo "Error: DLT or MATLAB run time not found. Ensure that you have run the DLT install script, or install it via your preferred method. You must also update the config file with the proper dirs for MATLAB runtime and DLT."

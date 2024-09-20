@@ -74,7 +74,7 @@ if [ ${loop} = true ]; then
 
 		yes | ${this_dir}/pipeline analyze -e ${expt} --cond ${cond}
 
-		yes | ${this_dir}/pipeline wand -e ${expt} --step 4 --cond ${cond} --coeff ${dlt_coeff_path} -a ${animal}
+		yes | ${this_dir}/pipeline wand -e ${expt} --step 4 --cond ${cond} -a ${animal}
 
 		yes | ${this_dir}/pipeline wand -e ${expt} --step 5 --reg -a ${animal}
 
@@ -83,11 +83,11 @@ else
 	this_dir="$(dirname "$0")"
 	pipe="${this_dir}/pipeline"
 
-	# yes | $pipe init -e ${name} -a ${animal} -c ${cond} -d ${dir}
+	yes | $pipe init -e ${name} -a ${animal} -c ${cond} -d ${dir}
 
-	# yes | $pipe dlc-setup -e ${name} --${cond} --skiplabel --skipext -a ${animal}
+	yes | $pipe dlc-setup -e ${name} --${cond} --skiplabel --skipext -a ${animal}
 
-	# yes | ${this_dir}/pipeline analyze -e ${name} --cond ${cond}
+	yes | ${this_dir}/pipeline analyze -e ${name} --cond ${cond}
 
 	yes | ${this_dir}/pipeline wand -e ${name} -a ${animal} --step 4 --cond ${cond}
 

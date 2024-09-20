@@ -368,8 +368,11 @@ class Videos(object):
         """
         Function to take frames only that are near screen. Should only be used for 220914 cam setup,
         if other calibration hsould not be hard to alter function to work pretty easily
-        INPUTS: None
-        OUTPUTS: List of frames that are outside certain distance of screen (I did in same half of the frame as the screen as judged by x/y coords from top left)
+        INPUTS: 
+        - None
+        OUTPUTS: 
+        - List of frames that are outside certain distance of screen 
+        (I did in same half of the frame as the screen as judged by x/y coords from top left)
         """
         _, framenums, _ = self.goodframes_mapping_new_old_index(0)
         indtrial = self.inds_trials()[0]
@@ -385,7 +388,7 @@ class Videos(object):
         'bfs1': [0,0.67],
         'flea': [0.67,0],
         'fly1': [0,0.67],
-        'fly2': [0,0.67]
+        'fly2': [0,0.67],
         }
         df = pd.DataFrame(vals, columns=cols)
         
@@ -394,6 +397,8 @@ class Videos(object):
         ymaxs = [500,500,900,1100]
         xmaxs = [900,900,1000,1000]
         for cam, xcol, ycol, xmaxa, ymaxa in zip(cam_list,xcols,ycols,xmaxs,ymaxs):
+            if cam == 'bfs2':
+                continue
             assert (cam in xcol) and (cam in ycol), "Misaligned, check why"
             this_df = df.filter(regex=cam)
             this_df.loc[:,'frames'] = framenums
@@ -402,10 +407,10 @@ class Videos(object):
             xmax = max(this_df.iloc[:,0])
             ymax = max(this_df.iloc[:,1])
 
-            assert xmax<=xmaxa and ymax<=ymaxa, f'{xmax},{ymax}'
+            # assert xmax<=xmaxa and ymax<=ymaxa, f'{xmax},{ymax}'
 
-            xthresh = xmax * xpart
-            ythresh = ymax * ypart
+            xthresh = xmaxa * xpart
+            ythresh = ymaxa * ypart
 
             print('x',xthresh)
             print('y',ythresh)

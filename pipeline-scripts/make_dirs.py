@@ -10,6 +10,9 @@ import yaml
 def generate_expt_yaml (expt_name, pipe_path, data_dir, condition, animal):
 
 	list_camnames = get_cam_list(expt_name, animal)
+	#Brazenly discriminate against bfs2, if there are more than 4 cameras (4 cam setup bfs2 is okay)
+	if len(list_camnames) > 4:
+		list_camnames = [cam for cam in list_camnames if cam != 'bfs2']
 
 	#Generate condition dependent parameters
 	if condition == "behavior":

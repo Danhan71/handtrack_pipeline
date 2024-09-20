@@ -79,12 +79,14 @@ class HandTrack(object):
             takes datapoints in pts_to_snap, and generates strokes version of this, 
             based on relatiing its timettamps to those fo strokes_template. Assumes
             that pts_to_snap can yield both sstrokes and gaps. 
+            
             PARAMS:
             - strokes_template, strokes type, this determines the onsets and offsets of
             strokes (that's all)
             - pts_to_snap, NxD, where D usually 3 (x,y,t) or 4 (x,y,z,t). 
             - finger_raise_time = 0.1 # num seconds allow for raising and lowering. will ignore this much of the time flanking
-            # strokes, for defining what is a gap.
+             strokes, for defining what is a gap.
+             
             RETURNS:
             - DAT, dict holding variations of strokes formatted pts_to_snap
             NOTES:
@@ -111,7 +113,6 @@ class HandTrack(object):
             gaps_cam = [] # same format as strokes..
             t0 = 0.
             for i, strok in enumerate(strokes_template):
-                
                 # find all cam pts within bounds of the times of this ml2 stroke
                 #tall is from touchscreen reckoning
                 t1 = strok[0,dim_t_1]
@@ -122,16 +123,16 @@ class HandTrack(object):
                 inds = (pts_to_snap[:,dim_t_2]>=t1) & (pts_to_snap[:,dim_t_2]<=t2)
                 strokes_cam.append(pts_to_snap[inds, :])
                 #Hack probalby not safe
-                if tall[-1] > t[-1]:
-                    tall_og = tall
-                    tall=np.array([ta for ta in tall if ta <= t[-1]])
-                    assert (len(tall_og)-len(tall)) < 50, 'too much shit sliced out, previous 3 lines is for cleaning up loose ends not fixing major misalignments' 
+                # if tall[-1] > t[-1]:
+                #     tall_og = tall
+                #     tall=np.array([ta for ta in tall if ta <= t[-1]])
+                #     assert (len(tall_og)-len(tall)) < 50, 'too much shit sliced out, previous 3 lines is for cleaning up loose ends not fixing major misalignments' 
                 # - strokes, but interpolate to use same timestamps
                 if np.any((tall<=t[0]) | (tall>=t[-1])):
-                    print('tall',tall)
-                    print('################')
-                    print('t',t)
-                    assert False, "fix the underying issue"
+                    # print('tall',tall)
+                    # print('t',t)
+                    # assert False
+                    return {}
                 tall = tall[(tall>=t[0]) & (tall<=t[-1])] # cannot extrapolate.
                 strokes_cam_interp.append(funcinterp(tall))
                 
@@ -211,6 +212,8 @@ class HandTrack(object):
                 strokes_meters.append(x)
             strokes_task = strokes_meters
         dat = snap_pts_to_strokes(strokes, pts_time_cam_all)
+        if dat == {}:
+            return {},[],[]
         dat["strokes_task"] = strokes_task
 
         # store this
@@ -348,7 +351,7 @@ class HandTrack(object):
             # - overlay cam on top of touch
             ax = axes.flatten()[3]
             pts = np.concatenate(datall["strokes_cam"])
-            np.savetxt(f'/home/danhan/Documents/hand_track/Pancho/221015_dircolor1/{trial_ml2}strokes_cam.txt',pts)
+            # np.savetxt(f'/home/danhan/Documents/hand_track/Pancho/221015_dircolor1/{trial_ml2}strokes_cam.txt',pts)
             ax.plot(pts[:,0], pts[:,1], 'xk')
 
             ax = axes.flatten()[4]
@@ -829,7 +832,7 @@ class HandTrack(object):
                         max_ind = i
                         break
             from random import sample
-            assert max_ind < 20, "Comment this out if you are aware of why the first 20 frames are bad, this is just a check as most seem to be a few frames"
+            assert max_ind < 5, "Comment this out if you are aware of why the first 5+ frames are bad, this is just a check as most seem to be a few frames"
             volt_align = volt_times[max_ind:]
             # rand_list = sample(range(len(cam_times)), len(volt_align))
             # cam_align = cam_times[rand_list]
@@ -860,12 +863,14 @@ class HandTrack(object):
             
         # 3b) Get frametimes relative to trial
         t_intrial_raw = getTrialsCameraFrametimes(self.Fd, trial_ml2)[0]
+        
         # align = False
         if align == True:
             t_intrial, frametimes_mean, pts, camdict = align_frametimes(volt_times=t_intrial_raw,\
              cam_times=frametimes_mean_raw, pts_in=pts_raw, camdict_in=camdict_raw)
         else:
             t_intrial, frametimes_mean, pts, camdict = (t_intrial_raw, frametimes_mean_raw, pts_raw, camdict_raw)
+        
 
         assert len(t_intrial)==len(frametimes_mean), f"op1={len(t_intrial)}, op2={len(frametimes_mean)}"
 

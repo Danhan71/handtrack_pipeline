@@ -5,7 +5,6 @@ list_bodyparts:
   - red
 list_camnames:
 - fly1
-- bfs2
 - fly2
 - flea
 - bfs1

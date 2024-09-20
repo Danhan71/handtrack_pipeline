@@ -8,18 +8,20 @@ import shutil
 checkerboard_cam_order = ["flea", "fly1", "bfs1", "fly2"]
 
 #Put here a list of the days which have wand points. That means you have run everything in pipeline up to wand step 1
-wand_pts_dates = ["221002_grammardircolor3c_wandgrid"]
+wand_pts_dates = ["221015_dircolor2_wandgrid","221015_dirshapecolor1b_wandgrid","221015_dircolor3b_wandgrid"]
 
 #Base dir that the data is stored in 
 data_dir = "/data3/hand_track/Pancho"
+#List of wand point file names
+names_list = {"wandPointsNoScreen.csv","wandPointsNoScreen.csv","wandPointsScreen.csv",}
 
-for date in wand_pts_dates:
+for date,name in zip(wand_pts_dates,names_list):
     this_dir = f"{data_dir}/{date}/wand/wand_calibration"
     col_list = open(f"{this_dir}/columns.txt").read().splitlines()
     # if os.path.exists(f"{this_dir}/{date}-wandPoints.csv"):
         # os.remove(f"{this_dir}/{date}-wandPoints.csv")
     # wand_pts = [c for c in os.listdir(this_dir) if c.endswith('.csv')][0]
-    wand_pts = f"{this_dir}/wandPointsscreen.csv"
+    wand_pts = f"{this_dir}/{name}"
     df = pd.read_csv(f"{wand_pts}", header=None)
     df.columns = col_list
     align_list = []
@@ -32,8 +34,8 @@ for date in wand_pts_dates:
             if cam in col and 'red' in col:
                 align_list.append(col)
     df = df[align_list]
-    df.to_csv(f"{this_dir}/{date}-wandPointsscreen.csv", index = False, header = False)
-    shutil.copy(f"{this_dir}/{date}-wandPointsscreen.csv", f"{data_dir}/220914_wandall/wand/wand_calibration/{date}-wandPointsscreen.csv")
+    df.to_csv(f"{this_dir}/{date}-{name}", index = False, header = False)
+    shutil.copy(f"{this_dir}/{date}-{name}", f"{data_dir}/220914_wandall/wand/wand_calibration/{date}-{name}_2.csv")
 
 
 
