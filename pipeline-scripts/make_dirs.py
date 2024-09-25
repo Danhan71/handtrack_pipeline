@@ -35,8 +35,6 @@ def generate_expt_yaml (expt_name, pipe_path, data_dir, condition, animal):
 		list_dlciternum = [100000]
 
 	elif condition == "wand":
-		this_datadir=f"{data_dir}/{expt_name}/wand/bfs1"
-		vidmax = len([name for name in os.listdir(this_datadir) if name.endswith(".mp4")])
 		list_conditions = ["wand"]
 		list_bodyparts = [["green", "red"]]
 		list_skeletons = [[]]
@@ -132,7 +130,7 @@ if __name__ == "__main__":
 		metadat = load_yaml_config(f"{data_dir}/{name}/metadat.yaml")
 		cam_dirs = metadat["conditions_dict"][condition]["map_camname_to_path"]
 
-		config = load_yaml_config(f"{pipe_path}/metadata/{name}.yaml")
+		config = load_yaml_config(f"{pipe_path}/metadata/{animal}/{name}.yaml")
 		vid_inds = config["list_vidnums"][0]
 
 		for cam_name, cam_path in zip(cam_dirs.keys(), cam_dirs.values()):

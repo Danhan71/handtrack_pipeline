@@ -18,12 +18,14 @@ def displacement(x,y):
 	y_diff = y.diff()  
 	return np.sqrt(x_diff**2 + y_diff**2)
 
-def fit_regression_cam(HT, trange):
+def fit_regression_cam(HT, trange, supp=None):
 	"""
 	Fits linear regression for this HT object and trial list
 	PARAMS:
 	HT, hand track object
 	trange, range of trials
+	supp : Supplement regression with other points to make more robust? Use directory in pipeline to store supp files
+	Should be passed in as list with dlt pts at 0 and ground truth pts at 1
 	RETURNS: 
 	scikit linear regression object
 	"""
@@ -65,13 +67,24 @@ def fit_regression_cam(HT, trange):
 	cam_one_list = np.array([])
 	touch_one_list = np.array([])
 
+	#Makes one list of pts out of the middle 50% of strokes (the tail ends can be bad cam data and mess up regression)
 	for strok_cam, strok_touch in zip(strokes_cam_all, touch_interpz):
+		assert len(strok_cam)==len(strok_touch), "Stroke lens misaligned, maybe can just remove this assert idk"
+		n = len(strok_touch)
+		q1 = int(n/4)
+		q3 = int(3*n/4)
 		if len(cam_one_list) == 0 and len(touch_one_list) == 0:
-			cam_one_list = np.array(strok_cam)
-			touch_one_list = np.array(strok_touch)
+			cam_one_list = np.array(strok_cam[q1:q3])
+			touch_one_list = np.array(strok_touch[q1:q3])
 		else:
-			cam_one_list = np.concatenate((cam_one_list,strok_cam))
-			touch_one_list = np.concatenate((touch_one_list,strok_touch))
+			cam_one_list = np.concatenate((cam_one_list,strok_cam[q1:q3]))
+			touch_one_list = np.concatenate((touch_one_list,strok_touch[q1:q3]))
+	if supp is not None:
+		assert (len(supp) == 2) & (len(supp[0]) == len(supp[1]))
+		cam_one_list.extend(supp[0])
+		touch_one_list.append(supp[1])
+    #Touhc list is 'ground truth' cam list is data to fit
+	assert len(cam_one_list) == len(touch_one_list), "cam, touch different lengths"
 	reg = LinearRegression().fit(cam_one_list, touch_one_list)
 	return reg
 
@@ -170,6 +183,7 @@ if __name__ == "__main__":
 	parser.add_argument("--reg", type=int, help="Do linear regression on cam data")
 	parser.add_argument("--pipe", type=str, help="Path to pipeline dir")
 	parser.add_argument("--data", type=str, help="Base dir for where the data is stored (up to but not includong animal name)")
+	parser.add_argument("--supp", type=int,help="Do you have supplemental data saved in supp_reg_pts folder to use for regression?")
 	# parser.add_argument("--out", type=str, help="Output dirtectory (auto-formatted)")
 
 	args = parser.parse_args()
@@ -190,6 +204,8 @@ if __name__ == "__main__":
 	reg = args.reg
 	pipe_path = args.pipe
 	data_dir = args.data
+	supp = args.supp
+	
 
 	#Get range of trials to analyze data from
 	config = load_yaml_config(f"{pipe_path}/metadata/{animal}/{name}.yaml")
@@ -217,7 +233,13 @@ if __name__ == "__main__":
 
 	if reg:
 		# assert False
-		regression = fit_regression_cam(HT, trange)
+		if supp:
+			assert os.path.exists(f'{pipe_path}/supp_reg_pts/xyz_pts_dlt.csv') & os.path.exists(f'{pipe_path}/supp_reg_pts/xyz_pts_gt.csv')
+			supp_dlt = np.load(f'{pipe_path}/supp_reg_pts/xyz_pts_dlt.csv')
+			supp_gt = np.load(f'{pipe_path}/supp_reg_pts/xyz_pts_gt.csv')
+		else:
+			supp = None
+		regression = fit_regression_cam(HT, trange, supp=[supp_dlt,supp_gt])
 		HT.regressor = regression
 	else:
 		regression = None

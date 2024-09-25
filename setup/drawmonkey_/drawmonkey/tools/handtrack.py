@@ -41,7 +41,7 @@ class HandTrack(object):
 
         # trial_map = [1, 6] # if [1,6], then ml2 trial 1 is vid6
 
-    def setRegressor(reg):
+    def setRegressor(self,reg):
         self.regressor = reg
 
     def process_data_singletrial(self, trial_ml2, ploton=False, 

@@ -113,7 +113,7 @@ def get_metadata(DATE, animal, condition=None, allow_generate_from_scratch=True)
                     map_camname_to_path[camname] = dirthis_cam
 
                     # Each condition is linked to specific videos in this directory
-                    map_condition_interpreted_to_videonums = interpret_condition(DATE, condition)
+                    map_condition_interpreted_to_videonums = interpret_condition(DATE, condition, animal)
 
                     for condition_interpreted, vidnums in map_condition_interpreted_to_videonums.items():
                         if vidnums is None:
@@ -217,7 +217,7 @@ def get_cam_list(date, animal):
     return list_camnames
 
 
-def interpret_condition(date, condition):
+def interpret_condition(date, condition, animal):
     """ directroy path string to human interpretable condition
     RETURNS:
     - dict mapping from possible conditions(huuman name) to video nums. vidnums is list of ints
@@ -228,7 +228,7 @@ def interpret_condition(date, condition):
     from .experiments import get_params_yaml
     
     
-    params = get_params_yaml(DATE=date)
+    params = get_params_yaml(DATE=date, animal=animal)
     def _get_vidnums_this_condition(condition_interpreted):
         # Map this condition to video nums
         # for k,v in params.items():
