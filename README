@@ -1,1 +1,0 @@
-Directory for the hand track pipeline. All code magically fell from the sky in an act of divine grace, thus the only person we have to thank for this repo is God themself. If there are any problems with the code it's likely your fault, as a mere mortal cannot question the divine wisdom of our Lord. I take no credit, and simply act as a vessel of God's will.
