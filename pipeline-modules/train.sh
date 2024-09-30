@@ -12,12 +12,12 @@ set -e
 
 help_message () {
 	echo ""
-	echo "Usage: pipeline train -e [expt_name] [options]"
 	echo "Note: All options are required!!"
 	echo "MAKE SURE YOU HAVE METADATA TEMPLATE FILLED OUT AND SAVED WITH EXPT NAME"
 	echo "MAKE SURE YOU ARE IN THE p_dlc ENV (or equivalent)"
 	echo ""
-	echo "Options:"
+	echo ">>>> Usage: pipeline train -e [expt_name] [options]"
+	echo "	Options:"
 	echo ""
 	echo "		-e		STR		Enter the experiment name used in the metadata file"
 	echo "		--iters	|-i	INT		(Default) Use Uniform algo to extract frames"

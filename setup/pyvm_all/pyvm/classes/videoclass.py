@@ -2292,7 +2292,7 @@ class Videos(object):
         return vals, columns
     def dlc_extract_pts_matrix(self, indtrial, list_part=None, frames_get="all"):
         """ 
-        Extract matrix of pts across cameras, in formate useful for triangulation, 
+        Extract matrix of pts across cameras, in format useful for triangulation, 
         easywand, DLT, etc.
         IN:
         - list_part, list of strings, .e.g, list_part
@@ -2324,6 +2324,7 @@ class Videos(object):
         # ]
 
         # Which parts
+        dict_cameras = self.get_cameras()
         if list_part is None:
             if self.Params["load_params"]["condition"]=="wand":
                 # list_part = ["red", "blue"]
@@ -2332,23 +2333,27 @@ class Videos(object):
                 assert False, "cant figure out which parts you want"
 
         # Which frames?
-        # To check, assume each cam has same num frames for this trial.
         if isinstance(frames_get, list):
             assert isinstance(frames_get[0], int)
         elif isinstance(frames_get, str):
             if frames_get=="good_frames":
                 frames_get = self.datgroup_extract_single_video_data(0, indtrial, True)["good_frames"]
                 assert len(frames_get)>0, "need to enter good frames"
+            #Find camera with smallest number of frames for this trial and take those ones.
+            #This assumes that missed frames are at the end of the trial whihc may not be true....
             elif frames_get=="all":
-                n = self.num_frames2(0, indtrial)
-                frames_get = range(0,n)
-                print("ONE:",frames_get)
+                frames = []
+                for i in range(len(dict_cameras)):
+                    n = self.num_frames2(i, indtrial)
+                    frames.append(n)
+                min_frames = min(frames)
+                frames_get = range(0,min_frames)
             else:
                 assert False
         else:
             assert False
 
-        dict_cameras = self.get_cameras()
+        
         list_feat = ["x", "y"]
         vals = []
         columns = []
@@ -2362,7 +2367,7 @@ class Videos(object):
                 #CHANGE TO LOWER LEFT COORDINATE SYSTEM
                 # width,height = self.resolutions(idxvid)["orig"]
                 # print(camname, width, height)
-                # xy[:,1] = height-xy[:,1]  
+                # xy[:,1] = height-xy[:,1] 
                 vals.append(xy[frames_get,:])
                 for feat in list_feat:
                     columns.append((part, datv["camera_name"], feat))

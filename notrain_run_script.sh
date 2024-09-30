@@ -68,29 +68,29 @@ if [ ${loop} = true ]; then
 		this_dir="$(dirname "$0")"
 		pipe="${this_dir}/pipeline"
 
-		yes | $pipe init -e ${expt} -a ${animal} -c ${cond} -d ${dir} &&
+		yes | pipeline init -e ${expt} -a ${animal} -c ${cond} -d ${dir} &&
 
-		yes | $pipe dlc-setup -e ${expt} --${cond} --skiplabel --skipext &&
+		yes | pipeline dlc-setup -e ${expt} --${cond} --skiplabel --skipext &&
 
-		yes | ${this_dir}/pipeline analyze -e ${expt} --cond ${cond}
+		yes | pipeline analyze -e ${expt} --cond ${cond}
 
-		yes | ${this_dir}/pipeline wand -e ${expt} --step 4 --cond ${cond} -a ${animal}
+		yes | pipeline wand -e ${expt} --step 4 --cond ${cond} -a ${animal}
 
-		yes | ${this_dir}/pipeline wand -e ${expt} --step 5 --reg -a ${animal}
+		yes | pipeline wand -e ${expt} --step 5 --reg -a ${animal}
 
 	done
 else
 	this_dir="$(dirname "$0")"
 	pipe="${this_dir}/pipeline"
 
-	yes | $pipe init -e ${name} -a ${animal} -c ${cond} -d ${dir}
+	# yes | $pipe init -e ${name} -a ${animal} -c ${cond} -d ${dir}
 
-	yes | $pipe dlc-setup -e ${name} --${cond} --skiplabel --skipext -a ${animal}
+	# yes | pipeline dlc-setup -e ${name} --${cond} --skiplabel --skipext -a ${animal}
 
-	yes | ${this_dir}/pipeline analyze -e ${name} --cond ${cond}
+	yes | pipeline analyze -e ${name} --cond ${cond} -a ${animal}
 
-	yes | ${this_dir}/pipeline wand -e ${name} -a ${animal} --step 4 --cond ${cond}
+	yes | pipeline wand -e ${name} -a ${animal} --step 4 --cond ${cond}
 
-	yes | ${this_dir}/pipeline wand -e ${name} --step 5 --reg -a ${animal}
+	yes | pipeline wand -e ${name} --step 5 --reg -a ${animal}
 
 fi

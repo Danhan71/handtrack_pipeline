@@ -428,25 +428,30 @@ class HandTrack(object):
             print("###DOING REGRESSION ON CAM PTS###")
             reg_pts_list = []
             reg_gaps_list = []
+            
             for strok_cam in datall["strokes_cam"]:
-                strok_cam_xy = [(p[0],p[1]) for p in strok_cam]
-                strok_cam_zt = [(p[2], p[3]) for p in strok_cam]
-                reg_cam_pts = self.regressor.predict(strok_cam_xy)
-                stitch = [np.concatenate((p,q)) for p,q in zip(reg_cam_pts, strok_cam_zt)]
+                strok_cam_xyz = [(p[0],p[1],p[2]) for p in strok_cam]
+                strok_cam_t = [p[3] for p in strok_cam]
+                reg_cam_pts = self.regressor.predict(strok_cam_xyz)
+                stitch = [(p[0],p[1],z[2],t) for p,t,z in zip(reg_cam_pts, strok_cam_t, strok_cam_xyz)]
                 reg_pts_list.append(np.array(stitch))
 
             for gap_cam in datall["gaps_cam"]:
-                gap_cam_xy = [(p[0],p[1]) for p in gap_cam]
-                gap_cam_zt = [(p[2], p[3]) for p in gap_cam]
-                reg_gap_pts = self.regressor.predict(gap_cam_xy)
-                stitch = [np.concatenate((p,q)) for p,q in zip(reg_gap_pts, gap_cam_zt)]
+                gap_cam_xyz = [(p[0],p[1],p[2]) for p in gap_cam]
+                gap_cam_t = [p[3] for p in gap_cam]
+                reg_gap_pts = self.regressor.predict(gap_cam_xyz)
+                stitch = [(p[0],p[1],z[2],t) for p,t,z in zip(reg_gap_pts, gap_cam_t,gap_cam_xyz)]
                 reg_gaps_list.append(np.array(stitch))
 
             pts_cam = dat["pts_time_cam_all"]
-            pts_cam_xy = [(p[0],p[1]) for p in pts_cam]
-            pts_cam_zt = [(p[2], p[3]) for p in pts_cam]
-            reg_pts_cam_xy = self.regressor.predict(pts_cam_xy)
-            reg_pts_cam = np.array([np.concatenate((p,q)) for p,q in zip(reg_pts_cam_xy,pts_cam_zt)])
+            pts_cam_xyz = [(p[0],p[1],p[2]) for p in pts_cam]
+            pts_cam_t = [p[3] for p in pts_cam]
+            reg_pts_cam_xy = self.regressor.predict(pts_cam_xyz)
+            reg_pts_cam = np.array([(p[0],p[1],z[2],t) for p,t,z in zip(reg_pts_cam_xy,pts_cam_t,pts_cam_xyz)])
+
+
+
+            
 
             # print("raw pts cam all", dat["pts_time_cam_all"])
             # print("reg pts cam all", reg_pts_cam)
@@ -1279,5 +1284,30 @@ def getTrialsCameraFrametimes(fd, trial, chan="Btn1", thresh = 0.5):
     offs_sec = t[offs]
     
     return ons_sec, offs_sec
+
+
+
+# CODE GRAVEYARD
+
+#Use this code if you want to do 2d regression
+            # for strok_cam in datall["strokes_cam"]:
+            #     strok_cam_xy = [(p[0],p[1]) for p in strok_cam]
+            #     strok_cam_zt = [(p[2], p[3]) for p in strok_cam]
+            #     reg_cam_pts = self.regressor.predict(strok_cam_xy)
+            #     stitch = [np.concatenate((p,q)) for p,q in zip(reg_cam_pts, strok_cam_zt)]
+            #     reg_pts_list.append(np.array(stitch))
+
+            # for gap_cam in datall["gaps_cam"]:
+            #     gap_cam_xy = [(p[0],p[1]) for p in gap_cam]
+            #     gap_cam_zt = [(p[2], p[3]) for p in gap_cam]
+            #     reg_gap_pts = self.regressor.predict(gap_cam_xy)
+            #     stitch = [np.concatenate((p,q)) for p,q in zip(reg_gap_pts, gap_cam_zt)]
+            #     reg_gaps_list.append(np.array(stitch))
+
+            # pts_cam = dat["pts_time_cam_all"]
+            # pts_cam_xy = [(p[0],p[1]) for p in pts_cam]
+            # pts_cam_zt = [(p[2], p[3]) for p in pts_cam]
+            # reg_pts_cam_xy = self.regressor.predict(pts_cam_xy)
+            # reg_pts_cam = np.array([np.concatenate((p,q)) for p,q in zip(reg_pts_cam_xy,pts_cam_zt)])
 
 

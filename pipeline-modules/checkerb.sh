@@ -11,12 +11,12 @@ set -e
 
 help_message () {
 	echo ""
-	echo "Usage: pipeline checkerb [options] -e [expt_name]"
 	echo "MAKE SURE YOU HAVE METADATA TEMPLATE FILLED OUT AND SAVED WITH EXPT NAME"
 	echo "AND GOOD CHECKERBOARD FRAMES"
 	echo "MAKE SURE YOU ARE IN THE p_drawcamera ENV (or equivalent)"
 	echo ""
-	echo "Options:"
+	echo ">>>> Usage: pipeline checkerb [options] -e [expt_name]"
+	echo "	Options:"
 	echo "		-e STR				Enter the experiment name used in the metadata file"
 	echo "		-0				Only run extract frames step (do this if you still need to pick good frames for metadata"
 	echo "		-1				Only run calibrate step (frames must already be extracted)"

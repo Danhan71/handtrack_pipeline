@@ -130,7 +130,7 @@ def initialize_expt(exptname_or_date, animal, condition_keep=None):
     experimenter='Lucas' # Enter the name of the experimenter
 
     # ------------ RUN
-    params = get_params(exptname_or_date) # get hand-entered params
+    params = get_params(exptname_or_date,animal) # get hand-entered params
     metadat = get_metadata(exptname_or_date, animal) # get auto params
 
     if "dirname" in params.keys():

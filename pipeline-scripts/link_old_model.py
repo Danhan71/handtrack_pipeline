@@ -39,17 +39,19 @@ if __name__=="__main__":
 	parser.add_argument("--cond", type=str, help="List of conditions")
 	parser.add_argument("--wandmodeldir", type=str, help="Full directory path to the already trained wand model being used")
 	parser.add_argument("--behmodeldir", type=str, help="Full directory path to the already trained beh model being used")
+	parser.add_argument("--animal", type=str, help="Animal name")
 
 
 	args = parser.parse_args()
 	name = args.name
+	animal = args.animal
 	conditionlist = args.cond.split(",") 
 	modeldirlist = [args.behmodeldir, args.wandmodeldir]
 
 	print(name,conditionlist)
 
 	for cond in conditionlist:
-		dict_paths, base_paths = find_expt_config_paths(exptname=name, condition=cond)
+		dict_paths, base_paths = find_expt_config_paths(exptname=name, condition=cond, animal=animal)
 		pcflist = dict_paths.values()
 		base_paths = base_paths.values()
 		if cond == "behavior":
@@ -63,7 +65,7 @@ if __name__=="__main__":
 			if os.path.isdir(modeldir):
 				train_frac=get_train_frac(pcf)
 				date=get_dlc_date(pcf)
-				params = get_params(name)
+				params = get_params(name,animal)
 				list_camnames = params["list_camnames"]
 				task="combined-" + "_".join(params['list_camnames'])
 				if os.path.isdir(f"{bp}/dlc-models"):

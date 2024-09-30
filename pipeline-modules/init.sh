@@ -10,10 +10,10 @@ set -e
 
 help_message () {
 	echo ""
-	echo "Usage: pipeline init -e [expt_name]"
 	echo "MAKE SURE YOU HAVE METADATA TEMPLATE FILLED OUT AND SAVED WITH EXPT NAME"
 	echo ""
-	echo "Options:"
+	echo ">>>> Usage: pipeline init -e [expt_name] [options]"
+	echo "	Options:"
 	echo ""
 	echo "		-e STR		Enter the experiment name used in the metadata file"
 	echo "		-a STR		Animal name"

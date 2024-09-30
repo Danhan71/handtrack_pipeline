@@ -13,7 +13,7 @@ MAP_SERIAL_TO_NAME = {
     18061552: "flea",
     21155487: "fly1",
     21495924: "bfs1", # older version, low res
-    # 20142776: "bfs2", # newer version
+    20142776: "bfs2", # newer version
     22131878: "fly2" #The mythical 5th camera
 }
 list_conditions_dirs = ["3dgrid", "behavior", "checkerboard", "wand"]

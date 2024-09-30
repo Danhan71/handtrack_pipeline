@@ -11,8 +11,11 @@ set -e
 
 help_message () {
 	echo ""
-	echo "Usage: pipeline env-setup [options]"
 	echo "At the time of writing this, these worked. If they dont work for you, you will need to figure that out yourself."
+	echo "A few python libraries will ned to be installed manually, but this handles the bulk, the others ones will be obvious by the errors throw (and a quick pip)."
+	echo ""
+	echo ">>>> Usage: pipeline env-setup [options]"
+	echo "	Options:"
 	echo "		--dlc		Only make dlc_env"
 	echo "		--draw		Only draw env"
 	echo "		--both		Both envs (Default)"

@@ -306,10 +306,12 @@ if __name__=="__main__":
     parser.add_argument("--tver", type=str, help="String formatted like list for training types", default='empty')
     parser.add_argument("--frac", type=int, help="Fraction of GPU to use", default=60)
     parser.add_argument("--step", type=int, help="Run step")
+    parser.add_argument("--animal", type=str, help="Animal name")
 
     args = parser.parse_args()
 
     name = args.name
+    animal = args.animal
     print("Name:            ", name)
     iters = args.iters
     print("Iters:           ", iters)
@@ -361,7 +363,7 @@ if __name__=="__main__":
 
     for ver in verlist:
         for condition, train_ver, checkpoint_path in zip(conditionlist, list_trainver, list_checkpointpath):
-            dict_paths, base_paths = find_expt_config_paths(name, condition)
+            dict_paths, base_paths = find_expt_config_paths(name, condition,animal=animal)
             pcflist = dict_paths.values()
             base_paths = base_paths.values()
             print(pcflist)

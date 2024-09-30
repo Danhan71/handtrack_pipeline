@@ -3,39 +3,43 @@ set -e
 
 #######################################################
 #
-#All the neccessary setup before training the DLC model. This will extract frames and stuff for hand labelling
-#then open a GUI where you will have to hgand label the frames. This step is only necessary if you are training a new model. 
-#It is not necessary if you are retraining or not training.
+#Does all the final analysis and plotting of the data, also the module for doing
+#wand calibration if necessary (steps 0-3 do this).
 #
 #######################################################
 
 help_message () {
 	echo ""
-	echo "Usage: pipeline train-setup -e [expt_name]"
 	echo "MAKE SURE YOU HAVE METADATA TEMPLATE FILLED OUT AND SAVED WITH EXPT NAME"
 	echo "MAKE SURE YOU ARE IN THE p_dlc ENV (or equivalent)"
 	echo ""
-	echo "Options:"
+	echo ">>>> Usage: pipeline train-setup -e [expt_name]"
+	echo "	Options:"
 	echo ""
 	echo "		-e STR			Enter the experiment name used in the metadata file"
 	echo "		--setup			Set up the programs to run this module (only necessary if you have not done so already)"
 	echo "		-a				Animal (Pancho, Diego)"
 	echo ""
 	echo "		--step		Step (see options below, run all steps in succession)"
-	echo "		#### SKIP STEPS 0-3 IF YOU ARE USING PRECALCULATED WAND COEFSS"
+	echo ""
+	echo "	#### SKIP STEPS 0-3 IF YOU ARE USING PRECALCULATED WAND COEFSS"
 	echo "		0-----------Extract wand frames good accross all cameras"
 	echo "		1-----------The Lord, God, Watches Us All"
 	echo "		2-----------Open DLTdv8 to extract axis pts from 3d grid photos. Refer to documentation for labelling instructions"
 	echo "		MAKE SURE TO DELETE THE NaN ROWS IN CSV data_xypts.csv FILE AFTER DONE"
 	echo "		3-----------Runs the easyWand calibration step, follow the instructions closely."
-	#<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>#
+	echo "	<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>"
 	echo "		4-----------Once you are happy with stuff from step 3 (may need 2-3 runs if you aren't careful the first time)"
 	echo "		 -----------This step will finalize the data and extract it."
 	echo "		5-----------This step does the final analysis of beh and campy data, also generate plots."
 	echo "			Extra Options for step 4 and 5:"
 	echo "			(4) --cond	STR	Condition type (default = behavior)"
-	echo "			(5) --noreg		Do not do linear regression on cam pts (one regression for whole day applied to each trial) "
-	echo "				Default: True, do regression (also outputs non-regressed data)"
+	echo "			(5) --noreg	Do not do linear regression on cam pts (one regression for whole day applied to each trial) "
+	echo "			Default:	True, do regression (also outputs non-regressed data)"
+	echo "			(5) --supp"
+	echo "			Use supplemental data stored in supp_reg_pts directory (one file for test data and oen for ground truth)"
+	echo "			Names should be xyz_pts_dlt.csv for test and xyz_pts_gt.csv for gt. Off by default."
+	echo ""
 	echo "			ALSO make sure to update config with current dlt_coeffs"
 	echo ""
 }
@@ -54,7 +58,7 @@ if [[ $? -ne 0 ]]; then
 fi
 
 #default params
-setup=false; cond='behavior'; reg=1;
+setup=false; cond='behavior'; reg=1; supp=0
 
 while true; do
 	case "$1" in
@@ -63,6 +67,7 @@ while true; do
 		--cond) cond="$2"; shift 2;;
 		# --rmcam) rmcam="$2"; shift 2;;
 		--noreg) reg=0; shift 1;;
+		--supp) supp=1; shift 1;;
 		-e) name="$2"; shift 2;;
 		-a) animal="$2"; shift 2;;
 		-h | --help) help_message; exit 1; shift 1;;
@@ -146,7 +151,7 @@ elif [ $step == 4 ]; then
 	fi
 elif [ $step == 5 ]; then
 	python3 ${pyvm}/run/campy_extraction.py ${name} ${animal}
-	python3 ${draw_monk}/final_analysis.py ${name} --animal ${animal} --reg ${reg} --pipe ${pipe_path} --data ${data_dir}
+	python3 ${draw_monk}/final_analysis.py ${name} --animal ${animal} --reg ${reg} --supp ${supp} --pipe ${pipe_path} --data ${data_dir}
 fi
 
 

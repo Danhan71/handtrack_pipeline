@@ -11,16 +11,16 @@ set -e
 
 help_message () {
 	echo ""
-	echo "Usage: pipeline train-setup -e [expt_name]"
 	echo "MAKE SURE YOU HAVE METADATA TEMPLATE FILLED OUT AND SAVED WITH EXPT NAME"
 	echo "MAKE SURE YOU ARE IN THE p_dlc ENV (or equivalent)"
 	echo ""
-	echo "Options:"
+	echo ">>>> Usage: pipeline train-setup -e [expt_name] [options]"
+	echo "	Options:"
 	echo ""
 	echo "		-e STR		Enter the experiment name used in the metadata file"
-	echo "		-u 			(Default) Use Uniform algo to extract frames"
-	echo "		-a			Animal name"
-	echo "		-k			Use kmeans algo to extract frames"
+	echo "		-u 		(Default) Use Uniform algo to extract frames"
+	echo "		-k		Use kmeans algo to extract frames"
+	echo "		-a		Animal name"
 	echo "		--wand		Only do wand data (same as --debug)"
 	echo '		--behavior	Only do behavior data'
 	echo "		--debug		Use debug mode (will only setup train on wand data since there is less content there)"

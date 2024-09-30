@@ -18,16 +18,19 @@ def displacement(x,y):
 	y_diff = y.diff()  
 	return np.sqrt(x_diff**2 + y_diff**2)
 
-def fit_regression_cam(HT, trange, supp=None):
+def fit_regression_cam(HT, trange, supp=None, reg_type='basic'):
 	"""
 	Fits linear regression for this HT object and trial list
+ 
 	PARAMS:
-	HT, hand track object
-	trange, range of trials
-	supp : Supplement regression with other points to make more robust? Use directory in pipeline to store supp files
-	Should be passed in as list with dlt pts at 0 and ground truth pts at 1
+	- HT: hand track object
+	- trange: range of trials
+	- supp : Supplement regression with other points to make more robust? Use directory in pipeline to store supp files
+		- Should be passed in as list with dlt pts at 0 and ground truth pts at 1
+	- reg_type : regression type, basic or lasso
+ 
 	RETURNS: 
-	scikit linear regression object
+	- scikit linear regression object trained on given reg type
 	"""
 	strokes_cam_all = []
 	strokes_cam_allz = []
@@ -39,6 +42,7 @@ def fit_regression_cam(HT, trange, supp=None):
 
 		dat, _, _ = HT.process_data_singletrial(trial, ploton=False, finger_raise_time=0.0)
 
+		#Skips trials nbo data
 		if dat == {}:
 			continue
 
@@ -57,17 +61,17 @@ def fit_regression_cam(HT, trange, supp=None):
 
 	
 	for strok in touch_interp:
-		add_z = [[p[0],p[1]] for p in strok]
+		add_z = [[p[0],p[1],0] for p in strok]
 		touch_interpz.append(np.array(add_z))
 
 	#take out z for regression
 	for strok in strokes_cam_allz:
-		strokes_cam_all.append(np.array([[p[0],p[1]] for p in strok]))
+		strokes_cam_all.append(np.array([[p[0],p[1], p[2]] for p in strok]))
 
 	cam_one_list = np.array([])
 	touch_one_list = np.array([])
 
-	#Makes one list of pts out of the middle 50% of strokes (the tail ends can be bad cam data and mess up regression)
+	#Makes one list of pts out of the middle 50% of strokes (the tail ends tend to be bad cam data and mess up regression)
 	for strok_cam, strok_touch in zip(strokes_cam_all, touch_interpz):
 		assert len(strok_cam)==len(strok_touch), "Stroke lens misaligned, maybe can just remove this assert idk"
 		n = len(strok_touch)
@@ -79,13 +83,44 @@ def fit_regression_cam(HT, trange, supp=None):
 		else:
 			cam_one_list = np.concatenate((cam_one_list,strok_cam[q1:q3]))
 			touch_one_list = np.concatenate((touch_one_list,strok_touch[q1:q3]))
+   
 	if supp is not None:
 		assert (len(supp) == 2) & (len(supp[0]) == len(supp[1]))
-		cam_one_list.extend(supp[0])
-		touch_one_list.append(supp[1])
+		list(cam_one_list).extend(supp[0])
+		list(touch_one_list).extend(supp[1])
     #Touhc list is 'ground truth' cam list is data to fit
 	assert len(cam_one_list) == len(touch_one_list), "cam, touch different lengths"
-	reg = LinearRegression().fit(cam_one_list, touch_one_list)
+ 
+	if reg_type == 'basic':
+		reg = LinearRegression().fit(cam_one_list, touch_one_list)
+	#Sucks
+	elif reg_type == 'lasso':
+		from sklearn.linear_model import Lasso
+		from sklearn.preprocessing import StandardScaler
+		from sklearn.model_selection import train_test_split
+  
+		z_weight = 1
+
+		scaler = StandardScaler()
+		X_scaled = scaler.fit_transform(cam_one_list)
+  
+		Y_weighted = touch_one_list.copy()
+		Y_weighted[:, 2] *= z_weight
+  
+		#Make train and test sets, but not really necessary since we don't care baout it generalizing to all data
+		# X_train, X_test, Y_train, Y_test = train_test_split(X_scaled, Y_weighted, test_size=0.2, random_state=42)
+  
+		#Do this if doing train/test split
+  		# #Append the supplemental data to the train set so it gets more visibility
+		# if supp is not None:
+		# 	X_train.extend(supp[0])
+		# 	Y_train.extend(supp[1])
+
+		#Fit lasso model
+		reg = Lasso(alpha=0.0001)
+		reg.fit(X_scaled,Y_weighted)
+	else:
+		assert False, "Code ur own model then, fool"
 	return reg
 
 def jump_quant(date, expt, animal, condition="behavior"):
@@ -141,14 +176,12 @@ def jump_quant(date, expt, animal, condition="behavior"):
 				add_df = pd.DataFrame(data=d)
 				df = pd.concat([df,add_df], axis=1)
 		df_list.append(df)
-	n = len(df_list)
+	fig_list = []
 	m = len(cams) + 1
-	fig, axes = plt.subplots(nrows=n, ncols = m, figsize=(10*m,6*n))
-	if n == 1:
-		axes = [axes]
-	ax_ind = 0
 	for df,t in zip(df_list,list_trials):
-		ax_disp = axes[ax_ind][0]
+		fig, axes = plt.subplots(nrows=1, ncols = m, figsize=(10*m,6*n))
+		axes=[axes]
+		ax_disp = axes[0][0]
 		for cam in cams:
 			ax_disp.scatter(x=df.index, y=df[f"{cam}_disp"].cumsum().fillna(0),s=df[f"{cam}_like"], label=cam)
 		ax_disp.set_xlabel('Frame')
@@ -156,10 +189,10 @@ def jump_quant(date, expt, animal, condition="behavior"):
 		ax_disp.set_title(f'Frame by Frame Displacements for Each Camera Trial {t}')
 		ax_disp.legend()
 		ax_disp.grid(True)
-		axes[ax_ind][0] = ax_disp
+		axes[0][0] = ax_disp
 		rng = range(1,len(cams)+2)
 		for i,cam in zip(rng,cams):
-			ax_xy = axes[ax_ind][i]
+			ax_xy = axes[0][i]
 			n_points = len(df)
 			indices=np.arange(n_points)
 			colors = plt.cm.viridis(indices/max(indices))
@@ -169,10 +202,10 @@ def jump_quant(date, expt, animal, condition="behavior"):
 			ax_xy.set_title(f'xy trajectory over time for trial {t}, {cam}')
 			ax_xy.legend()
 			ax_xy.grid(True)
-			axes[ax_ind][i] = ax_xy
-		ax_ind = ax_ind + 1
+			axes[0][i] = ax_xy
+		fig_list.append(fig)
 
-	return fig
+	return fig_list
 
 
 if __name__ == "__main__":
@@ -235,26 +268,28 @@ if __name__ == "__main__":
 		# assert False
 		if supp:
 			assert os.path.exists(f'{pipe_path}/supp_reg_pts/xyz_pts_dlt.csv') & os.path.exists(f'{pipe_path}/supp_reg_pts/xyz_pts_gt.csv')
-			supp_dlt = np.load(f'{pipe_path}/supp_reg_pts/xyz_pts_dlt.csv')
-			supp_gt = np.load(f'{pipe_path}/supp_reg_pts/xyz_pts_gt.csv')
+			supp_dlt = np.genfromtxt(f'{pipe_path}/supp_reg_pts/xyz_pts_dlt.csv')
+			supp_gt = np.genfromtxt(f'{pipe_path}/supp_reg_pts/xyz_pts_gt.csv')
+			supp=[supp_dlt,supp_gt]
 		else:
 			supp = None
-		regression = fit_regression_cam(HT, trange, supp=[supp_dlt,supp_gt])
+		regression = fit_regression_cam(HT, trange, supp=supp)
 		HT.regressor = regression
 	else:
 		regression = None
 
 	#Returns big figure for all trials and cameras
-	jump_quant_fig = jump_quant(date, expt, animal)
+	jump_quant_figs = jump_quant(date, expt, animal)
 	# jump_quant_figs = [None]
 
 	SAVEDIR = f"{data_dir}/{animal}/{date}_{expt}{sess_print}/figures"
 	os.makedirs(SAVEDIR, exist_ok=True)
 
-	if jump_quant_fig is not None:
-		jump_quant_fig.savefig(f"{SAVEDIR}/jump_quant.pdf")
+	if jump_quant_figs is not None:
+		os.makedirs(f'{SAVEDIR}/jump_quants',exist_ok=True)
+		[fig.savefig(f"{SAVEDIR}/jump_quants/trialml2_{i}-jump_quant.pdf") for i,fig in enumerate(jump_quant_figs) if fig is not None]
 	else: 
-		print("*****No data found so no figure saved!!")
+		print("*****No data found so no figures saved!!")
 
 	# assert False
 
