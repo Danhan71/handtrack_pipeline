@@ -4,8 +4,9 @@
 
 #Will update the one in PYVM globals
 data_dir=/data3/hand_track
+server_dir=/home/dhanuska/Freiwald
 
-pipe_path=/home/danhan/Documents/pipeline
+pipe_path=/home/dhanuska/dhanuska/handtrack_pipeline
 scripts=${pipe_path}/pipeline-scripts
 pyvm=${pipe_path}/setup/pyvm_all/pyvm
 expt_files=${pipe_path}/setup/pyvm_all/pyvm/metadata
@@ -28,9 +29,9 @@ matfull_dir=/data1/programs/MATLAB/R2024a
 ##IMPORTANT
 ##If you are using a pretrained model please enter it here. If you are only using one condition just enter a nonsense string for the other, it will not be used but needs a value. If you plan to train a new model in this run you can leave this field empty, it will not be used (i.e. do not use the analyze module, only the train module).
 
-wand_model_dir=/home/danhan/Documents/pipeline/models/wand-model/iteration-0/combined-fly2_bfs2_fly1_flea_bfs1Aug14-trainset95shuffle1
+wand_model_dir=${pipe_path}/models/wand-model/iteration-0/combined-fly2_bfs2_fly1_flea_bfs1Aug14-trainset95shuffle1
 
-behavior_model_dir=/home/danhan/Documents/pipeline/models/beh-model/iteration-0/combined-fly2_bfs2_flea_bfs1_fly1Jul25-trainset95shuffle1
+behavior_model_dir=${pipe_path}/models/beh-model/iteration-0/combined-fly2_bfs2_flea_bfs1_fly1Jul25-trainset95shuffle1
 
 
 #Add two files in same dir with same name prefix for dlt coeffs and columns 
@@ -39,4 +40,4 @@ behavior_model_dir=/home/danhan/Documents/pipeline/models/beh-model/iteration-0/
 
 calib_prefix=slight_shift
 # calib_prefix=220317
-checkb_dir=/home/danhan/Documents/pipeline/checkerboard_calib/220914_calib
+checkb_dir=${pipe_path}/checkerboard_calib/220914_calib
