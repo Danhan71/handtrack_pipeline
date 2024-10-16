@@ -423,11 +423,12 @@ class Videos(object):
 
 
 
-    def filter_good_frames_dan(self,screen=False):
+    def filter_good_frames_dan(self):
         """ Prune the current good frames, using various methods. e.g., if you extracted
     a lot of frames, can then remove those that fail criteria.
         PARAMS:
         - ver, str, which version.
+        - screen, bool, restrict pts to those close to screen
         NOTE:
         At end triggers function that removes bad frames from extracted frames per camera, at frame/data extractuion time will do checks for multi camera
         sharing (at least 2 cams must share frames for easywand to accept them)
@@ -448,10 +449,10 @@ class Videos(object):
         for list1, list2 in zip(list_good_frames[:-1], list_good_frames[1:]):
             assert list1 == list2
 
-        THRESH = 0.8
+        THRESH = 0.99
         list_part, list_feat = self.dlc_get_list_parts_feats()
+        bad_frames = {}
         for indtrial in self.inds_trials():
-            bad_frames = {}
             for cam,camname in zip(range(ncams),cam_list):
                 bad_frames[camname] = []
                 datv = self.wrapper_extract_dat_video(None, cam, indtrial)
@@ -470,7 +471,7 @@ class Videos(object):
                     frames_oob = np.where(out_of_bounds==True)[0].tolist()
                     frames_oob = [f for f in frames_oob if f in goodframes] # only keep frames that are in good frames list.
                     bad_frames[camname].extend(frames_oob)
-            if screen:
+            if False:
                 for cam in cam_list:
                     unscreened_frames = self.screen_frames(indtrial,list_part)
                     # print(unscreened_frames[camname])
@@ -483,7 +484,7 @@ class Videos(object):
             print(bad_frames)
 
 
-        # Remove any frame that is bad in at least one camera + possibly too far from screen
+        # Remove frames bad for each cam
 
         print("REMOVING these frames")
         self.remove_badframes_from_goodframes_all_dan(bad_frames)
@@ -664,6 +665,8 @@ class Videos(object):
         for D in self.DatVideos:
             for k, v in good_frames.items():
                 good_frames[k] = sorted(set(v))
+        # print(good_frames)
+        # assert False
         for D in self.DatVideos:
             key_camname = D["index"][0]
             if key_camname in good_frames and len(good_frames[key_camname]) > 0:
@@ -679,7 +682,6 @@ class Videos(object):
             self.DatVideos = [D for D in self.DatVideos if len(D["good_frames"])>0]
 
         self.generate_group_level_data()
-
     def input_good_frames(self, good_frames, delete_videos_without_good_frames=False):
         # FUNCTIOPN OUTDATED FOR FILTERIMNG STEP< SEE ABOVE
         """ pass in frame numbers that are "good"
@@ -1058,12 +1060,39 @@ class Videos(object):
         import yaml
         # The current good frames, in original indinces
         path_to_collected_frames = self.get_paths_good_grp(ind_grp)["collected_frames"]
+        print(path_to_collected_frames)
         fthis = f"{path_to_collected_frames}/framenums_old_new.yaml"
         with open(fthis) as file:
             mapping_old_new = yaml.load(file, Loader=yaml.FullLoader)
         list_goodframes_newnum = [x[1] for x in mapping_old_new]
         list_goodframes_oldnum = [x[0] for x in mapping_old_new]
         return mapping_old_new, list_goodframes_oldnum, list_goodframes_newnum
+    
+    def goodframes_mapping_new_old_index_dan(self, ind_grp):
+        """ for this group, what is mapping for collected frames between
+        new and old indices. 
+        PARAMS:
+        - ind_grp, int, 0,1,2,...
+        RETURNS:
+        - mapping_old_new, list of tuples, len collected frames, each tuple is (old, new)
+        - list_goodframes_oldnum, list of ints
+        - list_goodframes_newnum, list of inds
+        """
+        import yaml
+        dict_cams = self.get_cameras()
+        cam_list = [c[1][0] for c in dict_cams.items()]
+        # The current good frames, in original indinces
+        path_to_collected_frames_cam = self.get_paths_good_grp(ind_grp)["collected_frames"]
+        path_to_collected_frames = '/'.join(path_to_collected_frames_cam.split('/')[:-2])
+        dict_goodframes_oldnum = {}
+        dict_goodframes_newnum = {}
+        for cam in cam_list:
+            fthis = f"{path_to_collected_frames}/{cam}/collected_frames/framenums_old_new.yaml"
+            with open(fthis) as file:
+                mapping_old_new = yaml.load(file, Loader=yaml.FullLoader)
+            dict_goodframes_newnum = [x[1] for x in mapping_old_new]
+            dict_goodframes_oldnum[cam] = [x[0] for x in mapping_old_new]
+        return mapping_old_new, dict_goodframes_oldnum, dict_goodframes_newnum
 
 
     def remove_badframes_from_goodframes_all_dan(self, bad_frames):
@@ -1077,6 +1106,8 @@ class Videos(object):
         for cam in cam_list:
             good_frames_dict[cam] = [frame for frame in list_goodframes_oldnum \
                                      if frame not in bad_frames[cam]]
+        print(list_goodframes_oldnum)
+        print(good_frames_dict['fly1'])
 
         #input good frames into datstruct and reoganize the data
         self.input_good_frames_dan(good_frames_dict, True)

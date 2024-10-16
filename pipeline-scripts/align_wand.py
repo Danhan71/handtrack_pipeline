@@ -13,9 +13,12 @@ wand_pts_dates = ["221015_dircolor2_wandgrid","221015_dirshapecolor1b_wandgrid",
 #Base dir that the data is stored in 
 data_dir = "/data3/hand_track/Pancho"
 #List of wand point file names
-names_list = {"wandPointsNoScreen.csv","wandPointsNoScreen.csv","wandPointsScreen.csv",}
 
-for date,name in zip(wand_pts_dates,names_list):
+#Name of want pts file, maybe need list if all diff names
+# names_list = {"wandPointsNoScreen.csv","wandPointsNoScreen.csv","wandPointsScreen.csv"}
+name = "241014_wandPoints_99thresh.csv"
+
+for date in wand_pts_dates:
     this_dir = f"{data_dir}/{date}/wand/wand_calibration"
     col_list = open(f"{this_dir}/columns.txt").read().splitlines()
     # if os.path.exists(f"{this_dir}/{date}-wandPoints.csv"):
@@ -33,9 +36,9 @@ for date,name in zip(wand_pts_dates,names_list):
         for col in list(df.columns):
             if cam in col and 'red' in col:
                 align_list.append(col)
-    df = df[align_list]
+    df = df.reindex(columns=align_list)
     df.to_csv(f"{this_dir}/{date}-{name}", index = False, header = False)
-    shutil.copy(f"{this_dir}/{date}-{name}", f"{data_dir}/220914_wandall/wand/wand_calibration/{date}-{name}_2.csv")
+    shutil.copy(f"{this_dir}/{date}-{name}", f"{data_dir}/220914_wandall/wand/wand_calibration/241014_{date}_99.csv")
 
 
 

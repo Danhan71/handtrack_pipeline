@@ -32,6 +32,7 @@ class VideoReader:
         self.video_path = video_path
         self.video = cv2.VideoCapture(video_path)
         if not self.video.isOpened():
+            return False
             raise IOError("Video could not be opened; it may be corrupted.")
         self.parse_metadata()
         self._bbox = 0, 1, 0, 1

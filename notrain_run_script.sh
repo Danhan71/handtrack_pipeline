@@ -83,14 +83,14 @@ else
 	this_dir="$(dirname "$0")"
 	pipe="${this_dir}/pipeline"
 
-	# yes | $pipe init -e ${name} -a ${animal} -c ${cond} -d ${dir}
+	yes | $pipe init -e ${name} -a ${animal} -c ${cond} -d ${dir}
 
-	# yes | pipeline dlc-setup -e ${name} --${cond} --skiplabel --skipext -a ${animal}
+	yes | pipeline dlc-setup -e ${name} --${cond} --skiplabel --skipext -a ${animal}
 
 	yes | pipeline analyze -e ${name} --cond ${cond} -a ${animal}
 
-	yes | pipeline wand -e ${name} -a ${animal} --step 4 --cond ${cond}
+	# yes | pipeline wand -e ${name} -a ${animal} --step 4 --cond ${cond}
 
-	yes | pipeline wand -e ${name} --step 5 --reg -a ${animal}
+	# yes | pipeline wand -e ${name} --step 5 --reg -a ${animal}
 
 fi

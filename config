@@ -6,7 +6,7 @@
 data_dir=/data3/hand_track
 server_dir=/home/dhanuska/Freiwald
 
-pipe_path=/home/dhanuska/dhanuska/handtrack_pipeline
+pipe_path=/home/danhan/Documents/pipeline
 scripts=${pipe_path}/pipeline-scripts
 pyvm=${pipe_path}/setup/pyvm_all/pyvm
 expt_files=${pipe_path}/setup/pyvm_all/pyvm/metadata
@@ -38,6 +38,6 @@ behavior_model_dir=${pipe_path}/models/beh-model/iteration-0/combined-fly2_bfs2_
 # E.G. 220914_dltCoefs.csv and 220914_columns.csv
 # [name]_dltCoefs.csv and [name]_columns.csv
 
-calib_prefix=slight_shift
+calib_prefix=low_ws
 # calib_prefix=220317
 checkb_dir=${pipe_path}/checkerboard_calib/220914_calib

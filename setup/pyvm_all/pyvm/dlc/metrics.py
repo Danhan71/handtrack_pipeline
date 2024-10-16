@@ -35,6 +35,8 @@ def extract_frames(
 	slider_width=25,
 	config3d=None,
 	extracted_cam=0,
+	custom=False,
+	out_path=None
 ):
 	"""
 	Extracts random sample of labelled frames from DLC 
@@ -42,13 +44,16 @@ def extract_frames(
 	from skimage.util import img_as_ubyte
 	from deeplabcut.utils import frameselectiontools
 	from deeplabcut.utils import auxiliaryfunctions
+	if custom:
+		start = 0
+		stop = 1
+	else:
+		config_file = Path(config).resolve()
+		cfg = auxiliaryfunctions.read_config(config_file)
+		print("Config file read successfully.")
 
-	config_file = Path(config).resolve()
-	cfg = auxiliaryfunctions.read_config(config_file)
-	print("Config file read successfully.")
-
-	start = cfg["start"]
-	stop = cfg["stop"]
+		start = cfg["start"]
+		stop = cfg["stop"]
 
 	# Check for variable correctness
 	if start > 1 or stop > 1 or start < 0 or stop < 0 or start >= stop:
@@ -68,7 +73,7 @@ def extract_frames(
 
 	numframes2pick = int(numframestot/numvids)
 	#This ensures we always a number of frames equal to the indictated total
-	assert numframestot == numvids * numframes2pick
+	# assert numframestot == numvids * numframes2pick
 
 	#Sample subset of videos to extaact frames from
 	videos = random.sample(videos_all, numvids)
@@ -78,8 +83,10 @@ def extract_frames(
 		from deeplabcut.utils.auxfun_videos import VideoReader
 	else:
 		from moviepy.editor import VideoFileClip
-
-	output_path = Path(config).parents[0] / "check-labeled-data"
+	if custom:
+		output_path = Path(out_path)
+	else:
+		output_path = Path(config).parents[0] / "check-labeled-data"
 	if output_path.exists() and os.listdir(output_path):
 		while True:
 				user_input = input(f"It appears that {len(os.listdir(output_path))} frames have been extracted for this day, would you like to extract {numframestot} more? (y/n)")
@@ -98,7 +105,9 @@ def extract_frames(
 		os.mkdir(output_path)
 	has_failed = []
 	for video in videos:
-		 
+		if not VideoReader(video):
+			has_failed.append(True)
+			continue
 		cap = VideoReader(video)
 		nframes = len(cap)
 		if not nframes:
@@ -121,7 +130,6 @@ def extract_frames(
 			)
 		elif not crop:
 			coords = None
-
 		print("Extracting frames based on %s ..." % algo)
 		if algo == "uniform":
 			if opencv:
@@ -365,8 +373,12 @@ Total Frames : {metrics["extracted_frames"]}
 
 
 
-def  main(name, do_list, numvids=None, numframes=None):
+def  main(name, do_list, numvids=None, numframes=None, custom_vid_list=None, custom_out=None):
 	from pyvm.globals import BASEDIR
+	if 'extract_custom' in do_list:
+		extract_frames(videos_list=custom_vid_list,config=None,
+				 numvids=numvids,numframestot=numframes,custom=True,out_path=custom_out)
+		return
 	for task in do_list:
 		dict_paths, _ = find_expt_config_paths(name, "behavior")
 		pcf = list(dict_paths.values())[0]
@@ -381,12 +393,13 @@ if __name__=="__main__":
 	from pythonlib.tools.expttools import findPath
 	from pyvm.globals import BASEDIR
 	from initialize import find_expt_config_paths
+	import os
 
 	parser = argparse.ArgumentParser(description="Description of your script.")
 	parser.add_argument("name", type=str, help="Experiment name/date")
 	parser.add_argument("animal", type=str, help="Help yourself")
-	parser.add_argument("--numvids", type=str, help="Number of videos to pick", default=20, required=False)
-	parser.add_argument("--numframes", type=str, default=200, required=False, help="Number of frames to pick TOTAL (i.e. numvids*numframes/vid this is to ensure that this many frames are selected if there are fewer videos than indicated as this is mos timportat)")
+	parser.add_argument("--numvids", type=int, help="Number of videos to pick", default=20, required=False)
+	parser.add_argument("--numframes", type=int, default=200, required=False, help="Number of frames to pick TOTAL (i.e. numvids*numframes/vid this is to ensure that this many frames are selected if there are fewer videos than indicated as this is mos timportat)")
 	parser.add_argument("--do", type=str, help="Do extract/review/both steps")
 	args = parser.parse_args()
 	name = args.name
@@ -404,5 +417,18 @@ if __name__=="__main__":
 	elif do == "both":
 		print("Doing both steps...")
 		main(name=name, do_list=["extract","review"], numvids=numvids, numframes=numframes)
+
+	elif do == "extract_custom":
+		import math
+		print("Doing custom frame extraction based on user vids list")
+		cam_list = ['fly1','fly2','flea','bfs1']
+		vid_dir = "/home/danhan/Documents/hand_track/Pancho/221015_dircolor1/behavior"
+		out = "/data3/dan/extracted_frames/pancho_221015_dircolor1"
+		for cam in cam_list:
+			this_dir = f"{vid_dir}/{cam}"
+			file_list = os.listdir(this_dir)
+			vids_list = [f"{this_dir}/{file}" for file in file_list if file.endswith(".mp4")]
+			main(name=None,do_list=['extract_custom'],numvids=len(vids_list)*len(cam_list),
+						numframes=500000000, custom_vid_list=vids_list, custom_out=out)
 		
 

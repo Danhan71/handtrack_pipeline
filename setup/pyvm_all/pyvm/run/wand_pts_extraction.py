@@ -54,10 +54,10 @@ def extract_save_easywand_pts(V, list_part =None, indgrp = 0):
     # print(cameras)
 
     #Get good frames as list
-    _, framenums, _ = V.goodframes_mapping_new_old_index(0)
+    _, framenums, _ = V.goodframes_mapping_new_old_index_dan(0)
     indtrial = V.inds_trials()[0]
     #Pass list to this function to extract a matrix of pts
-    vals, columns = V.dlc_extract_pts_matrix(indtrial, list_part, framenums)
+    vals, columns = V.dlc_extract_pts_matrix_dan(indtrial=indtrial, list_part=list_part, frames_get=framenums)
     cameras = [c[1] for c in columns]
 
 
@@ -66,7 +66,7 @@ def extract_save_easywand_pts(V, list_part =None, indgrp = 0):
     basedir = V.Params["load_params"]["basedir"]
     SDIR = f"{basedir}/wand_calibration"
     os.makedirs(SDIR, exist_ok = True)
-    fname = f"{SDIR}/wandPointsScreen.csv"
+    fname = f"{SDIR}/241014_wandPoints_99thresh.csv"
     np.savetxt(fname, vals, delimiter=",")
 
     fname = f"{SDIR}/camera_names_in_order.txt"
@@ -199,7 +199,9 @@ if __name__=="__main__":
     V.sample_and_extract_auto_good_frames(ntoget=5000)
 
     # 2) Prune, but only keeping those passing DLC threshold for likeli.
-    V.filter_good_frames_dan(screen=True)
+    #screen=True means only take frames that are close to the screen, did not seem to work that well
+    V.filter_good_frames_dan()
 
     extract_save_easywand_pts(V)
     # extract_save_checkerboard_calib(V)
+    #meow
