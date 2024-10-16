@@ -78,6 +78,35 @@ def generate_expt_yaml (expt_name, pipe_path, data_dir, condition, animal):
 # BASEDIR = '/data2/camera'
 # BASEDIR = 'Y:\hopfield_data01\ltian\camera\Pancho\220714'
 # BASEDIR = 'Y:/hopfield_data01/ltian/camera/Pancho'
+
+def check_vid_nums(data_dir,animal,name):
+	'''
+	Function to check num vids for each camera, any cam with less than max vids will have last vid
+	deleted, to avoid issues with vid corruption. Rest of pipeline can handled mismatched lengths methinks.
+	'''
+	list_camnames = get_cam_list(name, animal)
+	#Brazenly discriminate against bfs2, if there are more than 4 cameras (4 cam setup bfs2 is okay)
+	if len(list_camnames) > 4:
+		list_camnames = [cam for cam in list_camnames if cam != 'bfs2']
+	vid_dir = f'{data_dir}/{name}/behavior'
+	dir_lengths = {}
+	for cam in list_camnames:
+		this_dir = f'{vid_dir}/{cam}'
+		vids = [f for f in os.listdir(this_dir) if f.endswith('.mp4')]
+		dir_lengths[cam] = len(vids)
+	vids_max = max(dir_lengths.values())
+	cut_dirs = [k for k,v in dir_lengths.items() if v < vids_max]
+	for cam in list_camnames:
+		this_dir = f'{vid_dir}/{cam}'
+		if cam in cut_dirs:
+			vids = [f for f in os.listdir(this_dir) if f.endswith('.mp4')]
+			trial_cutoff = max([vid.split('vid-t')[1].split('.mp4')[0] for vid in vids])
+			os.remove(f'{this_dir}/vid-t{trial_cutoff}.mp4')
+
+
+
+
+
 if __name__ == "__main__":
 
 	parser = argparse.ArgumentParser(description = "Description of your script.")
@@ -150,6 +179,10 @@ if __name__ == "__main__":
 					print(f"Vid {sdir} exists, deleting >:(")
 					os.remove(sdir)
 				os.symlink(vid_dir, sdir)
+
+	if condition == 'behavior':
+		check_vid_nums(data_dir,animal,name)
+
 
 
 		# Print summary of vidoes
