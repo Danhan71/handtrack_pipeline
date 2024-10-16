@@ -63,7 +63,7 @@ done
 fi
 
 if [ $dir_type == "late" ]; then
-	dir="/home/danhan/freiwaldDrive/ltian/camera_late_2023_onwards"
+	dir="${server_dir}/ltian/camera_late_2023_onwards"
 	for cam_dir in ${dir}/${ANIMAL}/${date}/${name}/*/; do
 		echo "Making directory:"
 		echo ${cam_dir}
@@ -72,7 +72,7 @@ if [ $dir_type == "late" ]; then
 		ln -s ${cam_dir} ${base_local}/${cam_name}
 	done
 elif [ $dir_type == "early" ]; then
-	dir="/home/danhan/freiwaldDrive/ltian/backup/gorilla/gorilla2/camera"
+	dir="${server_dir}/ltian/backup/gorilla/gorilla2/camera"
 	for cam_dir in ${dir}/${ANIMAL}/${date}/${name}/*/; do
 		echo "Making directory:"
 		echo ${cam_dir}
