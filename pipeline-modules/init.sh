@@ -90,6 +90,7 @@ if [ ! -d "${data_dir}/${animal}" ]; then
 	echo "Base data directory ${data_dir}/${animal} is not found please update the config file with the proper directory"
 	exit 1
 fi
+
 if [ ! -d "${pyvm}" ]; then
 	echo "###### ERROR"
 	echo "pyvm directory ${pyvm} is not found. Please update the config file with the proper pyvm directory (i.e. update pipe_path with the current directory of this pipeline)"
@@ -114,6 +115,7 @@ fi
 #         * ) echo "Please answer y or n.";;
 #     esac
 # done
+
 if [ -f "${pipe_path}/${name}.yaml" ]; then
 	rm "${pipe_path}/${name}.yaml"
 fi

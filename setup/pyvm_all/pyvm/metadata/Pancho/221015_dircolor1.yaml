@@ -5,8 +5,8 @@ list_bodyparts:
 list_camnames:
 - fly2
 - fly1
-- flea
 - bfs1
+- flea
 list_combinecams:
 - true
 list_conditions:
@@ -22,9 +22,8 @@ list_start:
 list_stop:
 - 0.85
 list_vidnums:
-- - 4
-  - 6
-#2,226
+- - 2
+  - 226
 vidnums_to_copy:
   3dgrid: []
   behavior: []

@@ -25,6 +25,14 @@ help_message () {
 	echo ""
 }
 
+this_dir="$(dirname "$0")"
+config_file=${this_dir}/config
+source $config_file
+if [[ $? -ne 0 ]]; then 
+	echo "no config file."
+	exit 1
+fi
+
 comm () { ${scripts}/print_comment.py "$1" "-"; }
 error () { ${scripts}/print_comment.py "$1" "*"; exit 1; }
 warning () { ${scripts}/print_comment.py "$1" "*"; }
@@ -38,8 +46,8 @@ while true; do
 		-3) cond='3dgrid'; shift 1;;
 		-a) animal=$2; shift 2;;
 		-h | --help) help_message; exit 1; shift 1;;
-		-l) dir="late"; loop_dir="/home/danhan/freiwaldDrive/ltian/camera_late_2023_onwards/${animal}/${name}"; shift 1;;
-		-g) dir="early"; loop_dir="/home/danhan/freiwaldDrive/ltian/backup/gorilla/gorilla2/camera/${animal}/${name}"; shift 1;;
+		-l) dir="late"; loop_dir="${server_dir}/ltian/camera_late_2023_onwards/${animal}/${name}"; shift 1;;
+		-g) dir="early"; loop_dir="${server_dir}/freiwaldDrive/ltian/backup/gorilla/gorilla2/camera/${animal}/${name}"; shift 1;;
 		--loop) loop=true; shift 1;;
 		--) help_message; exit 1; shift; break;;
 		*) break;;
@@ -83,14 +91,14 @@ else
 	this_dir="$(dirname "$0")"
 	pipe="${this_dir}/pipeline"
 
-	# yes | $pipe init -e ${name} -a ${animal} -c ${cond} -d ${dir}
+	yes | $pipe init -e ${name} -a ${animal} -c ${cond} -d ${dir}
 
-	# yes | pipeline dlc-setup -e ${name} --${cond} --skiplabel --skipext -a ${animal}
+	yes | pipeline dlc-setup -e ${name} --${cond} --skiplabel --skipext -a ${animal} &&
 
 	yes | pipeline analyze -e ${name} --cond ${cond} -a ${animal}
 
-	yes | pipeline wand -e ${name} -a ${animal} --step 4 --cond ${cond}
+	# yes | pipeline wand -e ${name} -a ${animal} --step 4 --cond ${cond} &&
 
-	yes | pipeline wand -e ${name} --step 5 --reg -a ${animal}
+	# yes | pipeline wand -e ${name} --step 5 --reg -a ${animal}
 
 fi

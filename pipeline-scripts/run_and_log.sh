@@ -1,11 +1,19 @@
 #!/bin/bash
 
-expt='221111_shapecolor1b'
+this_dir="$(dirname "$0")"
+config_file=${this_dir}/../config
+source $config_file
+if [[ $? -ne 0 ]]; then 
+	echo "no config file."
+	exit 1
+fi
+
+expt='220814_neuralbiasdir3c'
 animal='Pancho'
 
 # Output log file
-LOGFILE="logs/Pancho/221111_resource_usage.log"
-OLOG="logs/Pancho/${expt}_out.log"
+LOGFILE="logs/${animal}/${expt}_resource_usage.log"
+OLOG="logs/${animal}/${expt}_out.log"
 
 # Interval between logs (in seconds)
 INTERVAL=5
@@ -38,7 +46,7 @@ log_usage() {
 MONITOR_PID=$!
 
 # Run the target script
-/home/danhan/Documents/pipeline/notrain_run_script.sh -b -e ${expt} -a ${animal} -g > ${OLOG}
+${pipe_path}/notrain_run_script.sh -b -e ${expt} -a ${animal} -g > ${OLOG}
 
 # Once the target script finishes, kill the monitoring process
 kill $MONITOR_PID

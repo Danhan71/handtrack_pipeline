@@ -1,2 +1,3 @@
-models/
-config
+./models/
+./config
+./notrain_run_script
