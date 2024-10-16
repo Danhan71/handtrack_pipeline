@@ -1,4 +1,5 @@
-models/
-config
-metadata/
+./models/
+./config
+./metadata/
+./notrain_run_script
 
