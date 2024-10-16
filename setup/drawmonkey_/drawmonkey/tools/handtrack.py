@@ -45,13 +45,17 @@ class HandTrack(object):
         self.regressor = reg
 
     def process_data_singletrial(self, trial_ml2, ploton=False, 
-            filter_by_likeli_thresh=True, return_in_meters = True, finger_raise_time=0.05):
+            filter_by_likeli_thresh=True, return_in_meters = True, finger_raise_time=0.05,
+            ts_cam_offset=0.06):
         """ Does manythings:
         - Converts cam data into strokes formate, for both strokes and gaps.
         - interpoaltes cam so that matches ml2 timings.
         - gets in units of both pixels and m
+
         PARAMS:
         - runs for a single trial.
+        - ts_cam_offset = Number of seconds the ts lags behind the camera, usually 2-3 frames (0.)
+
         RETURNS:
         - dict, holding data
         (empty {} if there is no data)
@@ -212,7 +216,11 @@ class HandTrack(object):
                 x[:, :2] = convert_pix_to_meters(x[:,:2])
                 strokes_meters.append(x)
             strokes_task = strokes_meters
-        dat = snap_pts_to_strokes(strokes, pts_time_cam_all)
+        strokes_lag_adjusted = []
+        for strok in strokes:
+            lag_adjusted = np.array([[p[0],p[1],p[2]-ts_cam_offset] for p in strok])
+            strokes_lag_adjusted.append(lag_adjusted)
+        dat = snap_pts_to_strokes(strokes_lag_adjusted, pts_time_cam_all)
         if dat == {}:
             return {},[],[]
         dat["strokes_task"] = strokes_task
