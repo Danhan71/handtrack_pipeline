@@ -3,10 +3,16 @@
 #PIPELINE DIRECTORIES
 
 #Will update the one in PYVM globals
-data_dir=/data3/hand_track
-server_dir=/home/dhanuska/Freiwald
+if [ "$HOSTNAME" = ltbonobo ]; then
+    data_dir=/data3/hand_track
+    server_dir=/home/danhan/Freiwald
+    pipe_path=/home/danhan/Documents/pipeline    
+elif [ "$HOSTNAME" = helmholtz.rockefeller.edu ]; then
+    data_dir=/home/dhanuska/dhanuska/hand_track
+    server_dir=/home/dhanuska/Freiwald
+    pipe_path=/home/dhanuska/dhanuska/handtrack_pipeline
+fi
 
-pipe_path=/home/danhan/Documents/pipeline
 scripts=${pipe_path}/pipeline-scripts
 pyvm=${pipe_path}/setup/pyvm_all/pyvm
 expt_files=${pipe_path}/setup/pyvm_all/pyvm/metadata
