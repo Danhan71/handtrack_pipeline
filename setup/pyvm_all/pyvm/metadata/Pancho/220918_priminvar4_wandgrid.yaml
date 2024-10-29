@@ -4,6 +4,11 @@ list_bodyparts:
   - red
 list_combinecams:
 - true
+list_camnames:
+- flea
+- fly1
+- bfs1
+- fly2
 list_conditions:
 - wand
 list_dlciternum:

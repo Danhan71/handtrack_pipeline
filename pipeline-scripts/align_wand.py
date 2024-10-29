@@ -16,7 +16,7 @@ data_dir = "/data3/hand_track/Pancho"
 
 #Name of want pts file, maybe need list if all diff names
 # names_list = {"wandPointsNoScreen.csv","wandPointsNoScreen.csv","wandPointsScreen.csv"}
-name = "241014_wandPoints_99thresh.csv"
+name = "241017_wandPoints_95screen.csv"
 
 for date in wand_pts_dates:
     this_dir = f"{data_dir}/{date}/wand/wand_calibration"
@@ -38,7 +38,7 @@ for date in wand_pts_dates:
                 align_list.append(col)
     df = df.reindex(columns=align_list)
     df.to_csv(f"{this_dir}/{date}-{name}", index = False, header = False)
-    shutil.copy(f"{this_dir}/{date}-{name}", f"{data_dir}/220914_wandall/wand/wand_calibration/241014_{date}_99.csv")
+    shutil.copy(f"{this_dir}/{date}-{name}", f"{data_dir}/220914_wandall/wand/wand_calibration/241017_{date}_95screen.csv")
 
 
 

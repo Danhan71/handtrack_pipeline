@@ -22,6 +22,7 @@ help_message () {
 	echo "		-1				Only run calibrate step (frames must already be extracted)"
 	echo "		--checkerbdim INT INT		ONLY if you need to enter the dimensions of the checkerboard."
 	echo "						(If they are different than 10,7)(nrow vert, n cols). Unlikely you need this."
+	echo "		-a			Animal name (If empty, Pancho, really only matters for which dir to look in)"		
 	echo ""
 }
 
@@ -40,7 +41,7 @@ fi
 
 
 #default params	
-calibrate=false;extract=false;dim1=10;dim2=7;
+calibrate=false;extract=false;dim1=10;dim2=7;animal="Pancho";
 
 while true; do
 	case "$1" in
@@ -49,6 +50,7 @@ while true; do
 		-h | --help) help_message; exit 1; shift 1;;
 		-0) extract=true; shift 1;;
 		-1) calibrate=true; shift 1;;
+		-a) animal="$2"; shift 2;;
 		--) help_message; exit 1; shift; break;;
 		*) break;;
 	esac		
@@ -73,15 +75,16 @@ then
 elif [ $extract == true ]
 then
 	echo "Extracting frames..."
-	python3 ${pyvm}/run/checkerboard.py ${name} --runtype 0 --dim1 10 --dim2 7
+	python3 ${pyvm}/run/checkerboard.py ${name} --runtype 0 --dim1 10 --dim2 7 --animal ${animal}
 elif [ $calibrate == true ]
 then
 	echo "Calibrating cameras..."
-	python3 ${pyvm}/run/checkerboard.py ${name} --runtype 1 --dim1 10 --dim2 7
+	python3 ${pyvm}/run/checkerboard.py ${name} --runtype 1 --dim1 10 --dim2 7 --animal ${animal}
+	echo "Checkerboard calibration complete, you may now move on to the next step in the procedure."
 else
 	echo "Please pick a correct option"
 	help_message
 	exit 1
 fi
 
-echo "Checkerboard calibration complete, you may now move on to the next step in the procedure."
+

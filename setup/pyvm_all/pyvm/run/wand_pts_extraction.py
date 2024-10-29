@@ -66,7 +66,7 @@ def extract_save_easywand_pts(V, list_part =None, indgrp = 0):
     basedir = V.Params["load_params"]["basedir"]
     SDIR = f"{basedir}/wand_calibration"
     os.makedirs(SDIR, exist_ok = True)
-    fname = f"{SDIR}/241014_wandPoints_99thresh.csv"
+    fname = f"{SDIR}/241017_wandPoints_95screen.csv"
     np.savetxt(fname, vals, delimiter=",")
 
     fname = f"{SDIR}/camera_names_in_order.txt"
@@ -81,8 +81,8 @@ def extract_save_checkerboard_calib(V):
     readable by easyWand
     """
     dict_cam = V.get_cameras()
-    cameras_in_order = [dict_cam[i][0] for i in range(len(dict_cam))]
-    # cameras_in_order = ["flea", "fly1", "bfs1", "bfs2", "fly2"]
+    # cameras_in_order = [dict_cam[i][0] for i in range(len(dict_cam))]
+    cameras_in_order = ["flea", "fly1", "bfs1", "fly2"]
 
     rows = []
     for i, cam in enumerate(cameras_in_order):
@@ -179,6 +179,7 @@ if __name__=="__main__":
     parser = argparse.ArgumentParser(description="Description of your script.")
     parser.add_argument("name", type=str, help="Experiment name/date")
     parser.add_argument("animal", type=str,help="Your mother")
+    parser.add_argument("--cb", type=bool, help="Do checkboard extract", default=False)
     # parser.add_argument("--rmcam", type=str, help="List of cams to remove from the wand points extraction", default = None, required= False )
 
     args = parser.parse_args()
@@ -187,6 +188,7 @@ if __name__=="__main__":
     date = name.split("_")[0]
     expt = '_'.join(name.split("_")[1:])
     animal = args.animal
+    checkboard=args.cb
     # if args.rmcam is not None:
         # rmcam = args.rmcam.split(',')
 
@@ -198,10 +200,12 @@ if __name__=="__main__":
     # 1) Extract uniformly all frames, same across all cameras.
     V.sample_and_extract_auto_good_frames(ntoget=5000)
 
-    # 2) Prune, but only keeping those passing DLC threshold for likeli.
-    #screen=True means only take frames that are close to the screen, did not seem to work that well
+    # # 2) Prune, but only keeping those passing DLC threshold for likeli.
+    # #screen=True means only take frames that are close to the screen, did not seem to work that well
     V.filter_good_frames_dan()
 
-    extract_save_easywand_pts(V)
-    # extract_save_checkerboard_calib(V)
+    if not checkboard:
+        extract_save_easywand_pts(V)
+    else:
+        extract_save_checkerboard_calib(V)
     #meow

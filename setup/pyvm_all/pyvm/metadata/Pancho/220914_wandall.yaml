@@ -1,3 +1,9 @@
+animal: Pancho
+list_camnames:
+- flea
+- fly1
+- bfs1
+- fly2
 good_frames_checkerboard: []
 list_bodyparts:
 - - green

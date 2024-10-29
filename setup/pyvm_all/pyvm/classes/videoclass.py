@@ -385,10 +385,10 @@ class Videos(object):
         bad_frames_dict_cam = {}
         #(0,0.5) means take max*0 for x thresh (i.e. all x's) and take max*.5 for y thresh (everything in lower half)
         cam_to_screen_half = {
-        'bfs1': [0,0.67],
-        'flea': [0.67,0],
-        'fly1': [0,0.67],
-        'fly2': [0,0.67],
+        'bfs1': [0,0.75],
+        'flea': [0.75,0],
+        'fly1': [0,0.75],
+        'fly2': [0,0.75],
         }
         df = pd.DataFrame(vals, columns=cols)
         
@@ -449,7 +449,7 @@ class Videos(object):
         for list1, list2 in zip(list_good_frames[:-1], list_good_frames[1:]):
             assert list1 == list2
 
-        THRESH = 0.99
+        THRESH = 0.95
         list_part, list_feat = self.dlc_get_list_parts_feats()
         bad_frames = {}
         for indtrial in self.inds_trials():
@@ -471,7 +471,7 @@ class Videos(object):
                     frames_oob = np.where(out_of_bounds==True)[0].tolist()
                     frames_oob = [f for f in frames_oob if f in goodframes] # only keep frames that are in good frames list.
                     bad_frames[camname].extend(frames_oob)
-            if False:
+            if True:
                 for cam in cam_list:
                     unscreened_frames = self.screen_frames(indtrial,list_part)
                     # print(unscreened_frames[camname])
@@ -1490,7 +1490,7 @@ class Videos(object):
 
     ##################### CALIBRATION (SINGLE CAMERA)
     def calibrate_each_camera(self, patternSize=(9,6), ploton=False,
-        camnum = None):
+        camnum = None, manual_good_frames = False):
         """ each camera calibrated based on good frames that are
         pre-ectracted. this uses the list of cameras in self.DatGroups,
         so is actuall indexed by (camname, videogroup). Saves plots
@@ -1499,7 +1499,8 @@ class Videos(object):
         PARAMS:
         - camnum, if not None, then index, to pick out a camera
         """
-        from ..utils.calibrate import get_checkerboards
+        import random
+        from ..utils.calibrate import get_checkerboards, find_good_frames_from_all
         from pythonlib.tools.expttools import writeStringsToFile
         for DAT in self.DatGroups:
             # figure out savedir
@@ -1509,8 +1510,15 @@ class Videos(object):
             print("Saving calibration results at:")
             print(SDIR_CALIB)
 
-            # get pathlist
-            pathlist_frames = findPath(SDIR, [], "", ".jpg")
+            if manual_good_frames:
+                # get pathlist
+                pathlist_frames = findPath(SDIR, [], "", ".jpg")
+            else:
+                #Automatically find good frames from all frames
+                all_frames_dir = f"{DAT['videos_path_list'][0]}-frames"
+                all_frames = [os.path.join(all_frames_dir,f) for f in os.listdir(all_frames_dir)]
+                pathlist_frames = find_good_frames_from_all(all_frames,patternSize)
+                pathlist_frames = random.sample(pathlist_frames, 40)
 
             ### Find corner pts (world and camera) and reporject and save fig
             successes, objpts, imgpts, imsize, figlist = get_checkerboards(pathlist_frames, patternSize=patternSize)
@@ -2200,8 +2208,8 @@ class Videos(object):
         """
         df = self.DatVideos[vid_num]["data_dlc"]
         col = [col for col in df.columns if col[1]==part and col[2] == feat]
-        print(len(col))
-        df.head()
+        # print(len(col))
+        # df.head()
         assert len(col)==1
         return col[0]
 

@@ -976,7 +976,7 @@ class HandTrack(object):
         }
 
         return out
-
+ 
 
     def convert_coords(self, dfall):
         """ Convert coordinates to pixels, same as touchscreen data.
@@ -1023,7 +1023,7 @@ class HandTrack(object):
             # to frame coord system (see below)
             xdist = 0.202 # x distance from left edge of 3d grid to orign
             # xdist = .35
-            ydist = 0.278 # y distance from bottom of 3d grid to origin.
+            ydist = 0.279 # y distance from bottom of 3d grid to origin.
             zdist = 0.0635 # height of rod, relative to bottom surface of 3dgrid.
 
             xframe = xdist - dfall["x"]

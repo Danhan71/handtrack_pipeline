@@ -2,6 +2,39 @@ import numpy as np
 import cv2
 import matplotlib.pyplot as plt
 
+def find_good_frames_from_all(images,patternSize):
+    '''
+    Function to automatically find good frames to claibrate off of
+
+    Inputs:
+    - patternSize, list, patytern dims
+    - images, list, locations of all extracted frames
+
+    Returns:
+    good_frames, list of fnames for good frames
+    '''
+    # --- object points (3d)
+    objp = np.zeros((patternSize[0]*patternSize[1],3), np.float32)
+    objp[:,:2] = np.mgrid[0:patternSize[0],0:patternSize[1]].T.reshape(-1,2)
+    
+    FLAGS = cv2.CALIB_CB_EXHAUSTIVE + cv2.CALIB_CB_ADAPTIVE_THRESH + cv2.CALIB_CB_LARGER
+    
+    # ---
+    # termination criteria
+    criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
+
+    good_frames = []
+    for fname in images:
+        img = cv2.imread(fname)
+        assert img is not None, f"cant find {fname}"
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+        # === Find the chess board corners
+        ret, corners = cv2.findChessboardCorners(gray, patternSize, flags = FLAGS)
+        if ret == True:
+            good_frames.append(fname)
+    return good_frames
+
 def get_checkerboards(images, patternSize=(9,6)):
     """
     INPUTS:
@@ -19,7 +52,7 @@ def get_checkerboards(images, patternSize=(9,6)):
     
     # ---
     # termination criteria
-    criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
+    criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 50, 0.0001)
 
     objpts = []
     imgpts = []
@@ -32,6 +65,8 @@ def get_checkerboards(images, patternSize=(9,6)):
 
         # === Find the chess board corners
         ret, corners = cv2.findChessboardCorners(gray, patternSize, flags = FLAGS)
+        print(corners)
+        # assert False
         successes.append(ret)
 
         # === PLOT
