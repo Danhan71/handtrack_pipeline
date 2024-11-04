@@ -1,2 +1,0 @@
-reprojection error: 0.5310104515369574
-image size: (1072, 1028)

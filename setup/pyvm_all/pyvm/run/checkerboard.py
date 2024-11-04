@@ -40,5 +40,5 @@ if __name__=="__main__":
 		# 3. Extract good frames and calibrate
 		# V = Videos()
 		# V.load_data_wrapper(expt, condition)
-		V.collect_goodframes_from_videos()
+		V.collect_goodframes_from_videos(overwrite=False)
 		V.calibrate_each_camera(patternSize=PATTERNSIZE)

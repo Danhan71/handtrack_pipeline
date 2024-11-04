@@ -154,13 +154,16 @@ def jump_quant(date, expt, animal, condition="behavior"):
 	#     columns.append(f"{cam}_y")
 	#     columns.append(f"{cam}_disp")
 	#     columns.append(f"{cam}_like")
-		
+	good_cams = []
 	for trial in list_trials:
 		df = pd.DataFrame()
 		for cam in cams:
 			suffix = f"camera_{cam}_-trial_{trial}-dat.pkl"
 			this_file = [file for file in pkl_list if file.endswith(suffix)]
-			assert len(this_file) == 1, f"{len(this_file)} many files found. Extra copy or no copy of pkl file for this cam/trial? Or new naming convention (uh oh). PKL list = {pkl_list[0:2]}..."
+			assert len(this_file) <= 1, f"{len(this_file)} many files found. Extra copy of pkl file for this cam/trial? Or new naming convention (uh oh). PKL list = {pkl_list[0:2]}..."
+			if len(this_file) == 0:
+				continue
+			good_cams.append(cam)
 			with open(this_file[0], 'rb') as f:
 				data = pd.read_pickle(f)
 				data = pd.DataFrame(data)
@@ -177,12 +180,12 @@ def jump_quant(date, expt, animal, condition="behavior"):
 				df = pd.concat([df,add_df], axis=1)
 		df_list.append(df)
 	fig_list = []
-	m = len(cams) + 1
+	m = len(good_cams) + 1
 	for df,t in zip(df_list,list_trials):
 		fig, axes = plt.subplots(nrows=1, ncols = m, figsize=(10*m,6*n))
 		axes=[axes]
 		ax_disp = axes[0][0]
-		for cam in cams:
+		for cam in good_cams:
 			ax_disp.scatter(x=df.index, y=df[f"{cam}_disp"].cumsum().fillna(0),s=df[f"{cam}_like"], label=cam)
 		ax_disp.set_xlabel('Frame')
 		ax_disp.set_ylabel('Displacement')
@@ -190,8 +193,8 @@ def jump_quant(date, expt, animal, condition="behavior"):
 		ax_disp.legend()
 		ax_disp.grid(True)
 		axes[0][0] = ax_disp
-		rng = range(1,len(cams)+2)
-		for i,cam in zip(rng,cams):
+		rng = range(1,len(good_cams)+2)
+		for i,cam in zip(rng,good_cams):
 			ax_xy = axes[0][i]
 			n_points = len(df)
 			indices=np.arange(n_points)

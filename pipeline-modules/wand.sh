@@ -23,6 +23,7 @@ help_message () {
 	echo "		--step		Step (see options below, run all steps in succession)"
 	echo ""
 	echo "	#### SKIP STEPS 0-3 IF YOU ARE USING PRECALCULATED WAND COEFSS"
+	echo "		cb----------Extract and save the cb calibration params to use with easywand (run checkerb module first)"
 	echo "		0-----------Extract wand frames good accross all cameras"
 	echo "		1-----------The Lord, God, Watches Us All"
 	echo "		2-----------Open DLTdv8 to extract axis pts from 3d grid photos. Refer to documentation for labelling instructions"
@@ -89,8 +90,9 @@ while true; do
         * ) echo "Please answer y or n.";;
     esac
 done
-
-if [ $step == 0 ]; then
+if [ "$step" == "cb" ]; then
+	python3 ${pyvm}/run/wand_pts_extraction.py ${name} ${animal} --cb True
+elif [ $step == 0 ]; then
 	python3 ${pyvm}/run/wand_pts_extraction.py ${name} ${animal}
 elif [ $step == 1 ]; then
 	echo "2 Corinthians 4:16-18 ~ So we do not lose heart. Though our outer self is wasting away, our inner self is being renewed day by day. For this light momentary affliction is preparing for us an eternal weight of glory beyond all comparison, as we look not to the things that are seen but to the things that are unseen. For the things that are seen are transient, but the things that are unseen are eternal."

@@ -791,15 +791,12 @@ class HandTrack(object):
         print("TODO: Get accurate frametime after pass in frame extraction to Buttons")
         trial_dlc = self.convert_trialnums(trial_ml2=trial_ml2)
         
-        # 1) Load 3d pts.
+        # 1) 3d pts.
         path = f"{BASEDIR}/{self.animal}/{self.Date}_{self.Expt}/behavior/extracted_dlc_data/3d-part_{bodypart}-trial_{trial_dlc}-dat.npy"
         pts_raw = np.load(path)
         
         # 2) Load each camera data (e.g.,Likelihood)
         list_path = findPath(f"{BASEDIR}/{self.animal}/{self.Date}_{self.Expt}/behavior/extracted_dlc_data", [["camera", f"trial_{trial_dlc}-", "dat"]], None)
-        if len(list_path)!=NCAMS:
-            print(list_path)
-            assert False
 
         def _get_cam(path):
             """ return string, name of this camera, etracted from path"""

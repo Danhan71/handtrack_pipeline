@@ -39,7 +39,7 @@ def align_dlt_coefs(dlt_coefs, cols, V):
 
     print("Organizing dlt coeffs ~_~")
     for cam in cam_list:
-        if cam == 'bfs2':
+        if cam not in cols:
             continue
         org_array.append(list(df[cam]))
     org_array = np.array(org_array).T
@@ -261,6 +261,7 @@ def easyWand_triangulate(pts,calib_dir,pipe_path,cam_list):
 if __name__=="__main__":
 
     import argparse
+    import pandas as pd
 
     parser = argparse.ArgumentParser(description="Description of your script.")
     parser.add_argument("name", type=str, help="Experiment name/date")
@@ -314,23 +315,34 @@ if __name__=="__main__":
 
     list_trials = V.inds_trials()
     list_part, _ = V.dlc_get_list_parts_feats()
-    cam_list=list(V.get_cameras().items())
+    cams = V.Params['load_params']['camera_names']
+
+    #Restrict cameras to just those foind in dlt coeffs, but in right order
+    cam_list = [cam for cam in cams.values() if cam in coef_cols]
+
     temp_dir_base=f"{pipe}/temp_matlab_files"
     temp_dir = f"{temp_dir_base}/{animal}/{date}_{expt}"
     #Make relevant dirs in step 1, temp_dir should not already exists to avoid overwriting already extracted data
     if step == 1:
-        other_cam_list = [cam[0] for _,cam in cam_list]
         os.makedirs(temp_dir_base, exist_ok=True)
         assert not os.path.exists(temp_dir), f"meowmeow temp_dir {temp_dir} already exists. If you want to reextract delete it"
         os.makedirs(temp_dir)
         with open(f"{temp_dir}/cams.txt", 'w') as f:
-            for cam in other_cam_list:
+            for cam in cam_list:
                 f.write(f"{cam}\n")
         np.savetxt(f"{temp_dir}/dltCoefs.txt",align_coefs,delimiter=',')
     for trial in list_trials:
         for part in list_part:
-            
+            #Save only the columns with pts relevent to the dlt calibration
             pts, columns = V.dlc_extract_pts_matrix(trial, [part])
+            pts_df = pd.DataFrame(pts)
+            pts_df.columns = columns
+            new_pts = []
+            for col in columns:
+                for cam in cam_list:
+                    if cam in col:
+                        new_pts.append(pts_df[col].tolist())
+            pts = new_pts
             if step == 1:
                 np.savetxt(f"{temp_dir}/pts_t{trial}.txt", np.array(pts))
 
@@ -355,11 +367,11 @@ if __name__=="__main__":
     if step == 2:
         for trial in list_trials:
             
-            for i, cam in cam_list:
-                datv = V.helper_index_good((cam[0], trial))
+            for i, cam in enumerate(cam_list):
+                datv = V.helper_index_good((cam, trial))
         #         datv = V.datgroup_extract_single_video_data2(i, trial, True)
                 dfthis = datv["data_dlc"]
-                dfthis.to_pickle(f"{sdir}/camera_{cam[0]}_-trial_{trial}-dat.pkl")
+                dfthis.to_pickle(f"{sdir}/camera_{cam}_-trial_{trial}-dat.pkl")
 
         #         from pythonlib.tools.expttools import writeDictToYaml, makeTimeStamp
         #         V.Params["tstamp"] = makeTimeStamp()
@@ -372,6 +384,6 @@ if __name__=="__main__":
         # #         np.savetxt(f"{sdir}/part_{part}-trial_{trial}-columns.csv", columns, delimiter=",")
         #         writeStringsToFile(f"{sdir}/part_{part}-trial_{trial}-columns.csv", columns)
                 
-                print("Extracted original dlc data:", trial, "to", f"{sdir}/camera_{cam[0]}_-trial_{trial}-dat.pkl")
+                print("Extracted original dlc data:", trial, "to", f"{sdir}/camera_{cam}_-trial_{trial}-dat.pkl")
 
         shutil.rmtree(temp_dir)        

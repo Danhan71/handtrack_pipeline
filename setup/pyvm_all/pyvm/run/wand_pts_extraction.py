@@ -188,7 +188,7 @@ if __name__=="__main__":
     date = name.split("_")[0]
     expt = '_'.join(name.split("_")[1:])
     animal = args.animal
-    checkboard=args.cb
+    checkboard = args.cb
     # if args.rmcam is not None:
         # rmcam = args.rmcam.split(',')
 

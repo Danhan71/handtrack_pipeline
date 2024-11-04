@@ -21,7 +21,6 @@ draw_monk=${pipe_path}/setup/drawmonkey_/drawmonkey
 #NUMBER OF CAMERAS ON THIS DAY
 NCAMS=4
 
-
 ##PROGRAMS
 
 #You will need to have installed MATLAB runtime and DLTdv8a for the easywand portion of the pipeline. 
@@ -54,6 +53,6 @@ behavior_model_dir=${pipe_path}/models/beh-model/iteration-0/combined-fly2_bfs2_
 # E.G. pipeline/dlt_coefs/220914/dltCoefs.csv and .../220914/columns.csv
 # [name]/dltCoefs.csv and [name]/columns.csv
 
-calib_prefix=auto_cb
+calib_prefix=220914_f12_dlc
 # calib_prefix=220317
 checkb_dir=${pipe_path}/checkerboard_calib/220914_calib

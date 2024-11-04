@@ -2,7 +2,6 @@ function xyz = reconstruct_middleman(out)
     if true
         coefs = readmatrix([out,'/dltCoefs.txt']);
         data_pattern = fullfile(out,'/pts_t*.txt');
-        assignin('base','data_pattern',data_pattern);
         cam_pts = dir(data_pattern);
     else
         pts = readmatrix([out,'/xypts.csv']);
@@ -16,7 +15,7 @@ function xyz = reconstruct_middleman(out)
         base_file_name = cam_pts(k).name;
         full_path = fullfile(out,base_file_name);
         save_path = fullfile(out,['xyz_',base_file_name]);
-        pts = readmatrix(full_path);
+        pts = readmatrix(full_path).';
 
         [xyz,~] = dlt_reconstruct_standalone(coefs,pts);
         writematrix(xyz,save_path)

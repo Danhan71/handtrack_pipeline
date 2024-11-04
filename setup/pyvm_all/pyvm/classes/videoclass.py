@@ -1487,6 +1487,90 @@ class Videos(object):
     # # In general, should wrap these in functions that take in indexes (video, frame), not framedict. 
     # def _frame_to_image(self, framedict):
 
+    def get_key(self):
+        """
+        Function to get user input for the "GUI"
+        """
+        from pynput import keyboard
+        key_pressed = []
+        def on_press(key):
+            try:
+                # Check if the key is good
+                if key.char in ['1','2','9','0']:
+                    # Convert the key to an integer and store it
+                    key_pressed.append(int(key.char))
+                    return key_pressed
+            except AttributeError:
+                pass
+                print("Enter valid key")
+
+        def on_release(key):
+            # Stop the listener once a valid key is pressed
+            try:
+                # Check if the key is good
+                if key.char in ['1','2','9','0']:
+                    # Convert the key to an integer and store it
+                    return False
+            except AttributeError:
+                pass
+                print("Enter valid key")
+
+        with keyboard.Listener(on_press=on_press, on_release=on_release) as listener:
+            listener.join()
+        if key_pressed:
+            return key_pressed[0]  
+        else:
+            print("Label issue please repeat key stroke")
+            return self.get_key()
+        
+        # Return the stored key
+    
+    def review_reprojected_frames(self,frames_list, add=60):
+        '''
+        Function to review reprojected frmaes to pick the good ones
+        '''
+        from PIL import Image
+        frames_dict = {}
+        i = 0
+        good_hits = 0
+        print(frames_list)
+        while (i < len(frames_list) and good_hits < add):
+            print("loop")
+            frame = frames_list[i]
+            print(frame)
+            with Image.open(frame) as im:
+                plt.figure(figsize=(20,20))
+                plt.imshow(im,aspect='auto')
+                plt.axis('off')
+                plt.tight_layout()
+                plt.show(block=False)
+                plt.draw()
+                plt.pause(0.5)
+                print("""########################## \n
+                Swipe left for bad frame (hit 1 key) \n
+                Swipe right for good frame (hit 2 key) \n
+                Or mv fwd/bkwd(9/0) \n
+                btw hitting 9 subtract 1 from selected good frames count \n
+                lazy behavior but its to ensure we get at least the num frames wanted \n
+                per vid, in the case where you go back and change from good to bad""")
+                print(f"Doing image: {i}")
+                print(f"Good frames so far: {good_hits}")
+                response = self.get_key()
+                print(f"You entered: {response}")
+                if response == 9:
+                    i = i-1
+                    good_hits = good_hits-1
+                elif response == 0:
+                    i = i+1
+                else:
+                    frames_dict[f"{frame}"] = response
+                    i = i+1
+                    if response == 2:
+                        good_hits = good_hits+1
+                plt.close()
+        #Get list of just frame names that are good
+        good_frames_list = [k.split('/')[-1] for k,v in frames_dict.items() if v == 2]
+        return good_frames_list
 
     ##################### CALIBRATION (SINGLE CAMERA)
     def calibrate_each_camera(self, patternSize=(9,6), ploton=False,
@@ -1496,10 +1580,14 @@ class Videos(object):
         so is actuall indexed by (camname, videogroup). Saves plots
         and calibration files in the shared path.
         - Must have run self.collect_goodframes_from_videos first.
+
         PARAMS:
         - camnum, if not None, then index, to pick out a camera
+        - manual_good_frames, bool, flag to indicate if frames have been manually reviewd
+        already (True), or if function should automatically review frames and ask for user input
         """
         import random
+        import shutil
         from ..utils.calibrate import get_checkerboards, find_good_frames_from_all
         from pythonlib.tools.expttools import writeStringsToFile
         for DAT in self.DatGroups:
@@ -1518,20 +1606,76 @@ class Videos(object):
                 all_frames_dir = f"{DAT['videos_path_list'][0]}-frames"
                 all_frames = [os.path.join(all_frames_dir,f) for f in os.listdir(all_frames_dir)]
                 pathlist_frames = find_good_frames_from_all(all_frames,patternSize)
-                pathlist_frames = random.sample(pathlist_frames, 40)
+                pathlist_frames_samp = random.sample(pathlist_frames,150)
 
             ### Find corner pts (world and camera) and reporject and save fig
-            successes, objpts, imgpts, imsize, figlist = get_checkerboards(pathlist_frames, patternSize=patternSize)
+            successes, objpts, imgpts, imsize, figlist = get_checkerboards(pathlist_frames_samp, patternSize=patternSize)
 
             # Save figures
             SDIR_CALIB_FIGS = f"{SDIR_CALIB}/frames_reprojected"
             os.makedirs(SDIR_CALIB_FIGS, exist_ok=True)
-            for i, (fig, path) in enumerate(zip(figlist, pathlist_frames)):
+            for i, (fig, path) in enumerate(zip(figlist, pathlist_frames_samp)):
                 name = extractStrFromFname(path, None, None, return_entire_filename=True)
                 fig.savefig(f"{SDIR_CALIB_FIGS}/{name}.jpg")
             plt.close("all")
 
+            if not manual_good_frames:
+                #add 60 frames to calib by default
+                add=60
+                os.makedirs(f"{SDIR_CALIB}/reviewed_reprojs", exist_ok=True)
+                existing_frames = os.listdir(f"{SDIR_CALIB}/reviewed_reprojs")
+                existing_good_frames = []
+    
+                if len(existing_frames) > 1:
+                    while True:
+                        print("""
+                        Some reviewed frames already exist
+                        would you like to (type number): 
+                        (1) Restart calibration
+                        (2) Add more frames to the calibration\n""")
+                        user_input = self.get_key()
+                        if user_input == 1:
+                            print("Deleting old frames and restarting calibration...")
+                            shutil.rmtree(f"{SDIR_CALIB}/reviewed_reprojs")
+                            os.makedirs(f"{SDIR_CALIB}/reviewed_reprojs")
+                            existing_good_frames = []
+                            existing_frames=[]
+                            break
+                        elif user_input == 2:
+                            add = int(input("How many additional frames would you like to add?\n"))
+                            print(f"Adding {add} more frames to calibration...")
+                            existing_good_frames = [frame for frame in pathlist_frames if \
+                                                    frame.split('/')[-1] in existing_frames]
+                            successes_add, objpts_add, imgpts_add, imsize_add, _ = \
+                                get_checkerboards(existing_good_frames,patternSize=patternSize,plot_on=False)
+
+                            break
+                        else:
+                            print("Invalid response, try again")
+
+                reproj_paths = []
+                frame_nums_samp = [frame.split('/')[-1] for frame in pathlist_frames_samp]
+                for frame in os.listdir(SDIR_CALIB_FIGS):
+                    if (frame not in existing_frames) and (frame in frame_nums_samp):
+                        reproj_paths.append(os.path.join(SDIR_CALIB_FIGS,frame))
+                pathlist_frames_reviewed = self.review_reprojected_frames(reproj_paths, add=add)
+                good_inds = [i for i,frame in enumerate(pathlist_frames_samp) \
+                              if frame.split('/')[-1] in pathlist_frames_reviewed]
+                for frame in pathlist_frames_reviewed:
+                    shutil.copyfile(f"{SDIR_CALIB_FIGS}/{frame}",\
+                                    f"{SDIR_CALIB}/reviewed_reprojs/{frame}")
+                
+                objpts = [objpts[i] for i in good_inds]
+                imgpts = [imgpts[i] for i in good_inds]
+                figlist = [figlist[i] for i in good_inds]
+                if len(existing_good_frames)>0:
+                    objpts.extend(objpts_add)
+                    imgpts.extend(imgpts_add)
+
             ####### GET CAMERA CALIBRATION
+
+            print(f"{len(figlist)} total frames passed review.")
+            # assert len(figlist) >= 30, "Should have at least 30 good frames extracted"
 
             # 1 Only keep frames sucessfully got checkerboard
             tmp = [[i, o] for i, o in zip(imgpts, objpts) if len(i)>0]

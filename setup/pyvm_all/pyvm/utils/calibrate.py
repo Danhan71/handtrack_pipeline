@@ -35,7 +35,7 @@ def find_good_frames_from_all(images,patternSize):
             good_frames.append(fname)
     return good_frames
 
-def get_checkerboards(images, patternSize=(9,6)):
+def get_checkerboards(images, patternSize=(9,6), plot_on = True):
     """
     INPUTS:
     - images, list of paths to images
@@ -65,16 +65,19 @@ def get_checkerboards(images, patternSize=(9,6)):
 
         # === Find the chess board corners
         ret, corners = cv2.findChessboardCorners(gray, patternSize, flags = FLAGS)
-        print(corners)
+        # print(corners)
         # assert False
         successes.append(ret)
 
         # === PLOT
-        fig, axes = plt.subplots(1,2, figsize=(30, 15))
-        figlist.append(fig)
+        if plot_on:
+            fig, axes = plt.subplots(1,2, figsize=(30, 15))
+            figlist.append(fig)
 
-        axes[0].imshow(gray, cmap = 'gray', interpolation = 'bicubic')
-        axes[0].set_title(fname)
+            axes[0].imshow(gray, cmap = 'gray', interpolation = 'bicubic')
+            axes[0].set_title(fname)
+        else:
+            figlist = []
 
         objpts.append(objp)
 
@@ -84,10 +87,11 @@ def get_checkerboards(images, patternSize=(9,6)):
             imgpts.append(corners2)
 
             # Draw and display the corners
-            img1 = cv2.drawChessboardCorners(img, patternSize, corners, ret)
-            img2 = cv2.drawChessboardCorners(img, patternSize, corners2, ret)
-            # axes[1].imshow(img, cmap = 'gray', interpolation = 'bicubic')
-            axes[1].imshow(img2, cmap = 'gray', interpolation = 'bicubic')
+            if plot_on:
+                img1 = cv2.drawChessboardCorners(img, patternSize, corners, ret)
+                img2 = cv2.drawChessboardCorners(img, patternSize, corners2, ret)
+                # axes[1].imshow(img, cmap = 'gray', interpolation = 'bicubic')
+                axes[1].imshow(img2, cmap = 'gray', interpolation = 'bicubic')
 
 #             plt.title(fname)
 #             plt.imshow(img, cmap = 'gray', interpolation = 'bicubic')
