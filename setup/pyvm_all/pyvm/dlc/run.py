@@ -329,6 +329,7 @@ if __name__=="__main__":
     if args.frac is not None:
         FRAC = (args.frac/100.0)
         print("GPU Fraction:    ", FRAC)
+    FRAC = 0.5
 
     #Assign some default values if the user skips the optional paramters. Probably a more efficient way to do this
     if(len(conditionlist) == 1 and args.checkp == 'empty' and args.tver == 'empty'):

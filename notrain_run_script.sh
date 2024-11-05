@@ -20,8 +20,9 @@ help_message () {
 	echo "		-w/b/3			Conditions for model labelling (-w = wand, -b = behavior, -a = both, -3 3dgrid)"
 	echo "		-a				Animal"
 	echo "		-l/g			-l for late 2023 dir -g for gorilla dir"
-	echo "		--loop			Loop through a date folder (with only behavior conditions)"
+	echo "		--loop			Loop through a date folder will skip wandgrids"
 	echo "						If this is selected enter the date for the name"
+	echo "						loop mode also tracks checkpoints"
 	echo ""
 }
 
@@ -29,6 +30,15 @@ comm () { ${scripts}/print_comment.py "$1" "-"; }
 error () { ${scripts}/print_comment.py "$1" "*"; exit 1; }
 warning () { ${scripts}/print_comment.py "$1" "*"; }
 announcement () { ${scripts}/print_comment.py "$1" "#"; }
+
+this_dir="$(dirname "$0")"
+config_file=${this_dir}/config
+source $config_file
+if [[ $? -ne 0 ]]; then 
+	echo "no config file."
+	exit 1
+fi
+
 loop=false;
 while true; do
 	case "$1" in
@@ -38,52 +48,92 @@ while true; do
 		-3) cond='3dgrid'; shift 1;;
 		-a) animal=$2; shift 2;;
 		-h | --help) help_message; exit 1; shift 1;;
-		-l) dir="late"; loop_dir="/home/danhan/freiwaldDrive/ltian/camera_late_2023_onwards/${animal}/${name}"; shift 1;;
-		-g) dir="early"; loop_dir="/home/danhan/freiwaldDrive/ltian/backup/gorilla/gorilla2/camera/${animal}/${name}"; shift 1;;
+		-l) dir="late"; loop_dir="${server_dir}/ltian/camera_late_2023_onwards/${animal}/${name}"; shift 1;;
+		-g) dir="early"; loop_dir="${server_dir}/ltian/backup/gorilla/gorilla2/camera/${animal}/${name}"; shift 1;;
 		--loop) loop=true; shift 1;;
 		--) help_message; exit 1; shift; break;;
 		*) break;;
-	esac		
+	esac
 done
 
-while true; do
-	read -p "Is the expt name/date correct ${name} (y/n)" yn
-    case $yn in
-        [Yy]* ) break;;
-        [Nn]* ) echo "Do not use loop conition or else move this folder"; exit;;
-        * ) echo "Please answer y or n.";;
-    esac
-done
+# while true; do
+# 	read -p "Is the expt name/date correct ${name} (y/n)" yn
+#     case $yn in
+#         [Yy]* ) break;;
+#         [Nn]* ) echo "Do not use loop conition or else move this folder"; exit;;
+#         * ) echo "Please answer y or n.";;
+#     esac
+# done
+
+
 
 
 if [ ${loop} = true ]; then
 	
-	for i in ${loop_dir}/*; do
-		# Find dir depth to properly caluclate where the expt name is
-		dep_count=$(grep -o "/" <<< "$loop_dir" | wc -l)
-		((dep_count+=2))
-		echo ${dep_count}
-		expt=$(echo "$i" | cut -d'/' -"f${dep_count}")
+	for i in ${loop_dir}/*/; do
+		#Will only access dirs that are not wandgrid or test, if want to do that do it indivudally 
+		if [[ "${i}" != *wandgrid* && "${i}" != *test* ]]; then
+			# Find dir depth to properly caluclate where the expt name is
+			dep_count=$(grep -o "/" <<< "$loop_dir" | wc -l)
+			((dep_count+=2))
 
-		this_dir="$(dirname "$0")"
-		pipe="${this_dir}/pipeline"
+			expt=$(echo "$i" | cut -d'/' -"f${dep_count}")
+			checkpoints="${data_dir}/${animal}/${expt}/checkpoints"
 
-		yes | pipeline init -e ${expt} -a ${animal} -c ${cond} -d ${dir} &&
 
-		yes | pipeline dlc-setup -e ${expt} --${cond} --skiplabel --skipext &&
+			echo "Doing ${expt}"
 
-		yes | pipeline analyze -e ${expt} --cond ${cond}
+			if [ ! -f "${checkpoints}/init" ]; then
+				yes | pipeline init -e ${expt} -a ${animal} -c ${cond} -d ${dir}
+			else
+				echo "Skipping pipeline init, checkpoint found"
+			fi
 
-		yes | pipeline wand -e ${expt} --step 4 --cond ${cond} -a ${animal}
+			mkdir -p $checkpoints
+			touch "${checkpoints}/init"
+			
 
-		yes | pipeline wand -e ${expt} --step 5 --reg -a ${animal}
+			if [ ! -f "${checkpoints}/dlc-setup" ]; then
+				yes | pipeline dlc-setup -e ${expt} --${cond} --skiplabel --skipext -a ${animal} &&
+				touch "${checkpoints}/dlc-setup"
+			else
+				echo "Skipping pipeline dlc-setup, checkpoint found"
+			fi
+
+			if [ ! -f "${checkpoints}/analyze" ]; then
+				yes | pipeline analyze -e ${expt} --cond ${cond} -a ${animal}
+				touch "${checkpoints}/analyze"
+			else
+				echo "Skipping pipeline analyze, checkpoint found"
+			fi
+
+			# if [ ! -f "${checkpoints}/wand4" ]; then
+			# 	yes | pipeline wand -e ${expt} --step 4 --cond ${cond} -a ${animal}
+			# 	touch "${checkpoints}/wand4"
+			# else
+			# 	echo "Skipping pipeline wand step 4, checkpoint exists"
+			# fi
+
+			# if [ ! -f "${checkpoints}/wand5" ]; then
+			# 	yes | pipeline wand -e ${expt} --step 5 --reg -a ${animal}
+			# 	touch "${checkpoints}/wand5"
+			# else
+			# 	echo "Day is fully run, skipping. If you want to rerun the day from certain step\
+			# 	 delete files and checkpoints"
+			# fi
+		fi
 
 	done
-else
-	this_dir="$(dirname "$0")"
-	pipe="${this_dir}/pipeline"
+	echo "For our struggle is not against flesh and blood, but against the rulers,\
+	against the authorities, against the powers of this dark world\
+	  and against the spiritual forces of evil in the heavenly realms. 
+	  — Ephesians 6:12 (NIV)"
 
-	yes | $pipe init -e ${name} -a ${animal} -c ${cond} -d ${dir}
+else
+	checkpoints="${data_dir}/${animal}/${name}/checkpoints"
+	mkdir -p "${checkpoints}"
+
+	yes | pipeline init -e ${name} -a ${animal} -c ${cond} -d ${dir}
 
 	yes | pipeline dlc-setup -e ${name} --${cond} --skiplabel --skipext -a ${animal}
 

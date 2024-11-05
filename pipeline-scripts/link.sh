@@ -62,6 +62,7 @@ else
 done
 fi
 
+
 if [ $dir_type == "late" ]; then
 	dir="${server_dir}/ltian/camera_late_2023_onwards"
 	for cam_dir in ${dir}/${ANIMAL}/${date}/${name}/*/; do
