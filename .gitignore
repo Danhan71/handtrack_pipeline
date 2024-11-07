@@ -1,6 +1,8 @@
 config
-metadata/
-notrain_run_script
+metadata
+notrain_run_script.sh
+pipeline-scripts/diego_run.sh
+pipeline-scripts/pancho_run.sh
 temp_matlab_files
 setup/pyvm_all/pyvm/metadata
-
+pipeline-scripts/logs
