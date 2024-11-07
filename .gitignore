@@ -1,5 +1,6 @@
-./models/
-./config
-./metadata/
-./notrain_run_script
+config
+metadata/
+notrain_run_script
+temp_matlab_files
+setup/pyvm_all/pyvm/metadata
 
