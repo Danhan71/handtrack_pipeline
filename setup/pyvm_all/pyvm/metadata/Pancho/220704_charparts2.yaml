@@ -23,7 +23,7 @@ list_stop:
 - 0.85
 list_vidnums:
 - - 2
-  - 706
+  - 40
 vidnums_to_copy:
   3dgrid: []
   behavior: []

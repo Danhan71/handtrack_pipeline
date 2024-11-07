@@ -44,7 +44,7 @@ if [[ $? -ne 0 ]]; then
 fi
 
 #default params	
-algo="uniform";no_skip=1;data_selection="both";label_only=false; skiplabel=false;
+algo="uniform";no_skip=1;data_selection="behavior";label_only=false; skiplabel=false;
 
 while true; do
 	case "$1" in

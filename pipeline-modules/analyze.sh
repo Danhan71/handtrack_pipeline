@@ -46,7 +46,7 @@ if [[ $? -ne 0 ]]; then
 	exit 1
 fi
 
-skiplink=false; skipdlc=false; skipreview=true; nv=20; nf=200;
+skiplink=false; skipdlc=false; skipreview=true; nv=20; nf=200;cond='behavior';
 
 while true; do
 	case "$1" in

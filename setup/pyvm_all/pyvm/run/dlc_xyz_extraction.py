@@ -257,6 +257,19 @@ def easyWand_triangulate(pts,calib_dir,pipe_path,cam_list):
     xyz = eng.triangulate_middle_man(calib_dir,matlab.double(pts),cam_list)
     return np.array(xyz);
 
+def determineDLTAuto(date):
+    '''
+    Function to autkoamtically determine DLT coeff prefix.
+    Rewrite this function if you have different coeffs than used circa 2024
+    '''
+    prefix = None
+    if date < 220914:
+        prefix = "220317"
+    if date >= 220914:
+        prefix = "220914_f12_dlc"
+    return prefix
+
+
 
 if __name__=="__main__":
 
@@ -269,7 +282,7 @@ if __name__=="__main__":
     parser.add_argument("--cond", type=str, help="Experiment condition")
     parser.add_argument("--pipe", type=str, help="Pipeline path")
     parser.add_argument("--step", type=int, help="Prematlab data extraction 1, post matlab 2")
-    parser.add_argument("--coeff", type=str, help="Suffix for dir that coeffs are in in pipeline")
+    parser.add_argument("--coeff", type=str, help="Suffix for dir that coeffs are in in pipeline", default=None)
 
     args = parser.parse_args()
 
@@ -282,7 +295,10 @@ if __name__=="__main__":
     animal = args.animal
     condition = args.cond
     pipe = args.pipe
-    prefix = args.coeff # File in /wand/wand_calibration.
+    prefix = args.coeff
+    if prefix is None:
+        #Rewrite this fxn with your own dates if needed
+        prefix = determineDLTAuto(date)
     print (date, expt, condition, animal)
 
     ################# RUN
