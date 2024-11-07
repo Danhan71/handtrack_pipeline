@@ -7,10 +7,12 @@
 help_message () {
 	echo ""
 	echo "Make sure config file is filled out with the proper information/dirs"
+    echo ""
     echo " >>>> Usage : ./check_dates_checkpoints {animal} {checkpoint_name}"
+    echo ""
     echo "  *Checkpoint names are the same as the various pipeline modules"
     echo "  * If multiple steps, use [name][step#]"
-    echo "  E.G: analyze, wand1, wand2,...,wand5"
+    echo "  E.G: analyze, wand1, wand2,...,wand5,done"
     echo "  Use done as checkpoinbt to check dates fully run"
 }
 
@@ -34,7 +36,7 @@ if [ "$checkp" = "done" ]; then
     checkp="wand5"
 fi
 
-dirs=$(find "${data_dir}/${animal}" -name "${checkp}" -printf "%h\n" | sort -u)
+mapfile -t dirs < <(find "${data_dir}/${animal}" -name "${checkp}" -exec dirname {} \; | sort -u)
 
 for dir in "${dirs[@]}"
 do 

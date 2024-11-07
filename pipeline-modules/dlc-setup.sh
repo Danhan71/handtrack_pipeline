@@ -82,3 +82,6 @@ if [  $skiplabel == false ]; then
 	labels=$(< ${pyvm}/dlc/labels_${data_selection}.py)
 	echo "name = '${name}'; ${labels}" | ipython
 fi
+
+checkpoints="${data_dir}/${animal}/${name}/checkpoints"
+touch "${checkpoints}/dlc-setup"

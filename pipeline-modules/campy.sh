@@ -55,3 +55,5 @@ done
 cd ${pyvm}
 campy=$(< ${pyvm}/run/campy_inspect.py)
 echo "name = '${name}'; animal = '${animal}'; ${campy}" | ipython
+checkpoints="${data_dir}/${animal}/${name}/checkpoints"
+touch "${checkpoints}/campy"

@@ -90,14 +90,21 @@ done
 
 if [ $step -lt 3 ]; then
 	python ${pyvm}/dlc/run.py ${name} --step ${step} --iters ${iters} --cond ${conditions} --checkp ${checkpath} --tver 'new' --frac ${gpu_frac}
+	checkpoints="${data_dir}/${animal}/${name}/checkpoints"
+	touch "${checkpoints}/train${step}"
 elif [ $step == 3 ]; then
 	cd ${pyvm}/dlc
 	labels=$(< ${pyvm}/dlc/refine_labels.py)
 	echo "name = '${name}';condition='${conditions}';${labels}" | ipython
+	checkpoints="${data_dir}/${animal}/${name}/checkpoints"
+	touch "${checkpoints}/train${step}"
 elif [ $step == 4 ]; then
 	python ${pyvm}/dlc/run.py ${name} --step ${step} --iters ${iters} --cond ${conditions} --checkp ${checkpath} --tver ${trainver} --frac ${gpu_frac}
+	checkpoints="${data_dir}/${animal}/${name}/checkpoints"
+	touch "${checkpoints}/train${step}"
 fi
 
 if [ $step == 1 ]; then
 	echo "Please take a look at the labelled videos to ensure quality. You can use a command like mpv --fs --pause *.mp4 to play all videos in a folder frame by frame (use the . button to advance frames and the , button to move back frames)"
 fi
+

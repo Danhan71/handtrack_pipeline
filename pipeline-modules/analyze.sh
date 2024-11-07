@@ -78,6 +78,11 @@ if [ $skipreview == false ]; then
 python ${pyvm}/dlc/metrics.py ${name} ${animal} --numvids ${nv} --numframes ${nf} --do ${mode}
 fi
 
+
+checkpoints="${data_dir}/${animal}/${expt}/checkpoints"
+touch "${checkpoints}/analyze"
+echo "Analyze step done
+
 # STARTED AT 1824
 
 

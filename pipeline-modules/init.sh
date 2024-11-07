@@ -122,4 +122,8 @@ fi
 
 python3 ${scripts}/make_dirs.py ${name} ${animal} --pipepath ${pipe_path} --datadir "${data_dir}/${animal}" --cond ${cond}
 
+checkpoints="${data_dir}/${animal}/${name}/checkpoints"
+mkdir -p $checkpoints
+touch "${checkpoints}/init"
+
 echo "Directories successfully generated! You will need to manually move videos from the raw checkerboard folder to the new checkerboard folder (arranging by camera). I was too lazy to automate this. You may then move on to the next step."

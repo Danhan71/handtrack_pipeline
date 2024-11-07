@@ -94,6 +94,8 @@ if [ "$step" == "cb" ]; then
 	python3 ${pyvm}/run/wand_pts_extraction.py ${name} ${animal} --cb True
 elif [ $step == 0 ]; then
 	python3 ${pyvm}/run/wand_pts_extraction.py ${name} ${animal}
+	checkpoints="${data_dir}/${animal}/${name}/checkpoints"
+	touch "${checkpoints}/wand0"
 elif [ $step == 1 ]; then
 	echo "2 Corinthians 4:16-18 ~ So we do not lose heart. Though our outer self is wasting away, our inner self is being renewed day by day. For this light momentary affliction is preparing for us an eternal weight of glory beyond all comparison, as we look not to the things that are seen but to the things that are unseen. For the things that are seen are transient, but the things that are unseen are eternal."
 elif [ $step == 2 ]; then
@@ -102,6 +104,8 @@ elif [ $step == 2 ]; then
     	exit 1
 	fi
 	${dlt_dir} ${matrun_dir}
+	checkpoints="${data_dir}/${animal}/${name}/checkpoints"
+	touch "${checkpoints}/wand2"
 elif [ $step == 3 ]; then
 	if [ ! -f "${matfull_dir}/bin/matlab" ]; then
 		echo "MATLAB install not found make sure you have MATLAB installed and the config file has the correct directory"
@@ -143,6 +147,9 @@ elif [ $step == 3 ]; then
 	echo ""
 
 	${dlt_dir} ${matrun_dir}
+
+	checkpoints="${data_dir}/${animal}/${name}/checkpoints"
+	touch "${checkpoints}/wand3"
 elif [ $step == 4 ]; then
 	if [ -f ${pipe_path}/dlt_coeffs/${calib_prefix}/dltCoefs.csv -a -f ${pipe_path}/dlt_coeffs/${calib_prefix}/columns.csv ]; then
 		 python3 ${pyvm}/run/dlc_xyz_extraction.py ${name} ${animal} --cond ${cond} --pipe ${pipe_path} --coeff ${calib_prefix} --step 1
@@ -152,13 +159,17 @@ elif [ $step == 4 ]; then
 		 python3 ${pyvm}/run/dlc_xyz_extraction.py ${name} ${animal} --cond ${cond} --pipe ${pipe_path} --step 2 --coeff ${calib_prefix}
 		# Uncomment the following line and remove the previous line if you want to use auto coeff names
 		# python3 ${pyvm}/run/dlc_xyz_extraction.py ${name} ${animal} --cond ${cond} --pipe ${pipe_path} --step 2
-
+		checkpoints="${data_dir}/${animal}/${name}/checkpoints"
+		touch "${checkpoints}/wand4"
 	else
 		echo "No coeffs found in ${pipe_path}/dlt_coeffs/${calib_prefix} check this dir and ensure correct files (dltCoefs.csv and columns.csv)"
 	fi
 elif [ $step == 5 ]; then
 	python3 ${pyvm}/run/campy_extraction.py ${name} ${animal}
 	python3 ${draw_monk}/final_analysis.py ${name} --animal ${animal} --reg ${reg} --supp ${supp} --pipe ${pipe_path} --data ${data_dir}
+	checkpoints="${data_dir}/${animal}/${name}/checkpoints"
+	touch "${checkpoints}/wand5"
+	touch "${checkpoints}/done"
 fi
 
 
