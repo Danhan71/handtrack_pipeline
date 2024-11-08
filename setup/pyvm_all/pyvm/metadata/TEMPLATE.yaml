@@ -1,0 +1,8 @@
+vidnums_to_copy: 
+    3dgrid: [] # [LIST] assumed to be in directory <DATE>_<EXPTNAME>
+    behavior: [] # [RANGE, INCLUSIVE] assumed to be in directory <DATE>_<EXPTNAME>_wandgrid (or something liek that)
+    wand: [] # [LIST] assumed to be in directory <DATE>_<EXPTNAME>_wandgrid (or something liek that)
+    checker: [] # [LIST] assumed to be in directory <DATE>_<EXPTNAME>_checkerboard (or something liek that)
+
+good_frames_checkerboard: [
+]
