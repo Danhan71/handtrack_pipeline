@@ -97,6 +97,12 @@ if [ ! -d "${pyvm}" ]; then
 	exit 1
 fi
 
+if [ ! -d "${server_dir}" ]; then
+	echo "###### ERROR"
+	echo "Server mount not found at ${server_dir}, check server is actually mounted and that dir config file is correct"
+	exit 1
+fi
+
 echo -e "from pythonlib.globals import MACHINE\nBASEDIR = '${data_dir}'\nPYVM_DIR = '${pyvm}'\nWINDOWS = False\nNCAMS=${NCAMS}\nCB_DIR='${checkb_dir}'" >> ${pyvm}/globals.py
 
 if [ ${skiplink} == false ]; then

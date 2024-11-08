@@ -91,7 +91,13 @@ while true; do
     esac
 done
 if [ "$step" == "cb" ]; then
-	python3 ${pyvm}/run/wand_pts_extraction.py ${name} ${animal} --cb True
+	if [ ! -d "${checkb_dir}" ]; then
+		echo "###### ERROR"
+		echo "Checkerboard dir ${checkb_dir} is not found. Please update the config file with the proper pyvm directory (i.e. update pipe_path with the current directory of this pipeline)"
+		exit 1
+	else
+		python3 ${pyvm}/run/wand_pts_extraction.py ${name} ${animal} --cb ${checkb_dir}
+	fi
 elif [ $step == 0 ]; then
 	python3 ${pyvm}/run/wand_pts_extraction.py ${name} ${animal}
 	checkpoints="${data_dir}/${animal}/${name}/checkpoints"

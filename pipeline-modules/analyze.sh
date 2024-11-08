@@ -73,13 +73,13 @@ if [ $skipdlc == false ]; then
 
 	python ${pyvm}/dlc/run.py ${name} --step 5 --cond ${cond} --animal ${animal}
 fi
-
+last
 if [ $skipreview == false ]; then
 python ${pyvm}/dlc/metrics.py ${name} ${animal} --numvids ${nv} --numframes ${nf} --do ${mode}
 fi
 
 
-checkpoints="${data_dir}/${animal}/${expt}/checkpoints"
+checkpoints="${data_dir}/${animal}/${name}/checkpoints"
 touch "${checkpoints}/analyze"
 echo "Analyze step done
 

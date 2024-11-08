@@ -7,6 +7,7 @@ import numpy as np
 from pyvm.globals import BASEDIR
 import pandas as pd
 
+
 class Videos(object):
     """
     process videos
@@ -289,7 +290,6 @@ class Videos(object):
         trialnums_to_keep = params["vidnums"]
 
         # print(pathlist)
-        # print(camera_name_list)
         # print(video_group_list)
         # print(list_good_frames)
         # print(good_frames_delete_if_none)
@@ -436,6 +436,7 @@ class Videos(object):
         ncams = self.num_cams()
         dict_cams = self.get_cameras()
         cam_list = [c[1][0] for c in dict_cams.items()]
+        print(cam_list)
         # indtrial = self.Dat
         # ind_group = 0
 
@@ -2428,6 +2429,9 @@ class Videos(object):
 
         # Which parts
         dict_cameras = self.get_cameras()
+        # print(dict_cameras)
+        # print("get_cams_count",GET_CAMS_COUNT)
+        # assert False
         if list_part is None:
             if self.Params["load_params"]["condition"]=="wand":
                 # list_part = ["red", "blue"]
@@ -2601,14 +2605,15 @@ class Videos(object):
         --- camname is str
         --- where list_of_datgroup_inds...
         """
-
         dict_cams = self.Params["load_params"]["camera_names"]
         dict_cams_datgroups = {}
         # For each camera, get list of datgroups for it
         for camnum, camname in dict_cams.items():
             inds = [i for i, datg in enumerate(self.DatGroups) if datg["index_grp"][0]==camname]
             dict_cams_datgroups[camnum] = (camname, inds)
-
+        # print(dict_cams_datgroups)
+        # print("get_cams_count",GET_CAMS_COUNT)
+        # assert False
         return dict_cams_datgroups
 
 
@@ -2701,6 +2706,9 @@ class Videos(object):
 
             x = [datv for datv in self.DatVideos if \
                 datv["trialnum0"]==indtrial and datv["camera_name"]==indcam]
+            # if indcam == 'fly1':
+            #     for datv in self.DatVideos:
+            #         print(datv["trialnum0"],indtrial,datv["camera_name"],indcam)
 
 
             # for k, v in self.DatGroups[indgrp].items():

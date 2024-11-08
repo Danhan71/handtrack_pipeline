@@ -5,7 +5,7 @@ from pyvm.classes.videoclass import Videos
 import os
 import numpy as np
 from pythonlib.tools.expttools import writeStringsToFile
-from pyvm.globals import BASEDIR, CB_DIR
+from pyvm.globals import BASEDIR
 
 
 def extract_save_easywand_pts(V, list_part =None, indgrp = 0):
@@ -59,6 +59,7 @@ def extract_save_easywand_pts(V, list_part =None, indgrp = 0):
     #Pass list to this function to extract a matrix of pts
     vals, columns = V.dlc_extract_pts_matrix_dan(indtrial=indtrial, list_part=list_part, frames_get=framenums)
     cameras = [c[1] for c in columns]
+    print(cameras)
 
 
     ##### SAVE COORDINATES TO TEXT FIEL
@@ -76,24 +77,27 @@ def extract_save_easywand_pts(V, list_part =None, indgrp = 0):
     fname = f"{SDIR}/rows_frames.txt"
     writeStringsToFile(fname, framenums)
 
-def extract_save_checkerboard_calib(V):
+def extract_save_checkerboard_calib(V,cb_dir):
     """ First must have done stuff in checkerboard. here extract for each cam, in format
     readable by easyWand
     """
     dict_cam = V.get_cameras()
-    # cameras_in_order = [dict_cam[i][0] for i in range(len(dict_cam))]
-    cameras_in_order = ["flea", "fly1", "bfs1", "fly2"]
+    cameras_in_order = [dict_cam[i][0] for i in range(len(dict_cam))]
+    # cameras_in_order = ["flea", "bfs2", "fly1", "bfs1"]
 
     rows = []
     for i, cam in enumerate(cameras_in_order):
         # load calibration output
         x = [datv for datv in V.DatVideos if datv["camera_name"]==cam]
+
+        # for datv in V.DatVideos:
+        #     print(datv["camera_name"])
+        # assert False
         
-        # assert len(x)==1
         datv = x[0]
         
-        assert os.path.isdir(CB_DIR), "CB calib dir not found, please check and update config"
-        sdir = f"{CB_DIR}/{cam}/collected_frames/calib_pycv2"
+        assert os.path.isdir(cb_dir), "CB calib dir not found, please check and update config"
+        sdir = f"{cb_dir}/{cam}/collected_frames/calib_pycv2"
 
         
         # resolution
@@ -179,7 +183,7 @@ if __name__=="__main__":
     parser = argparse.ArgumentParser(description="Description of your script.")
     parser.add_argument("name", type=str, help="Experiment name/date")
     parser.add_argument("animal", type=str,help="Your mother")
-    parser.add_argument("--cb", type=bool, help="Do checkboard extract", default=False)
+    parser.add_argument("--cb", type=str, help="cb dir, leave empty if no do", default=None)
     # parser.add_argument("--rmcam", type=str, help="List of cams to remove from the wand points extraction", default = None, required= False )
 
     args = parser.parse_args()
@@ -198,14 +202,20 @@ if __name__=="__main__":
     
 
     # 1) Extract uniformly all frames, same across all cameras.
-    V.sample_and_extract_auto_good_frames(ntoget=5000)
+    
 
     # # 2) Prune, but only keeping those passing DLC threshold for likeli.
     # #screen=True means only take frames that are close to the screen, did not seem to work that well
-    V.filter_good_frames_dan()
+    
 
-    if not checkboard:
+    if checkboard is None:
+        # 1) Extract uniformly all frames, same across all cameras.
+        V.sample_and_extract_auto_good_frames(ntoget=5000)
+
+        # # 2) Prune, but only keeping those passing DLC threshold for likeli.
+        # #screen=True means only take frames that are close to the screen, did not seem to work that well
+        V.filter_good_frames_dan()
         extract_save_easywand_pts(V)
     else:
-        extract_save_checkerboard_calib(V)
+        extract_save_checkerboard_calib(V,checkboard)
     #meow
