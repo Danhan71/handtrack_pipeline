@@ -341,7 +341,9 @@ if __name__=="__main__":
     #Make relevant dirs in step 1, temp_dir should not already exists to avoid overwriting already extracted data
     if step == 1:
         os.makedirs(temp_dir_base, exist_ok=True)
-        assert not os.path.exists(temp_dir), f"meowmeow temp_dir {temp_dir} already exists. If you want to reextract delete it"
+        if os.path.exists(temp_dir):
+            print(f"meowmeow temp_dir {temp_dir} already exists. Deleting")
+            shutil.rmtree(temp_dir)
         os.makedirs(temp_dir)
         with open(f"{temp_dir}/cams.txt", 'w') as f:
             for cam in cam_list:

@@ -67,7 +67,7 @@ def extract_save_easywand_pts(V, list_part =None, indgrp = 0):
     basedir = V.Params["load_params"]["basedir"]
     SDIR = f"{basedir}/wand_calibration"
     os.makedirs(SDIR, exist_ok = True)
-    fname = f"{SDIR}/241017_wandPoints_95screen.csv"
+    fname = f"{SDIR}/241111_wandPoints_95.csv"
     np.savetxt(fname, vals, delimiter=",")
 
     fname = f"{SDIR}/camera_names_in_order.txt"
@@ -211,10 +211,11 @@ if __name__=="__main__":
     if checkboard is None:
         # 1) Extract uniformly all frames, same across all cameras.
         V.sample_and_extract_auto_good_frames(ntoget=5000)
-
         # # 2) Prune, but only keeping those passing DLC threshold for likeli.
         # #screen=True means only take frames that are close to the screen, did not seem to work that well
         V.filter_good_frames_dan()
+        # print(V.DatVideos)
+        # assert False
         extract_save_easywand_pts(V)
     else:
         extract_save_checkerboard_calib(V,checkboard)

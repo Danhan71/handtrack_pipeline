@@ -472,7 +472,7 @@ class Videos(object):
                     frames_oob = np.where(out_of_bounds==True)[0].tolist()
                     frames_oob = [f for f in frames_oob if f in goodframes] # only keep frames that are in good frames list.
                     bad_frames[camname].extend(frames_oob)
-            if True:
+            if False:
                 for cam in cam_list:
                     unscreened_frames = self.screen_frames(indtrial,list_part)
                     # print(unscreened_frames[camname])
