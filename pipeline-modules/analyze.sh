@@ -81,7 +81,7 @@ fi
 
 checkpoints="${data_dir}/${animal}/${name}/checkpoints"
 touch "${checkpoints}/analyze"
-echo "Analyze step done
+echo "Analyze step done"
 
 # STARTED AT 1824
 

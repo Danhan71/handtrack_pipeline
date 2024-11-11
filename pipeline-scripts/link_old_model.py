@@ -34,6 +34,8 @@ def load_config_file(path_config_file):
 
 if __name__=="__main__":
 
+	import shutil
+
 	parser = argparse.ArgumentParser(description="Description of your script.")
 	parser.add_argument("name", type=str, help="Expt name")
 	parser.add_argument("--cond", type=str, help="List of conditions")
@@ -70,9 +72,9 @@ if __name__=="__main__":
 				task="combined-" + "_".join(params['list_camnames'])
 				if os.path.isdir(f"{bp}/dlc-models"):
 					try:
-						os.rmdir(f"{bp}/dlc-models")
+						shutil.rmtree(f"{bp}/dlc-models")
 					except OSError as error:
-						print(error, "You may already have a non-empty model dir here. Check that out.")
+						print(error, "Umnable to delete old model dir")
 				os.mkdir(f"{bp}/dlc-models")
 				os.mkdir(f"{bp}/dlc-models/iteration-0")
 				os.symlink(modeldir, f"{bp}/dlc-models/iteration-0/{task}{date}-trainset{train_frac}shuffle1")
