@@ -36,7 +36,7 @@ if [ "$checkp" = "done" ]; then
     checkp="wand5"
 fi
 
-mapfile -t dirs < <(find "${data_dir}/${animal}" -name "${checkp}" -exec dirname {} \; | sort -u)
+mapfile -t dirs < <(find "${data_dir}/${animal}" -maxdepth 3 -name "${checkp}" -exec dirname {} \; | sort -u)
 
 for dir in "${dirs[@]}"
 do 

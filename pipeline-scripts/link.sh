@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
+set -e
 
 #Shell script to link expt videos out of server
 
 help_message () {
 	echo ""
-	echo "Usage: pipeline init -e [expt_name]"
+	echo "Usage: link.sh -e [expt_name] [options]"
 	echo "MAKE SURE YOU HAVE METADATA TEMPLATE FILLED OUT AND SAVED WITH EXPT NAME"
 	echo ""
 	echo "Options:"
@@ -68,7 +69,9 @@ if [ $dir_type == "late" ]; then
 	for cam_dir in ${dir}/${ANIMAL}/${date}/${name}/*/; do
 		echo "Making directory:"
 		echo ${cam_dir}
-		cam_name=$(echo "${cam_dir}" | cut -d'/' -f10)
+		dep_count=$(grep -o "/" <<< "$cam_dir" | wc -l)
+		# ((dep_count-=3))
+		cam_name=$(echo "${cam_dir}" | cut -d'/' -f${dep_count})
 		echo "For ${cam_name}"
 		ln -s ${cam_dir} ${base_local}/${cam_name}
 	done
@@ -77,7 +80,9 @@ elif [ $dir_type == "early" ]; then
 	for cam_dir in ${dir}/${ANIMAL}/${date}/${name}/*/; do
 		echo "Making directory:"
 		echo ${cam_dir}
-		cam_name=$(echo "${cam_dir}" | cut -d'/' -f13)
+		dep_count=$(grep -o "/" <<< "$cam_dir" | wc -l)
+		# ((dep_count-=2))
+		cam_name=$(echo "${cam_dir}" | cut -d'/' -f${dep_count})
 		echo "For ${cam_name}"
 		ln -s ${cam_dir} ${base_local}/${cam_name} 
 	done
