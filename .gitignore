@@ -9,3 +9,4 @@ setup/pyvm_all/pyvm/metadata/Diego/
 pipeline-scripts/logs
 setup/pyvm_all/pyvm/globals.py
 *.pyc
+.nfs*
