@@ -36,7 +36,8 @@ def find_expt_config_paths(exptname, condition, animal):
     dict_path = {}
     if combine_cameras:
         list_paths = findPath(f"{BASEDIR}/{animal}/{dirname}/{condition}/DLC", [["combined"]+list_camnames], "config")
-        assert len(list_paths)==1
+        print(list_camnames)
+        assert len(list_paths)==1, f"{list_paths}"
         dict_path["combined"] = list_paths[0]
     else:
         for camname in list_camnames:

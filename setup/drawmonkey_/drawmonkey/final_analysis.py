@@ -46,7 +46,6 @@ def fit_regression_cam(HT, trange, supp=None, reg_type='basic'):
 		if dat == {}:
 			continue
 
-		print('here', dat)
 		for strok_cam, strok_touch in zip(dat["strokes_cam"], dat["strokes_touch"]):
 			strokes_cam_allz.append(np.array(strok_cam))
 			strokes_touch_all.append(np.array(strok_touch))
@@ -123,7 +122,7 @@ def fit_regression_cam(HT, trange, supp=None, reg_type='basic'):
 		assert False, "Code ur own model then, fool"
 	return reg
 
-def jump_quant(date, expt, animal, condition="behavior"):
+def jump_quant(date, expt, animal, HT, vid_inds, condition="behavior"):
 	"""
 	Plots fiugres for looking at jumps in data. Mian figure cumulative displacement vs frame, with line saturation based on likelihood of DLC label
 	PARAMS:
@@ -132,6 +131,7 @@ def jump_quant(date, expt, animal, condition="behavior"):
 	RETURNS:
 	Big fig with all trials and cameras from this day
 	"""
+	list_trials=list(range(vid_inds[0],vid_inds[1]))
 	data_dir = f"{BASEDIR}/{animal}/{date}_{expt}/{condition}/extracted_dlc_data"
 
 	V = Videos()
@@ -141,7 +141,6 @@ def jump_quant(date, expt, animal, condition="behavior"):
 	sdir = f"{V.Params['load_params']['basedir']}/extracted_dlc_data"
 	cams = list(V.Params['load_params']['camera_names'].values())
 
-	list_trials = V.inds_trials()
 	pkl_list = []
 	for file in os.listdir(data_dir):
 		if file.endswith(".pkl"):
@@ -179,36 +178,40 @@ def jump_quant(date, expt, animal, condition="behavior"):
 				add_df = pd.DataFrame(data=d)
 				df = pd.concat([df,add_df], axis=1)
 		df_list.append(df)
-	fig_list = []
+	
+	fig_dict = {}
+
 	m = len(good_cams) + 1
 	for df,t in zip(df_list,list_trials):
-		fig, axes = plt.subplots(nrows=1, ncols = m, figsize=(10*m,6*n))
-		axes=[axes]
-		ax_disp = axes[0][0]
+		#t+1 because t here is vid trial num (0 ind) and t in handtrack is matlab trial (1 ind)
+		if t+1 not in HT.AllDay:
+			HT.AllDay[t+1] = {}
+
+		fig, axes = plt.subplots(nrows=m, ncols = 1, figsize=(18,10*m))
+		disp_list = []
 		for cam in good_cams:
-			ax_disp.scatter(x=df.index, y=df[f"{cam}_disp"].cumsum().fillna(0),s=df[f"{cam}_like"], label=cam)
-		ax_disp.set_xlabel('Frame')
-		ax_disp.set_ylabel('Displacement')
-		ax_disp.set_title(f'Frame by Frame Displacements for Each Camera Trial {t}')
-		ax_disp.legend()
-		ax_disp.grid(True)
-		axes[0][0] = ax_disp
+			axes[0].scatter(x=df.index, y=df[f"{cam}_disp"].cumsum().fillna(0),s=df[f"{cam}_like"], label=cam)
+			disp_list.extend(df[f"{cam}_disp"])
+		HT.AllDay[t+1]['disp'] = np.array(disp_list)
+		axes[0].set_xlabel('Frame')
+		axes[0].set_ylabel('Displacement')
+		axes[0].set_title(f'Frame by Frame Displacements for Each Camera Trial {t}')
+		axes[0].legend()
+		axes[0].grid(True)
 		rng = range(1,len(good_cams)+2)
 		for i,cam in zip(rng,good_cams):
-			ax_xy = axes[0][i]
 			n_points = len(df)
 			indices=np.arange(n_points)
 			colors = plt.cm.viridis(indices/max(indices))
-			ax_xy.scatter(df[f"{cam}_x"], df[f"{cam}_y"], c=colors, cmap='viridis', label=cam)
-			ax_xy.set_xlabel('x coord')
-			ax_xy.set_ylabel('y coord')
-			ax_xy.set_title(f'xy trajectory over time for trial {t}, {cam}')
-			ax_xy.legend()
-			ax_xy.grid(True)
-			axes[0][i] = ax_xy
-		fig_list.append(fig)
+			axes[i].scatter(df[f"{cam}_x"], df[f"{cam}_y"], c=colors, cmap='viridis', label=cam)
+			axes[i].set_xlabel('x coord')
+			axes[i].set_ylabel('y coord')
+			axes[i].set_title(f'xy trajectory over time for trial {t}, {cam}')
+			axes[i].legend()
+			axes[i].grid(True)
+		fig_dict[t+1] = fig
 
-	return fig_list
+	return fig_dict
 
 
 if __name__ == "__main__":
@@ -246,7 +249,7 @@ if __name__ == "__main__":
 	#Get range of trials to analyze data from
 	config = load_yaml_config(f"{pipe_path}/metadata/{animal}/{name}.yaml")
 	vid_inds = config["list_vidnums"][0]
-	trange = range(vid_inds[0]+1,vid_inds[1]+1)
+	trange = range(vid_inds[0]+ind1_ml2,vid_inds[1]+ind1_ml2)
 	# ind1_vid = vid_inds[0]global
 
 	#Sort of a vestige but we'll keep it
@@ -282,7 +285,7 @@ if __name__ == "__main__":
 		regression = None
 
 	#Returns big figure for all trials and cameras
-	jump_quant_figs = jump_quant(date, expt, animal)
+	jump_quant_figs = jump_quant(date, expt, animal, HT=HT, vid_inds=vid_inds)
 	# jump_quant_figs = [None]
 
 	SAVEDIR = f"{data_dir}/{animal}/{date}_{expt}{sess_print}/figures"
@@ -290,7 +293,7 @@ if __name__ == "__main__":
 
 	if jump_quant_figs is not None:
 		os.makedirs(f'{SAVEDIR}/jump_quants',exist_ok=True)
-		[fig.savefig(f"{SAVEDIR}/jump_quants/trialml2_{i}-jump_quant.pdf") for i,fig in enumerate(jump_quant_figs) if fig is not None]
+		[fig.savefig(f"{SAVEDIR}/jump_quants/trialml2_{trial}-jump_quant.pdf") for trial,fig in jump_quant_figs.items() if fig is not None]
 	else: 
 		print("*****No data found so no figures saved!!")
 
@@ -299,11 +302,15 @@ if __name__ == "__main__":
 
 	for trial_ml2 in trange:
 		finger_raise_time = 0.0
-		dat, list_figs, list_reg_figs = HT.process_data_singletrial(trial_ml2, ploton=True, finger_raise_time=finger_raise_time)
+		dat, list_figs, list_reg_figs = HT.process_data_singletrial(trial_ml2, ploton=True, \
+															  finger_raise_time=finger_raise_time, aggregate=True)
 
 		# Get errors
 		list_dists, reg_list_dists,_, _, fig_error, reg_fig_error  = HT.analy_compute_errors(trial_ml2, ploton=True)
 		dat["errors_ptwise"] = list_dists
+
+		#Make figs for all day data
+
 
 		list_figs.append(fig_error)
 		list_reg_figs.append(reg_fig_error)
@@ -326,8 +333,14 @@ if __name__ == "__main__":
 			if fig is not None:
 				fig.savefig(f"{SAVEDIR}/regression/overview_{i}.pdf")
 
-		print("No touch screen data or bad cam data found for the following trials, no figures were saved:")
-		print(trials_no_ts_data)
+	print("No touch screen data or bad cam data found for the following trials, no figures were saved:")
+	print(trials_no_ts_data)
+
+	all_day_figs = HT.plot_data_all_day()
+	if all_day_figs is not None:
+		SAVEDIR = f"{data_dir}/{animal}/{date}_{expt}{sess_print}/figures"
+		all_day_figs.savefig(f"{SAVEDIR}/all_day_summary.pdf")
+
 	with open (f'{data_dir}/{animal}/{date}_{expt}{sess_print}/skipped_trials.txt','w') as f:
 		for trial in trials_no_ts_data:
 			f.write(f"{trial}\n")

@@ -38,6 +38,7 @@ class HandTrack(object):
         self.Fd = fd
         self.regressor = regressor
         self.animal = animal
+        self.AllDay = {}
 
         # trial_map = [1, 6] # if [1,6], then ml2 trial 1 is vid6
 
@@ -46,7 +47,7 @@ class HandTrack(object):
 
     def process_data_singletrial(self, trial_ml2, ploton=False, 
             filter_by_likeli_thresh=True, return_in_meters = True, finger_raise_time=0.05,
-            ts_cam_offset=0.06):
+            ts_cam_offset=0.06, aggregate=False):
         """ Does manythings:
         - Converts cam data into strokes formate, for both strokes and gaps.
         - interpoaltes cam so that matches ml2 timings.
@@ -55,6 +56,7 @@ class HandTrack(object):
         PARAMS:
         - runs for a single trial.
         - ts_cam_offset = Number of seconds the ts lags behind the camera, usually 2-3 frames (0.)
+        - aggregate, collect data across whole day for summary plots?
 
         RETURNS:
         - dict, holding data
@@ -94,9 +96,11 @@ class HandTrack(object):
              
             RETURNS:
             - DAT, dict holding variations of strokes formatted pts_to_snap
-            NOTES:
+            NOTE:
             - assumes that the last column is time. will use this to do snapping
             - naming reflects that wrote this for cam data.
+            - ALSO makes ALlDay attribute whihc tracks data across day. Each row is one trial
+                with data in order z-gaps,z-strokes,reg-error
             """
             from scipy.interpolate import interp1d
     
@@ -188,6 +192,7 @@ class HandTrack(object):
         if dfall is None:   
             # failed becuase no campy data
             return {}, [], []
+
         dfall = self.convert_coords(dfall)
         pts_time_cam_all = dfall[["x", "y", "z", "t_trial"]].values # all times, not just those in ml2 strokes
 
@@ -418,6 +423,10 @@ class HandTrack(object):
             pts_gaps_cam = np.concatenate(gaps_cam)
             z_gaps = pts_gaps_cam[:,2]
 
+            # self.AllDay[trial_ml2].append(np.array(z_gaps))
+            # self.AllDay[trial_ml2].append(np.array(z_strokes))
+            # print(self.AllDay[trial_ml2])
+
             vals = np.r_[z_strokes, z_gaps]
             xbins = np.linspace(min(vals), max(vals), 60)
             ax.hist(z_strokes, xbins, label="z_strokes", alpha=0.5)
@@ -427,6 +436,8 @@ class HandTrack(object):
             ax.set_title("z is close to 0 during touch")
         else:
             list_figs = []
+            # self.AllDay[trial_ml2].append([])
+            # self.AllDay[trial_ml2].append([])
 
         list_reg_figs = []
 
@@ -436,12 +447,14 @@ class HandTrack(object):
             print("###DOING REGRESSION ON CAM PTS###")
             reg_pts_list = []
             reg_gaps_list = []
+            err_list = []
             
             for strok_cam in datall["strokes_cam"]:
                 strok_cam_xyz = [(p[0],p[1],p[2]) for p in strok_cam]
+                strok_cam_z = [p[2] for p in strok_cam]
                 strok_cam_t = [p[3] for p in strok_cam]
                 reg_cam_pts = self.regressor.predict(strok_cam_xyz)
-                stitch = [(p[0],p[1],z[2],t) for p,t,z in zip(reg_cam_pts, strok_cam_t, strok_cam_xyz)]
+                stitch = [(p[0],p[1],z,t) for p,z,t in zip(reg_cam_pts,strok_cam_z,strok_cam_t)]
                 reg_pts_list.append(np.array(stitch))
 
             for gap_cam in datall["gaps_cam"]:
@@ -677,8 +690,35 @@ class HandTrack(object):
                 ax.legend()
                 ax.set_xlabel("z")
                 ax.set_title("z is close to 0 during touch")
-            else:
-                list_reg_figs = []
+        else:
+            list_reg_figs = []
+        assert (list_figs is not None) == (list_reg_figs is not None), "why one none other not?"
+
+        if aggregate:
+            if trial_ml2 not in self.AllDay:
+                self.AllDay[trial_ml2] = {}
+            pts_strokes_cam = np.concatenate(strokes_cam)
+            z_strokes = pts_strokes_cam[:,2]
+            pts_gaps_cam = np.concatenate(gaps_cam)
+            z_gaps = pts_gaps_cam[:,2]
+            self.AllDay[trial_ml2]['z_gaps'] = np.array(z_gaps)
+            self.AllDay[trial_ml2]['z_strokes'] = np.array(z_strokes)
+            if self.regressor != 0:
+                cam_all = np.concatenate(datall['strokes_cam'])
+                touch_all = np.concatenate(datall['strokes_touch'])
+                strok_cam_xyz = [(p[0],p[1],p[3]) for p in cam_all]
+                strok_cam_z = [p[2] for p in cam_all]
+                strok_cam_t = [p[3] for p in cam_all]
+                N = ['input_times']
+                N.append(np.array(strok_cam_t))
+                strok_touch_annoying = []
+                strok_touch_annoying.append(np.array(touch_all))
+                touch_interp = strokesInterpolate2(strok_touch_annoying,N)
+                touch_interp_xyz = [(p[0],p[1],p[2]) for p in touch_interp[0]]
+                stroke_error = self.regressor.score(strok_cam_xyz,touch_interp_xyz)
+                self.AllDay[trial_ml2]['reg_errs'] = np.array(stroke_error)
+            else: 
+                self.AllDay[trial_ml2]['reg_errs'] = np.array([])
 
         return (datall, list_figs, list_reg_figs)
 
@@ -1241,6 +1281,97 @@ class HandTrack(object):
 
 
         return list_dists,reg_list_dists, np.mean(list_dists),mean_reg_list_dists, fig, reg_fig
+    def plot_data_all_day(self):
+        def separate_outliers(data):
+            """Function to seprate outliers from reg data for plotting purposes
+            Args:
+                data (pd df): data, with indices
+
+            Returns:
+                good_dat : dict with good dat arrays indexed by trial
+                outliers : dict with outliers arrays indexed by trial
+            """
+            col = data.columns[0]
+            if data[col].values[0].size > 1:
+                all_d = np.concatenate(data[col].values)
+            else:
+                 all_d = data[col].values
+            mean = np.mean(all_d)
+            sd = np.std(all_d)
+            good_dat = {}
+            outliers = {}
+            for trial,row in data.iterrows():
+                d = row[col]
+                z_scores = np.abs((d-mean / sd))
+                outliers[trial] = d[z_scores >= 50]
+                good_dat[trial] = d[z_scores < 50]
+                
+            return good_dat,outliers
+        
+        df = pd.DataFrame.from_dict(self.AllDay, orient='index')
+        b= 20
+        
+
+        disps = pd.DataFrame(df['disp'],index=df.index)
+        errs = pd.DataFrame(df['reg_errs'],index=df.index)
+
+        disp_good,disp_out = separate_outliers(disps)
+        err_good,err_out = separate_outliers(errs)
+        good_disps = np.concatenate(list(disp_good.values()))
+        good_errs = np.concatenate(list(err_good.values()))
+
+        all_strokes = np.concatenate(df['z_strokes'].values)
+        all_gaps = np.concatenate(df['z_gaps'].values)
+        all_disps = np.concatenate(df['disp'].values)
+
+        gap_vals = np.r_[all_strokes, all_gaps]
+        gap_xbins = np.linspace(min(gap_vals), max(gap_vals), b)
+
+
+        fig,ax = plt.subplots(ncols=3,nrows=2,figsize=(30,10))
+        ax[0][0].hist(all_disps,bins=b,color='blue')
+        ax[0][1].hist(good_disps,bins=b,color='blue')
+        ax[1][0].scatter(df.index,errs,color='blue')
+        ax[1][2].hist(all_gaps,gap_xbins,color='darkblue',alpha=0.6)
+        ax[1][2].hist(all_strokes,gap_xbins,color='darkorange',alpha=0.6)
+
+        ax[0][0].set_title('Displacements, log(counts)')
+        ax[0][0].set_yscale('log')
+        ax[0][1].set_title('Displacements, no outliers, log(counts)')
+        ax[0][1].set_yscale('log')
+        ax[1][0].set_title('Stroke Error')
+        ax[1][0].set_xlabel('trial')
+        ax[1][2].set_title('z coords blue=gaps oran=strokes')
+
+        err_vals = np.concatenate(list(err_out.values()))
+        err_xbins = np.linspace(min(err_vals), max(err_vals), b)
+
+        disp_vals = np.concatenate(list(disp_out.values()))
+        disp_xbins = np.linspace(min(disp_vals), max(disp_vals), b)
+
+        
+        counts,edges,bars = ax[0][2].hist(disp_out.values(),label=disp_out.keys(),bins=disp_xbins,stacked=True)
+        color_to_label = {bar[0].get_facecolor(): label for bar, label in zip(bars, disp_out.keys())}        
+        for bar_group, dataset_counts in zip(bars, counts):
+            for rect in bar_group:
+                # Only label bars with non-zero height
+                if rect.get_height() > 0:
+                    # Determine the label based on the color
+                    label = color_to_label.get(rect.get_facecolor(), "Unknown")
+                    # Calculate the position for the text
+                    x_pos = rect.get_x() + rect.get_width() / 2
+                    y_pos = rect.get_y() + rect.get_height() / 2
+                    # Add the label
+                    ax[0][2].text(x_pos, y_pos, label, ha='center', va='center', color='white', fontsize=8)
+        ax[0][2].set_title('Displacement Outliers')
+        # for k,v in err_out.items():
+        #     ax[1][1].scatter(k,v,color='black')
+
+
+        return fig
+    
+        
+    
 
 
 ############################## VIDEOCAMERA STUFF
