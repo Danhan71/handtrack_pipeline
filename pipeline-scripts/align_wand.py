@@ -5,10 +5,10 @@ import pandas as pd
 import shutil
 
 #Put here the order cams should be from the date checkerboard was done for (can be found in metadat file)
-checkerboard_cam_order = ["flea", "fly1", "bfs1", "fly2"]
+checkerboard_cam_order = ["flea", "bfs2", "bfs1", "fly1"]
 
 #Put here a list of the days which have wand points. That means you have run everything in pipeline up to wand step 1
-wand_pts_dates = ["221015_dircolor2_wandgrid","221015_dirshapecolor1b_wandgrid","221015_dircolor3b_wandgrid"]
+wand_pts_dates = ["220506_chunkbygrid3_wandgrid"]
 
 #Base dir that the data is stored in 
 data_dir = "/data3/hand_track/Pancho"
@@ -16,7 +16,7 @@ data_dir = "/data3/hand_track/Pancho"
 
 #Name of want pts file, maybe need list if all diff names
 # names_list = {"wandPointsNoScreen.csv","wandPointsNoScreen.csv","wandPointsScreen.csv"}
-name = "241017_wandPoints_95screen.csv"
+name = "241111_wandPoints_95.csv"
 
 for date in wand_pts_dates:
     this_dir = f"{data_dir}/{date}/wand/wand_calibration"
@@ -38,7 +38,7 @@ for date in wand_pts_dates:
                 align_list.append(col)
     df = df.reindex(columns=align_list)
     df.to_csv(f"{this_dir}/{date}-{name}", index = False, header = False)
-    shutil.copy(f"{this_dir}/{date}-{name}", f"{data_dir}/220914_wandall/wand/wand_calibration/241017_{date}_95screen.csv")
+    shutil.copy(f"{this_dir}/{date}-{name}", f"{data_dir}/220504_chunkbygrid3_wand_checkerboard/wand/wand_calibration/241118_{date}_95.csv")
 
 
 

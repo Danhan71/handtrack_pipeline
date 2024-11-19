@@ -38,6 +38,32 @@ if [[ $? -ne 0 ]]; then
 	exit 1
 fi
 
+# Make sure globals.py is proper
+
+if [ -f "${pyvm}/globals.py" ]; then
+	rm ${pyvm}/globals.py
+fi
+
+if [ ! -d "${data_dir}/${animal}" ]; then
+	echo "###### ERROR"
+	echo "Base data directory ${data_dir}/${animal} is not found please update the config file with the proper directory"
+	exit 1
+fi
+
+if [ ! -d "${pyvm}" ]; then
+	echo "###### ERROR"
+	echo "pyvm directory ${pyvm} is not found. Please update the config file with the proper pyvm directory (i.e. update pipe_path with the current directory of this pipeline)"
+	exit 1
+fi
+
+if [ ! -d "${server_dir}" ]; then
+	echo "###### ERROR"
+	echo "Server mount not found at ${server_dir}, check server is actually mounted and that dir config file is correct"
+	exit 1
+fi
+
+echo -e "from pythonlib.globals import MACHINE\nBASEDIR = '${data_dir}'\nPYVM_DIR = '${pyvm}'\nWINDOWS = False\nNCAMS=${NCAMS}\nCB_DIR='${checkb_dir}'" >> ${pyvm}/globals.py
+
 comm () { ${pipe_path}/pipeline_scripts/print_comment.py "$1" "-"; }
 
 if [ "$1" = env-setup ]; then

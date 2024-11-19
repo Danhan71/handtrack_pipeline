@@ -264,7 +264,7 @@ def determineDLTAuto(date):
     '''
     prefix = None
     if date < 220914:
-        prefix = "220317"
+        prefix = "220412_no_f1bf2"
     if date >= 220914:
         prefix = "220914_f12_dlc"
     return prefix

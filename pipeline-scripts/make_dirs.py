@@ -41,8 +41,8 @@ def generate_expt_yaml (expt_name, pipe_path, data_dir, condition, animal):
 		list_start = [0.]
 		list_stop = [1.]
 		list_combinecams = [True]
-		print("Default vid numbers for wand is [0,0]. Edit in metadata file for correct vid number if diff (do list with [x,x] where x is vid number with wand)")
-		list_vidnums = [[0,0]]
+		print("Default vid numbers for wand is [1,1]. Edit in metadata file for correct vid number if diff (do list with [x,x] where x is vid number with wand)")
+		list_vidnums = [[1,1]]
 		list_numframes2pick = [100]
 		list_dlciternum = [10000]
 

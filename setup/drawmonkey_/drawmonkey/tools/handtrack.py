@@ -706,7 +706,7 @@ class HandTrack(object):
             if self.regressor != 0:
                 cam_all = np.concatenate(datall['strokes_cam'])
                 touch_all = np.concatenate(datall['strokes_touch'])
-                strok_cam_xyz = [(p[0],p[1],p[3]) for p in cam_all]
+                strok_cam_xyz = [(p[0],p[1],p[2]) for p in cam_all]
                 strok_cam_z = [p[2] for p in cam_all]
                 strok_cam_t = [p[3] for p in cam_all]
                 N = ['input_times']
@@ -714,9 +714,16 @@ class HandTrack(object):
                 strok_touch_annoying = []
                 strok_touch_annoying.append(np.array(touch_all))
                 touch_interp = strokesInterpolate2(strok_touch_annoying,N)
-                touch_interp_xyz = [(p[0],p[1],p[2]) for p in touch_interp[0]]
+                touch_interp_xyz = [(p[0],p[1],0) for p in touch_interp[0]]
                 stroke_error = self.regressor.score(strok_cam_xyz,touch_interp_xyz)
                 self.AllDay[trial_ml2]['reg_errs'] = np.array(stroke_error)
+
+                x_res = [tch[0]-strk[0] for tch,strk in zip(touch_interp,strok_cam_xyz)]
+                y_res = [tch[1]-strk[1] for tch,strk in zip(touch_interp,strok_cam_xyz)]
+                self.AllDay[trial_ml2]['x_coord'] = np.array([tch[0] for tch in touch_interp])
+                self.AllDay[trial_ml2]['y_coord'] = np.array([tch[1] for tch in touch_interp])
+                self.AllDay[trial_ml2]['x_res'] = np.array(x_res)
+                self.AllDay[trial_ml2]['y_res'] = np.array(y_res)
             else: 
                 self.AllDay[trial_ml2]['reg_errs'] = np.array([])
 
@@ -1327,13 +1334,22 @@ class HandTrack(object):
         gap_vals = np.r_[all_strokes, all_gaps]
         gap_xbins = np.linspace(min(gap_vals), max(gap_vals), b)
 
+        all_xres = np.concatenate(df['x_res'].values)
+        all_yres = np.concatenate(df['y_res'].values)
+        all_res = np.concatenate((all_xres,all_yres))
+        all_xs = np.concatenate(df['x_coord'].values)
+        all_ys = np.concatenate(df['y_coord'].values)
 
-        fig,ax = plt.subplots(ncols=3,nrows=2,figsize=(30,10))
+
+        fig,ax = plt.subplots(ncols=3,nrows=3,figsize=(30,30))
         ax[0][0].hist(all_disps,bins=b,color='blue')
         ax[0][1].hist(good_disps,bins=b,color='blue')
         ax[1][0].scatter(df.index,errs,color='blue')
         ax[1][2].hist(all_gaps,gap_xbins,color='darkblue',alpha=0.6)
         ax[1][2].hist(all_strokes,gap_xbins,color='darkorange',alpha=0.6)
+        ax[1][1].hist(all_res,bins=b)
+        ax[2][0].scatter(all_xs,all_xres)
+        ax[2][1].scatter(all_ys,all_yres)
 
         ax[0][0].set_title('Displacements, log(counts)')
         ax[0][0].set_yscale('log')
@@ -1342,6 +1358,9 @@ class HandTrack(object):
         ax[1][0].set_title('Stroke Error')
         ax[1][0].set_xlabel('trial')
         ax[1][2].set_title('z coords blue=gaps oran=strokes')
+        ax[1][1].set_title('Hist of all Residuals')
+        ax[2][0].set_title('x resid vs x coord')
+        ax[2][1].set_title('y resid vs y coord')
 
         err_vals = np.concatenate(list(err_out.values()))
         err_xbins = np.linspace(min(err_vals), max(err_vals), b)
