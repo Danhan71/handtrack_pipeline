@@ -365,9 +365,9 @@ def findPath(path_base, path_hierarchy, path_fname="", ext="",
     def _summarize(pathlist):
         print("Found this many paths:")
         print(len(pathlist))
-        for p in pathlist:
-            print("---")
-            print(p)
+        # for p in pathlist:
+        #     print("---")
+        #     print(p)
     
     # Construct path
     path = path_base
