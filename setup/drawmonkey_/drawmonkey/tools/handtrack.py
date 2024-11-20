@@ -302,6 +302,7 @@ class HandTrack(object):
                 y = strokes_xyt[:,1]
                 axes[0].plot(t, x, 'xk', label="x")
                 axes[0].plot(t, y, 'xr', label="y")
+                axes[0].set_ylim(0.3)
                 axes[0].legend()
                 axes[2].plot(t, x, 'xk', label="x")
                 axes[2].plot(t, y, 'xr', label="y")
@@ -320,6 +321,9 @@ class HandTrack(object):
             # axes[indax].plot(t, z, 'xb', label="z")
             axes[indax].plot(t, 5*z, 'xb', label="5*z")
             axes[indax].axhline(0)
+            #Hacky way to set cap of 0.3 on ylim so as to not squish too much if outliers exist
+            if axes[indax].get_ylim[1] > 0.3:
+                axes[indax].set_ylim((-0.3,0.3))
             axes[indax].legend()
 
             indax = 0
@@ -327,7 +331,8 @@ class HandTrack(object):
             axes[indax].plot(t, y, 'xr', label="y")
             # axes[indax].plot(t, z, 'xb', label="z")
             axes[indax].plot(t, 5*z, 'xb', label="5*z")
-
+            if axes[indax].get_ylim[1] > 0.3:
+                axes[indax].set_ylim((-0.3,0.3))
             axes[indax].axhline(0)
             axes[indax].legend()
 
@@ -582,6 +587,8 @@ class HandTrack(object):
                 # axes[indax].plot(t, z, 'xb', label="z")
                 axes[indax].plot(t, 5*z, 'xb', label="5*z")
                 axes[indax].axhline(0)
+                if axes[indax].get_ylim[1] > 0.3:
+                    axes[indax].set_ylim((-0.3,0.3))
                 axes[indax].legend()
 
                 indax = 0
@@ -589,6 +596,9 @@ class HandTrack(object):
                 axes[indax].plot(t, y, 'xr', label="y")
                 # axes[indax].plot(t, z, 'xb', label="z")
                 axes[indax].plot(t, 5*z, 'xb', label="5*z")
+                if axes[indax].get_ylim[1] > 0.3:
+                    axes[indax].set_ylim((-0.3,0.3))
+
 
                 axes[indax].axhline(0)
                 axes[indax].legend()
