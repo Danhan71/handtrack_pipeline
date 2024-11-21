@@ -304,7 +304,8 @@ if __name__ == "__main__":
 		finger_raise_time = 0.0
 		dat, list_figs, list_reg_figs = HT.process_data_singletrial(trial_ml2, ploton=True, \
 															  finger_raise_time=finger_raise_time, aggregate=True)
-
+		with open('/home/danhan/Documents/dat.pkl','wb') as f:
+			pickle.dump(dat,f)
 		# Get errors
 		list_dists, reg_list_dists,_, _, fig_error, reg_fig_error  = HT.analy_compute_errors(trial_ml2, ploton=True)
 		dat["errors_ptwise"] = list_dists

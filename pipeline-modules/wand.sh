@@ -165,13 +165,14 @@ elif [ $step == 4 ]; then
 		#  python3 ${pyvm}/run/dlc_xyz_extraction.py ${name} ${animal} --cond ${cond} --pipe ${pipe_path} --step 2 --coeff ${calib_prefix}
 		# Uncomment the following line and remove the previous line if you want to use auto coeff names
 		python3 ${pyvm}/run/dlc_xyz_extraction.py ${name} ${animal} --cond ${cond} --pipe ${pipe_path} --step 2
+		python3 ${pyvm}/run/campy_extraction.py ${name} ${animal}
+
 		checkpoints="${data_dir}/${animal}/${name}/checkpoints"
 		touch "${checkpoints}/wand4"
 	else
 		echo "No coeffs found in ${pipe_path}/dlt_coeffs/${calib_prefix} check this dir and ensure correct files (dltCoefs.csv and columns.csv)"
 	fi
 elif [ $step == 5 ]; then
-	python3 ${pyvm}/run/campy_extraction.py ${name} ${animal}
 	python3 ${draw_monk}/final_analysis.py ${name} --animal ${animal} --reg ${reg} --supp ${supp} --pipe ${pipe_path} --data ${data_dir}
 	checkpoints="${data_dir}/${animal}/${name}/checkpoints"
 	touch "${checkpoints}/wand5"
