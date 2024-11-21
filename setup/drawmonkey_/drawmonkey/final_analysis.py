@@ -120,6 +120,8 @@ def fit_regression_cam(HT, trange, supp=None, reg_type='basic'):
 		reg.fit(X_scaled,Y_weighted)
 	else:
 		assert False, "Code ur own model then, fool"
+	# with open ('/home/danhan/Documents/reg.pkl','wb') as f:
+	# 	pickle.dump(reg,f)
 	return reg
 
 def jump_quant(date, expt, animal, HT, vid_inds, condition="behavior"):
@@ -304,8 +306,8 @@ if __name__ == "__main__":
 		finger_raise_time = 0.0
 		dat, list_figs, list_reg_figs = HT.process_data_singletrial(trial_ml2, ploton=True, \
 															  finger_raise_time=finger_raise_time, aggregate=True)
-		with open('/home/danhan/Documents/dat.pkl','wb') as f:
-			pickle.dump(dat,f)
+		# with open('/home/danhan/Documents/dat.pkl','wb') as f:
+		# 	pickle.dump(dat,f)
 		# Get errors
 		list_dists, reg_list_dists,_, _, fig_error, reg_fig_error  = HT.analy_compute_errors(trial_ml2, ploton=True)
 		dat["errors_ptwise"] = list_dists
