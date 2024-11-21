@@ -302,7 +302,6 @@ class HandTrack(object):
                 y = strokes_xyt[:,1]
                 axes[0].plot(t, x, 'xk', label="x")
                 axes[0].plot(t, y, 'xr', label="y")
-                axes[0].set_ylim(0.3)
                 axes[0].legend()
                 axes[2].plot(t, x, 'xk', label="x")
                 axes[2].plot(t, y, 'xr', label="y")
