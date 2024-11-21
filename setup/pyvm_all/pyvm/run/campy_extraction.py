@@ -11,6 +11,9 @@ import argparse
 
 if __name__=="__main__":
 
+    #Remove this line if you really want to just run campy extract
+    assert False, 'use dlc_xyz_extraction instead, otherwise have to load video class twice whihch takes a while'
+
     parser = argparse.ArgumentParser(description="Description of your script.")
     parser.add_argument("name", type=str, help="Experiment name/date")
     parser.add_argument("animal", type=str, help="meow")

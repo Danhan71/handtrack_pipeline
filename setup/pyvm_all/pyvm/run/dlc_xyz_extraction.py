@@ -382,6 +382,7 @@ if __name__=="__main__":
 
 
     # also save original DLC and delete temp_dir.
+    # run campy extraction as well
     if step == 2:
         for trial in list_trials:
             
@@ -404,4 +405,7 @@ if __name__=="__main__":
                 
                 print("Extracted original dlc data:", trial, "to", f"{sdir}/camera_{cam}_-trial_{trial}-dat.pkl")
 
-        shutil.rmtree(temp_dir)        
+        shutil.rmtree(temp_dir)
+        V.campy_preprocess_check_frametimes()
+        V.campy_export_to_ml2()
+     

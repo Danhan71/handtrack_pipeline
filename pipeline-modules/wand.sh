@@ -165,8 +165,7 @@ elif [ $step == 4 ]; then
 		#  python3 ${pyvm}/run/dlc_xyz_extraction.py ${name} ${animal} --cond ${cond} --pipe ${pipe_path} --step 2 --coeff ${calib_prefix}
 		# Uncomment the following line and remove the previous line if you want to use auto coeff names
 		python3 ${pyvm}/run/dlc_xyz_extraction.py ${name} ${animal} --cond ${cond} --pipe ${pipe_path} --step 2
-		python3 ${pyvm}/run/campy_extraction.py ${name} ${animal}
-
+		
 		checkpoints="${data_dir}/${animal}/${name}/checkpoints"
 		touch "${checkpoints}/wand4"
 	else
