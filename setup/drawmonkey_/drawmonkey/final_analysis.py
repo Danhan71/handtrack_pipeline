@@ -120,11 +120,12 @@ def fit_regression_cam(HT, trange, supp=None, reg_type='basic'):
 		reg.fit(X_scaled,Y_weighted)
 	else:
 		assert False, "Code ur own model then, fool"
-	with open ('/home/danhan/Documents/reg.pkl','wb') as f:
-		pickle.dump(reg,f)
-	with open ('/home/danhan/Documents/dat.pkl','wb') as f:
-		pickle.dump([cam_one_list,touch_one_list],f)
-	return reg
+	
+	# with open ('/home/danhan/Documents/reg.pkl','wb') as f:
+	# 	pickle.dump(reg,f)
+	# with open ('/home/danhan/Documents/dat.pkl','wb') as f:
+	# 	pickle.dump([cam_one_list,touch_one_list],f)
+	# return reg
 
 def jump_quant(date, expt, animal, HT, vid_inds, condition="behavior"):
 	"""
