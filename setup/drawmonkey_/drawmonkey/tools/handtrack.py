@@ -880,9 +880,6 @@ class HandTrack(object):
             volt_align and cam_align times, will not be zero indexed as the code does not necessarily require that. 
             May zero index in the future if there a re problems.
             """
-            
-
-            assert len(volt_times) <= len(cam_times), "Dont think volt time shsould be longer than cam times"
 
             #make pd.series
             volt_times = pd.Series(volt_times)
@@ -901,9 +898,11 @@ class HandTrack(object):
             from random import sample
             if voltdiff_max > 0.04:
                 assert max_ind < 5, "Comment this out if you are aware of why the first 5+ frames are bad, this is just a check as most seem to be a few frames"
+                assert len(volt_times[max_ind:]) <= len(cam_times), "Dont think volt time shsould be longer than cam times"
                 volt_align = volt_times[max_ind:]
             else:
                 volt_align = volt_times
+                assert len(volt_times) <= len(cam_times), "Dont think volt time shsould be longer than cam times"
             # rand_list = sample(range(len(cam_times)), len(volt_align))
             # cam_align = cam_times[rand_list]
             # pts_align = pts_in[rand_list]
