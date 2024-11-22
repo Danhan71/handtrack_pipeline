@@ -902,6 +902,8 @@ class HandTrack(object):
             if voltdiff_max > 0.04:
                 assert max_ind < 5, "Comment this out if you are aware of why the first 5+ frames are bad, this is just a check as most seem to be a few frames"
                 volt_align = volt_times[max_ind:]
+            else:
+                volt_align = volt_times
             # rand_list = sample(range(len(cam_times)), len(volt_align))
             # cam_align = cam_times[rand_list]
             # pts_align = pts_in[rand_list]
