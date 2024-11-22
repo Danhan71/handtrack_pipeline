@@ -30,19 +30,20 @@ if [[ $? -ne 0 ]]; then
 fi
 
 animal="$1"
-checkp="$2"
 
-if [ "$checkp" = "done" ]; then
-    checkp="wand5"
-fi
+check_ps=('init' 'dlc-setup' 'analyze' 'wand4' 'wand5')
 
-mapfile -t dirs < <(find "${data_dir}/${animal}" -maxdepth 3 -name "${checkp}" -exec dirname {} \; | sort -u)
+for cp in "${check_ps[@]}"
+do
+    mapfile -t dirs < <(find "${data_dir}/${animal}" -maxdepth 3 -name "${cp}" -exec dirname {} \; | sort -u)
 
-for dir in "${dirs[@]}"
-do 
-    dep_count=$(grep -o "/" <<< "$dir" | wc -l)
-    # echo $dep_count
-    # echo $dir
-    expt=$(echo "$dir" | cut -d'/' -f${dep_count})
-    echo $expt
-done
+    for dir in "${dirs[@]}"
+    do 
+        dep_count=$(grep -o "/" <<< "$dir" | wc -l)
+        # echo $dep_count
+        # echo $dir
+        expt=$(echo "$dir" | cut -d'/' -f${dep_count})
+        echo "${expt},${cp}"
+    done
+done > checkpoints/${animal}_checkpoints.csv
+sort logs/checkpoints/${animal}_checkpoints.csv -o logs/checkpoints/${animal}_checkpoints.csv
