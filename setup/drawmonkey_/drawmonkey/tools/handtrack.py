@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 from sklearn.linear_model import LinearRegression
 from pythonlib.tools.stroketools import strokesInterpolate2
 from pyvm.globals import BASEDIR, NCAMS
+from drawmonkey.tools.utils import getTrialsIsAbort
 
 
 ncams = NCAMS
@@ -906,7 +907,14 @@ class HandTrack(object):
             # rand_list = sample(range(len(cam_times)), len(volt_align))
             # cam_align = cam_times[rand_list]
             # pts_align = pts_in[rand_list]
-            last_ind = len(volt_align)-1
+            last_ind = len(volt_align)
+            if (len(pts_in) < last_ind):
+                if getTrialsIsAbort:
+                    last_ind = len(pts_in)
+                    volt_align = volt_align[:len(pts_in)]
+                else:
+                    assert False, "Why is DLC data shorter than volt/campy data?"
+            
             cam_align = cam_times[:last_ind]
             pts_align = pts_in[:last_ind]
             camdict_align = {}

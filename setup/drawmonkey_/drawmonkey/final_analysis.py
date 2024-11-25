@@ -37,11 +37,13 @@ def fit_regression_cam(HT, trange, supp=None, reg_type='basic'):
 	strokes_touch_all = []
 	touch_interpz = []
 
-
+	outcomes = {}
 	for trial in trange:
 
-		dat, _, _ = HT.process_data_singletrial(trial, ploton=False, finger_raise_time=0.0)
-
+		try:
+			dat, _, _ = HT.process_data_singletrial(trial, ploton=False, finger_raise_time=0.0)
+		except:
+			print("Not regressing this trial bc failure")
 		#Skips trials nbo data
 		if dat == {}:
 			continue
@@ -304,11 +306,14 @@ if __name__ == "__main__":
 
 	# assert False
 
-
+	fails = {}
 	for trial_ml2 in trange:
 		finger_raise_time = 0.0
-		dat, list_figs, list_reg_figs = HT.process_data_singletrial(trial_ml2, ploton=True, \
+		try:
+			dat, list_figs, list_reg_figs = HT.process_data_singletrial(trial_ml2, ploton=True, \
 															  finger_raise_time=finger_raise_time, aggregate=True)
+		except Exception as e:
+			fails[trial_ml2] = e
 		# with open('/home/danhan/Documents/dat.pkl','wb') as f:
 		# 	pickle.dump(dat,f)
 		# Get errors
@@ -350,3 +355,6 @@ if __name__ == "__main__":
 	with open (f'{data_dir}/{animal}/{date}_{expt}{sess_print}/skipped_trials.txt','w') as f:
 		for trial in trials_no_ts_data:
 			f.write(f"{trial}\n")
+		f.write("Trial_Failures,Reasons")
+		for k,v in fails.items():
+			f.write(f"{k},{v}")
