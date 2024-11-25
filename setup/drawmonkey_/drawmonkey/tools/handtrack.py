@@ -906,11 +906,12 @@ class HandTrack(object):
             # rand_list = sample(range(len(cam_times)), len(volt_align))
             # cam_align = cam_times[rand_list]
             # pts_align = pts_in[rand_list]
-            cam_align = cam_times[0:len(volt_align)]
-            pts_align = pts_in[0:len(volt_align)]
+            last_ind = len(volt_align)-1
+            cam_align = cam_times[:last_ind]
+            pts_align = pts_in[:last_ind]
             camdict_align = {}
             for k, v in camdict_in.items():
-                v_align = v[0:len(volt_align)]
+                v_align = v[:last_ind]
                 camdict_align[k] = v_align
             
             return volt_align, cam_align, pts_align, camdict_align
