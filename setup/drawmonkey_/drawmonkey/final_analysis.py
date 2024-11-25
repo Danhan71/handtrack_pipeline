@@ -315,6 +315,8 @@ if __name__ == "__main__":
 															  finger_raise_time=finger_raise_time, aggregate=True)
 		except Exception as e:
 			fails[trial_ml2] = e
+			continue
+
 		# with open('/home/danhan/Documents/dat.pkl','wb') as f:
 		# 	pickle.dump(dat,f)
 		# Get errors
@@ -336,6 +338,7 @@ if __name__ == "__main__":
 		for i, fig in enumerate(list_figs):
 			os.makedirs(f"{SAVEDIR}/no_regression", exist_ok=True)
 			if fig is not None:
+				assert False, f"{SAVEDIR}"
 				fig.savefig(f"{SAVEDIR}/no_regression/overview_{i}.pdf")
 			else: 
 				print("*****No data found for", trial_ml2, "so no figure saved!!")
@@ -347,6 +350,7 @@ if __name__ == "__main__":
 
 	print("No touch screen data or bad cam data found for the following trials, no figures were saved:")
 	print(trials_no_ts_data)
+	print(list(fails.keys()))
 
 	all_day_figs = HT.plot_data_all_day()
 	if all_day_figs is not None:
