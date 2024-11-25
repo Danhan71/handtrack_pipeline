@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 from sklearn.linear_model import LinearRegression
 from pythonlib.tools.stroketools import strokesInterpolate2
 from pyvm.globals import BASEDIR, NCAMS
-from drawmonkey.tools.utils import getTrialsIsAbort
+from utils import getTrialsIsAbort
 
 
 ncams = NCAMS
