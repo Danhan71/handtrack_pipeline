@@ -128,7 +128,7 @@ def fit_regression_cam(HT, trange, supp=None, reg_type='basic'):
 	# 	pickle.dump(reg,f)
 	# with open ('/home/danhan/Documents/dat.pkl','wb') as f:
 	# 	pickle.dump([cam_one_list,touch_one_list],f)
-	# return reg
+	return reg
 
 def jump_quant(date, expt, animal, HT, vid_inds, condition="behavior"):
 	"""
