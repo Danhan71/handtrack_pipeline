@@ -338,7 +338,6 @@ if __name__ == "__main__":
 		for i, fig in enumerate(list_figs):
 			os.makedirs(f"{SAVEDIR}/no_regression", exist_ok=True)
 			if fig is not None:
-				assert False, f"{SAVEDIR}"
 				fig.savefig(f"{SAVEDIR}/no_regression/overview_{i}.pdf")
 			else: 
 				print("*****No data found for", trial_ml2, "so no figure saved!!")
