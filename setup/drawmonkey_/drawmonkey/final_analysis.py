@@ -195,10 +195,13 @@ def jump_quant(date, expt, animal, HT, vid_inds, condition="behavior", ploton=Fa
 		if t+1 not in HT.AllDay:
 			HT.AllDay[t+1] = {}
 
-		fig, axes = plt.subplots(nrows=m, ncols = 1, figsize=(18,10*m))
+		
 		disp_list = []
+		if ploton:
+			fig, axes = plt.subplots(nrows=m, ncols = 1, figsize=(18,10*m))
 		for cam in good_cams:
-			axes[0].scatter(x=df.index, y=df[f"{cam}_disp"].cumsum().fillna(0),s=df[f"{cam}_like"], label=cam)
+			if ploton:
+				axes[0].scatter(x=df.index, y=df[f"{cam}_disp"].cumsum().fillna(0),s=df[f"{cam}_like"], label=cam)
 			disp_list.extend(df[f"{cam}_disp"])
 		HT.AllDay[t+1]['disp'] = np.array(disp_list)
 		if ploton:
