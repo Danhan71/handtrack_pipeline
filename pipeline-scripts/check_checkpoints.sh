@@ -45,5 +45,5 @@ do
         expt=$(echo "$dir" | cut -d'/' -f${dep_count})
         echo "${expt},${cp}"
     done
-done > checkpoints/${animal}_checkpoints.csv
-sort logs/checkpoints/${animal}_checkpoints.csv -o logs/checkpoints/${animal}_checkpoints.csv
+done > ${scripts}/logs/checkpoints/${animal}_checkpoints.csv
+sort ${scripts}/logs/checkpoints/${animal}_checkpoints.csv -o ${scripts}/logs/checkpoints/${animal}_checkpoints.csv
