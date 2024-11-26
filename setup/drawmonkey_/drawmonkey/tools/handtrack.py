@@ -1348,18 +1348,18 @@ class HandTrack(object):
         good_disps = np.concatenate(list(disp_good.values()))
         # good_errs = np.concatenate(list(err_good.values()))
 
-        all_strokes = np.concatenate(np.df['z_strokes'].values)
-        all_gaps = np.concatenate(np.df['z_gaps'].values)
-        all_disps = np.concatenate(np.df['disp'].values)
+        all_strokes = np.concatenate(df['z_strokes'].values)
+        all_gaps = np.concatenate(df['z_gaps'].values)
+        all_disps = np.concatenate(df['disp'].values)
 
         gap_vals = np.r_[all_strokes, all_gaps]
         gap_xbins = np.linspace(min(gap_vals), max(gap_vals), b)
 
-        all_xres = np.concatenate(np.df['x_res'].values)
-        all_yres = np.concatenate(np.df['y_res'].values)
+        all_xres = np.concatenate(df['x_res'].values)
+        all_yres = np.concatenate(df['y_res'].values)
         all_res = np.concatenate((all_xres,all_yres))
-        all_xs = np.concatenate(np.df['x_coord'].values)
-        all_ys = np.concatenate(np.df['y_coord'].values)
+        all_xs = np.concatenate(df['x_coord'].values)
+        all_ys = np.concatenate(df['y_coord'].values)
 
 
         fig,ax = plt.subplots(ncols=3,nrows=3,figsize=(30,30))
