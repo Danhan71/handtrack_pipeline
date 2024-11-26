@@ -292,18 +292,19 @@ if __name__ == "__main__":
 	else:
 		regression = None
 
+	#Doesn't actually add much information, see all day figs dispalcement hist
 	#Returns big figure for all trials and cameras
-	jump_quant_figs = jump_quant(date, expt, animal, HT=HT, vid_inds=vid_inds)
+	# jump_quant_figs = jump_quant(date, expt, animal, HT=HT, vid_inds=vid_inds)
 	# jump_quant_figs = [None]
 
 	SAVEDIR = f"{data_dir}/{animal}/{date}_{expt}{sess_print}/figures"
 	os.makedirs(SAVEDIR, exist_ok=True)
 
-	if jump_quant_figs is not None:
-		os.makedirs(f'{SAVEDIR}/jump_quants',exist_ok=True)
-		[fig.savefig(f"{SAVEDIR}/jump_quants/trialml2_{trial}-jump_quant.pdf") for trial,fig in jump_quant_figs.items() if fig is not None]
-	else: 
-		print("*****No data found so no figures saved!!")
+	# if jump_quant_figs is not None:
+	# 	os.makedirs(f'{SAVEDIR}/jump_quants',exist_ok=True)
+	# 	[fig.savefig(f"{SAVEDIR}/jump_quants/trialml2_{trial}-jump_quant.pdf") for trial,fig in jump_quant_figs.items() if fig is not None]
+	# else: 
+	# 	print("*****No data found so no figures saved!!")
 
 	# assert False
 
@@ -346,6 +347,7 @@ if __name__ == "__main__":
 			os.makedirs(f"{SAVEDIR}/regression", exist_ok=True)
 			if fig is not None:
 				fig.savefig(f"{SAVEDIR}/regression/overview_{i}.pdf")
+		plt.close('all')
 
 	print("No touch screen data or bad cam data found for the following trials, no figures were saved:")
 	print(trials_no_ts_data)
