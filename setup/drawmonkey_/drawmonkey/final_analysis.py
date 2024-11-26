@@ -130,7 +130,7 @@ def fit_regression_cam(HT, trange, supp=None, reg_type='basic'):
 	# 	pickle.dump([cam_one_list,touch_one_list],f)
 	return reg
 
-def jump_quant(date, expt, animal, HT, vid_inds, condition="behavior"):
+def jump_quant(date, expt, animal, HT, vid_inds, condition="behavior", ploton=False):
 	"""
 	Plots fiugres for looking at jumps in data. Mian figure cumulative displacement vs frame, with line saturation based on likelihood of DLC label
 	PARAMS:
@@ -201,23 +201,24 @@ def jump_quant(date, expt, animal, HT, vid_inds, condition="behavior"):
 			axes[0].scatter(x=df.index, y=df[f"{cam}_disp"].cumsum().fillna(0),s=df[f"{cam}_like"], label=cam)
 			disp_list.extend(df[f"{cam}_disp"])
 		HT.AllDay[t+1]['disp'] = np.array(disp_list)
-		axes[0].set_xlabel('Frame')
-		axes[0].set_ylabel('Displacement')
-		axes[0].set_title(f'Frame by Frame Displacements for Each Camera Trial {t}')
-		axes[0].legend()
-		axes[0].grid(True)
-		rng = range(1,len(good_cams)+2)
-		for i,cam in zip(rng,good_cams):
-			n_points = len(df)
-			indices=np.arange(n_points)
-			colors = plt.cm.viridis(indices/max(indices))
-			axes[i].scatter(df[f"{cam}_x"], df[f"{cam}_y"], c=colors, cmap='viridis', label=cam)
-			axes[i].set_xlabel('x coord')
-			axes[i].set_ylabel('y coord')
-			axes[i].set_title(f'xy trajectory over time for trial {t}, {cam}')
-			axes[i].legend()
-			axes[i].grid(True)
-		fig_dict[t+1] = fig
+		if ploton:
+			axes[0].set_xlabel('Frame')
+			axes[0].set_ylabel('Displacement')
+			axes[0].set_title(f'Frame by Frame Displacements for Each Camera Trial {t}')
+			axes[0].legend()
+			axes[0].grid(True)
+			rng = range(1,len(good_cams)+2)
+			for i,cam in zip(rng,good_cams):
+				n_points = len(df)
+				indices=np.arange(n_points)
+				colors = plt.cm.viridis(indices/max(indices))
+				axes[i].scatter(df[f"{cam}_x"], df[f"{cam}_y"], c=colors, cmap='viridis', label=cam)
+				axes[i].set_xlabel('x coord')
+				axes[i].set_ylabel('y coord')
+				axes[i].set_title(f'xy trajectory over time for trial {t}, {cam}')
+				axes[i].legend()
+				axes[i].grid(True)
+			fig_dict[t+1] = fig
 
 	return fig_dict
 
@@ -293,9 +294,9 @@ if __name__ == "__main__":
 		regression = None
 
 	#Doesn't actually add much information, see all day figs dispalcement hist
-	#Returns big figure for all trials and cameras
-	# jump_quant_figs = jump_quant(date, expt, animal, HT=HT, vid_inds=vid_inds)
-	# jump_quant_figs = [None]
+	#Running with ploton False so still accumulates jump data for all day fig
+	_ = jump_quant(date, expt, animal, HT=HT, vid_inds=vid_inds)
+	jump_quant_figs = [None]
 
 	SAVEDIR = f"{data_dir}/{animal}/{date}_{expt}{sess_print}/figures"
 	os.makedirs(SAVEDIR, exist_ok=True)
