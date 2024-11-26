@@ -1338,8 +1338,8 @@ class HandTrack(object):
         df = pd.DataFrame.from_dict(self.AllDay, orient='index')
         df = df.dropna()
         df = df.map(np.atleast_1d)
-        with open('/home/dhanuska/dhanuska/df.pkl','wb') as f:
-            pickle.dump(df,f)
+        # with open('/home/dhanuska/dhanuska/df.pkl','wb') as f:
+        #     pickle.dump(df,f)
         b= 20
         
         disps = pd.DataFrame(df['disp'],index=df.index)
