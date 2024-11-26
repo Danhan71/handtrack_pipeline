@@ -1336,8 +1336,10 @@ class HandTrack(object):
             return good_dat,outliers
         
         df = pd.DataFrame.from_dict(self.AllDay, orient='index')
-        df = df.map(np.array)
+        df = df.dropna()
         df = df.map(np.atleast_1d)
+        with open('/home/dhanuska/dhanuska/df.pkl','wb') as f:
+            pickle.dump(df,f)
         b= 20
         
         disps = pd.DataFrame(df['disp'],index=df.index)
