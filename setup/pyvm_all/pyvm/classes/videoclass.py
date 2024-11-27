@@ -785,14 +785,21 @@ class Videos(object):
             ncams = len(self.DatGroups)
             for trial in inds_trials:
                 print(trial)
-                x = [self.num_frames2(indcam, trial) for indcam in range(ncams)]
-                if len(set(x))>1:
+                try:
+                    x = [self.num_frames2(indcam, trial) for indcam in range(ncams)]
+                except AssertionError:
                     skip = True
                 else:
-                    skip = False
+                    if len(set(x))>1:
+                        skip = True
+                    else:
+                        skip = False
 
                 for indcam in range(ncams):
-                    datv = self.wrapper_extract_dat_video(None, indcam, trial)
+                    try:
+                        datv = self.wrapper_extract_dat_video(None, indcam, trial)
+                    except AssertionError:
+                        continue
                     # datv = self.datgroup_extract_single_video_data(indcam, trial, True)
                     datv["SKIP"] = skip
 

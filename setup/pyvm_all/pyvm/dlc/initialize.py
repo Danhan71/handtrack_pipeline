@@ -46,7 +46,7 @@ def downsample_all_videos(list_video_paths, camnames,
                 w, h = get_video_wh(video)
                 hnew = calc_downscale_params(w, h, width_pix)
                 # downsample it.
-            except:
+            except AssertionError:
                 print("Bad video, skipping")
                 continue
             else:
