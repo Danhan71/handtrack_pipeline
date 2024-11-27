@@ -785,15 +785,11 @@ class Videos(object):
             ncams = len(self.DatGroups)
             for trial in inds_trials:
                 print(trial)
-                try:
-                    x = [self.num_frames2(indcam, trial) for indcam in range(ncams)]
-                except AssertionError:
+                x = [self.num_frames2(indcam, trial) for indcam in range(ncams)]
+                if len(set(x))>1:
                     skip = True
                 else:
-                    if len(set(x))>1:
-                        skip = True
-                    else:
-                        skip = False
+                    skip = False
 
                 for indcam in range(ncams):
                     try:
