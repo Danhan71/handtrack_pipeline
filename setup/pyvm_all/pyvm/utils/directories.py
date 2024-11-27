@@ -192,7 +192,11 @@ def get_cam_list(date, animal):
         camnum = int(dirthis_cam[indthis+6:])
 
         # load metadat for the first trial.
-        dict_meta = load_campy_matadat_csv(dirthis_cam)
+        try:
+            dict_meta = load_campy_matadat_csv(dirthis_cam)
+        except:
+            print("bad camera data")
+            continue
         # dict_meta = load_campy_matadat_csv(f"{dirthis_cam}/metadata-t0.csv")
         serialnum = int(dict_meta["cameraSerialNo"])
         camname = MAP_SERIAL_TO_NAME[serialnum]
@@ -273,7 +277,9 @@ def load_campy_matadat_csv(path):
     # Find any metadata in this directory
     paths = glob.glob(f"{path}/metadata-t*.csv")
     print(paths)
-    assert len(paths)>0, f"no metadat exists in here? {path}"
+    if len(paths)>0:
+        print(f"no metadat exists in here? {path}")
+        raise Exception("No metadat for this camera")
     path_metadata = sorted(paths)[0] # take any...
 
     with open(path_metadata, mode='r') as infile:
