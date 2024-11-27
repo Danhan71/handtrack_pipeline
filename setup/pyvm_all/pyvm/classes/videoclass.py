@@ -229,7 +229,6 @@ class Videos(object):
                         continue
                     if "DLC" in path:
                         continue
-
                     DAT.append(
                         {"path_video":path,
                          "good_frames":good_frames,
@@ -2724,10 +2723,6 @@ class Videos(object):
                 print("** You are looking for")
                 print(indtrial)
                 print(indcam)
-                print("** Only the following exist:")
-                for datv in self.DatVideos:
-                    print(datv["trialnum0"])
-                    print(datv["camera_name"])
                 assert False, "Didnt find any"
             elif len(x)>1:
                 print(x)

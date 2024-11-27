@@ -18,6 +18,10 @@ MAP_SERIAL_TO_NAME = {
 }
 list_conditions_dirs = ["3dgrid", "behavior", "checkerboard", "wand"]
 
+#Custom exception for no cam metadat
+class ExceptionNoCam:
+        pass
+
 def get_metadata(DATE, animal, condition=None, allow_generate_from_scratch=True):
     exptname=DATE
     """ 
@@ -92,7 +96,10 @@ def get_metadata(DATE, animal, condition=None, allow_generate_from_scratch=True)
                     camnum = int(dirthis_cam[indthis+6:])
 
                     # load metadat for the first trial.
-                    dict_meta = load_campy_matadat_csv(dirthis_cam)
+                    try:
+                        dict_meta = load_campy_matadat_csv(dirthis_cam)
+                    except ExceptionNoCam:
+                        continue 
                     # dict_meta = load_campy_matadat_csv(f"{dirthis_cam}/metadata-t0.csv")
                     serialnum = int(dict_meta["cameraSerialNo"])
                     camname = MAP_SERIAL_TO_NAME[serialnum]
@@ -194,7 +201,7 @@ def get_cam_list(date, animal):
         # load metadat for the first trial.
         try:
             dict_meta = load_campy_matadat_csv(dirthis_cam)
-        except:
+        except ExceptionNoCam:
             print("bad camera data")
             continue
         # dict_meta = load_campy_matadat_csv(f"{dirthis_cam}/metadata-t0.csv")
@@ -274,12 +281,13 @@ def load_campy_matadat_csv(path):
     """
     import csv
 
+
     # Find any metadata in this directory
     paths = glob.glob(f"{path}/metadata-t*.csv")
     print(paths)
     if len(paths)>0:
         print(f"no metadat exists in here? {path}")
-        raise Exception("No metadat for this camera")
+        raise ExceptionNoCam("No metadat for this camera")
     path_metadata = sorted(paths)[0] # take any...
 
     with open(path_metadata, mode='r') as infile:
