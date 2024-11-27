@@ -19,8 +19,7 @@ MAP_SERIAL_TO_NAME = {
 list_conditions_dirs = ["3dgrid", "behavior", "checkerboard", "wand"]
 
 #Custom exception for no cam metadat
-class ExceptionNoCam:
-        pass
+
 
 def get_metadata(DATE, animal, condition=None, allow_generate_from_scratch=True):
     exptname=DATE
@@ -98,7 +97,7 @@ def get_metadata(DATE, animal, condition=None, allow_generate_from_scratch=True)
                     # load metadat for the first trial.
                     try:
                         dict_meta = load_campy_matadat_csv(dirthis_cam)
-                    except ExceptionNoCam:
+                    except:
                         continue 
                     # dict_meta = load_campy_matadat_csv(f"{dirthis_cam}/metadata-t0.csv")
                     serialnum = int(dict_meta["cameraSerialNo"])
@@ -201,7 +200,7 @@ def get_cam_list(date, animal):
         # load metadat for the first trial.
         try:
             dict_meta = load_campy_matadat_csv(dirthis_cam)
-        except ExceptionNoCam:
+        except:
             print("bad camera data")
             continue
         # dict_meta = load_campy_matadat_csv(f"{dirthis_cam}/metadata-t0.csv")
