@@ -291,7 +291,7 @@ if __name__=="__main__":
     name = args.name
     expt_info_list = name.split('_')
     date = str(expt_info_list[0])
-    expt = ''.join(expt_info_list[1:])
+    expt = '_'.join(expt_info_list[1:])
     animal = args.animal
     condition = args.cond
     pipe = args.pipe
@@ -382,7 +382,7 @@ if __name__=="__main__":
 
 
     # also save original DLC and delete temp_dir.
-    # run campy extraction as well
+    # run campy extraction as
     if step == 2:
         for trial in list_trials:
             

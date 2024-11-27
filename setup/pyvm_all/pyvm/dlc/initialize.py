@@ -42,28 +42,32 @@ def downsample_all_videos(list_video_paths, camnames,
             pass
         else:
 
-            w, h = get_video_wh(video)
-            hnew = calc_downscale_params(w, h, width_pix)
-            # downsample it.
+            try:
+                w, h = get_video_wh(video)
+                hnew = calc_downscale_params(w, h, width_pix)
+                # downsample it.
+            except:
+                print("Bad video, skipping")
+                continue
+            else:
+                # print(getPaths(video))
+                # print(modPathFname(video, "test", suffix))
+                # assert False
+                # # "{camname}-{fname}-downsampled.mp4"
+                path_without_camname_prefix = deeplabcut.DownSampleVideo(video, 
+                    width = int(width_pix), height =int(hnew), outsuffix=suffix)
 
-            # print(getPaths(video))
-            # print(modPathFname(video, "test", suffix))
-            # assert False
-            # # "{camname}-{fname}-downsampled.mp4"
-            path_without_camname_prefix = deeplabcut.DownSampleVideo(video, 
-                width = int(width_pix), height =int(hnew), outsuffix=suffix)
+                # move file
+                # from: fname-downsampled to camname-fname-downsampled
+                path_final = modPathFname(path_without_camname_prefix, camname)
 
-            # move file
-            # from: fname-downsampled to camname-fname-downsampled
-            path_final = modPathFname(path_without_camname_prefix, camname)
-
-            # sanity check
-            if path_final !=video_downsampled:
-                print(path_final)
-                print(path_without_camname_prefix)
-                print(camname)
-                print(video_downsampled)
-                assert False, "prob stupid mistake."
+                # sanity check
+                if path_final !=video_downsampled:
+                    print(path_final)
+                    print(path_without_camname_prefix)
+                    print(camname)
+                    print(video_downsampled)
+                    assert False, "prob stupid mistake."
 
 
     return list_new_video_paths
