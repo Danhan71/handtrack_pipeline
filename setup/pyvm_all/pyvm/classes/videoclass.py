@@ -65,9 +65,14 @@ class Videos(object):
             # Check filesize, if below threshold, then exclude.
             if min_size_bytes is not None:
                 x = os.path.getsize(path)
+                y = cv2.VideoCapture(path)
                 if x<min_size_bytes:
                     # skip
                     print(f"SKIPPING {path}, since fsize {x} < {min_size_bytes}")
+                    continue
+                if not y.isOpened():
+                    # skip 
+                    print(f"SKIPPING {path}, beacuse video file does not open (probably ungracefully truncated)")
                     continue
 
             # Each video should have unique index
@@ -205,8 +210,10 @@ class Videos(object):
             # numcams = 2 
             numcams = params["numcams"]
             basedir = params["basedir"]
-            camera_names = params["camera_names"]
-            
+            camera_names = params["camera_names"] 
+
+            assert numcams > 0, 'y no cams?'
+
             for i in range(numcams):
 
                 # Passed in good frames for this camera?
@@ -214,16 +221,14 @@ class Videos(object):
                 if good_frames_bycam is not None:
                     if len(good_frames_bycam[i])>0:
                         good_frames = good_frames_bycam[i]
-                
                 # Find all videos for this camera
                 print(basedir)
                 pathlist = find_videos(basedir)
 
-
                 assert len(pathlist)>0, "didnt find video, check name"
                 # Colelct each video
                 for path in pathlist:
-
+                    print(path)
                     # Only keep if is the original video
                     if "downsampled" in path:
                         continue
@@ -267,7 +272,6 @@ class Videos(object):
         else:
             print(ver)
             assert False, "not coded"
-
         pathlist = [D["path_video"] for D in DAT]
         camera_name_list = [D["id"] for D in DAT]
         list_good_frames = [D["good_frames"] for D in DAT]
@@ -294,7 +298,6 @@ class Videos(object):
         # print(good_frames_delete_if_none)
         # print(do_extraction_frames)
         # print(trialnums_to_keep)
-
         self.input_video_files(pathlist, camera_name_list, video_group_list,
             list_good_frames =list_good_frames, 
             good_frames_delete_if_none=good_frames_delete_if_none, 
@@ -1002,6 +1005,9 @@ class Videos(object):
 
         # Save it.
         writeDictToYaml(outdict, paththis)
+        # for k,v in outdict.items():
+        #     if 'bfs1' in k and 'vid-t121' in k:
+        #         print(k,v)
         return outdict
 
     def metadat_read(self, kind, index_vid, do_reload=False):
