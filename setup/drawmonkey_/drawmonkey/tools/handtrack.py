@@ -1386,7 +1386,7 @@ class HandTrack(object):
         ax[2][1].set_title('y resid vs y coord')
 
         for i in df.index:
-            ax[0][1].annotate(i,(errs.index,errs.loc[i]))
+            ax[0][1].annotate(int(i),(errs.index,errs.loc[i]))
 
         # err_vals = np.concatenate(list(err_out.values()))
         # err_xbins = np.linspace(min(err_vals), max(err_vals), b)
