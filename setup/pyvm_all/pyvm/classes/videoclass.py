@@ -77,6 +77,8 @@ class Videos(object):
                     print(f"SKIPPING {path}, beacuse video file does not open (probably ungracefully truncated)")
                     skipped_vids[(path.split('/')[-1],cam)] = 'truncated'
                     continue 
+                cv2.destroyAllWindows()
+                y.release()
 
             # Each video should have unique index
             name = extractStrFromFname(path, None, None, return_entire_filename=True)

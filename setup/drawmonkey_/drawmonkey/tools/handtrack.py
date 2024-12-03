@@ -1367,7 +1367,7 @@ class HandTrack(object):
         fig,ax = plt.subplots(ncols=3,nrows=3,figsize=(30,30))
         ax[0][0].hist(all_disps,bins=b,color='blue')
         ax[0][1].hist(good_disps,bins=b,color='blue')
-        ax[1][0].scatter(df.index,errs,color='blue')
+        ax[1][0].scatter(errs.index,errs,color='blue')
         ax[1][2].hist(all_gaps,gap_xbins,color='darkblue',alpha=0.6)
         ax[1][2].hist(all_strokes,gap_xbins,color='darkorange',alpha=0.6)
         ax[1][1].hist(all_res,bins=b)
@@ -1386,7 +1386,7 @@ class HandTrack(object):
         ax[2][1].set_title('y resid vs y coord')
 
         for i in df.index:
-            ax[0][1].annotate(i,(i,errs[i]))
+            ax[0][1].annotate(i,(errs.index,errs.iloc[i]))
 
         # err_vals = np.concatenate(list(err_out.values()))
         # err_xbins = np.linspace(min(err_vals), max(err_vals), b)
