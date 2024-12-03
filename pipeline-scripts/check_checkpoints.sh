@@ -31,7 +31,7 @@ fi
 
 animal="$1"
 
-check_ps=('init' 'dlc-setup' 'analyze' 'wand4' 'wand5')
+check_ps=('init' 'dlc-setup' 'analyze' 'wand4' 'wand5' 'done')
 
 for cp in "${check_ps[@]}"
 do
@@ -43,7 +43,11 @@ do
         # echo $dep_count
         # echo $dir
         expt=$(echo "$dir" | cut -d'/' -f${dep_count})
-        echo "${expt},${cp}"
+        if [ ! -f "${dir}/done" ] && [ $cp != 'done' ]; then
+            echo "${expt},${cp}"
+        elif [ $cp == 'done' ]; then
+            echo "${expt},done"
+        fi
     done
 done > ${scripts}/logs/checkpoints/${animal}_checkpoints.csv
 sort ${scripts}/logs/checkpoints/${animal}_checkpoints.csv -o ${scripts}/logs/checkpoints/${animal}_checkpoints.csv
