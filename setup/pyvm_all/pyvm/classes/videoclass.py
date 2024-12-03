@@ -59,6 +59,7 @@ class Videos(object):
         # Put into data structure
         self.DatVideos = []
         dict_good_frames = {}
+        skipped_vids = {}
         for path, cam, grp, good_frames in zip(pathlist, camera_name_list, 
             video_group_list, list_good_frames):
 
@@ -69,11 +70,13 @@ class Videos(object):
                 if x<min_size_bytes:
                     # skip
                     print(f"SKIPPING {path}, since fsize {x} < {min_size_bytes}")
+                    skipped_vids[(path.split('/')[-1],cam)] = 'too small'
                     continue
                 if not y.isOpened():
                     # skip 
                     print(f"SKIPPING {path}, beacuse video file does not open (probably ungracefully truncated)")
-                    continue
+                    skipped_vids[(path.split('/')[-1],cam)] = 'truncated'
+                    continue 
 
             # Each video should have unique index
             name = extractStrFromFname(path, None, None, return_entire_filename=True)
@@ -99,7 +102,11 @@ class Videos(object):
         for D in self.DatVideos:
             D["path_base"] = self._paths(D["index"])["path_dir"]
 
-        assert len(self.DatVideos)>0
+        #Janky
+        path_here = '/'.join(D["path_base"].split('/')[:-2])
+        with open (f'{path_here}/skipped_vids.txt','w') as f:
+            for k,v in skipped_vids.items():
+                f.writelines(f"{k},{v}\n")
 
         # Checks
         self._check_preprocess()
