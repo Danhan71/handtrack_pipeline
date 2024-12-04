@@ -95,12 +95,12 @@ def check_vid_nums(data_dir,animal,name):
 		vids = [f for f in os.listdir(this_dir) if f.endswith('.mp4')]
 		dir_lengths[cam] = len(vids)
 	vids_max = max(dir_lengths.values())
-	cut_dirs = [k for k,v in dir_lengths.items() if v < vids_max]
+	cut_cams = [k for k,v in dir_lengths.items() if v < vids_max]
 	for cam in list_camnames:
 		this_dir = f'{vid_dir}/{cam}'
-		if cam in cut_dirs:
+		if cam in cut_cams:
 			vids = [f for f in os.listdir(this_dir) if f.endswith('.mp4')]
-			trial_cutoff = max([vid.split('vid-t')[1].split('.mp4')[0] for vid in vids])
+			trial_cutoff = max([int(vid.split('vid-t')[1].split('.mp4')[0]) for vid in vids])
 			os.remove(f'{this_dir}/vid-t{trial_cutoff}.mp4')
 
 
