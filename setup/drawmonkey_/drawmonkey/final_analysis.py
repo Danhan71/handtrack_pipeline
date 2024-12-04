@@ -242,7 +242,11 @@ if __name__ == "__main__":
 	name = args.name
 	expt_info_list = name.split('_')
 	date = str(expt_info_list[0])
-	expt = ''.join(expt_info_list[1:])
+	expt = []
+	for i in range(1,len(expt_info_list)):
+		if not expt_info_list[i].isdigit():
+			expt.append(expt_info_list[i])
+	expt = '_'.join(expt)
 	if len(expt_info_list) == 3:
 		sess = expt_info_list[2]
 		sess_print = "_" + sess
@@ -336,7 +340,6 @@ if __name__ == "__main__":
 
 		# save all figs
 		SAVEDIR = f"{data_dir}/{animal}/{date}_{expt}{sess_print}/figures/trialml2_{trial_ml2}"
-		print(SAVEDIR)
 		os.makedirs(SAVEDIR, exist_ok=True)
 
 
