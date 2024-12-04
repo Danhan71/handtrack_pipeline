@@ -84,6 +84,7 @@ def check_vid_nums(data_dir,animal,name):
 	Function to check num vids for each camera, any cam with less than max vids will have last vid
 	deleted, to avoid issues with vid corruption. Rest of pipeline can handled mismatched lengths methinks.
 	'''
+	assert False
 	list_camnames = get_cam_list(name, animal)
 	#Brazenly discriminate against bfs2, if there are more than 4 cameras (4 cam setup bfs2 is okay)
 	if len(list_camnames) > 4:
@@ -187,8 +188,9 @@ if __name__ == "__main__":
 						os.remove(sdir)
 					os.symlink(vid_dir, sdir)
 
-	if condition == 'behavior':
-		check_vid_nums(data_dir,animal,name)
+	#Think this is handled better later, this just cuases problems
+	# if condition == 'behavior':
+	# 	check_vid_nums(data_dir,animal,name)
 
 
 
