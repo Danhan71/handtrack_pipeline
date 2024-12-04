@@ -115,6 +115,7 @@ if __name__ == "__main__":
 	parser.add_argument("--pipepath", type = str, help = "Path to pipeline dir")
 	parser.add_argument("--cond", type = str, help = "Conditon for this expt")
 	parser.add_argument("--datadir", type = str, help = "Directory for data")
+	parse.add_argument("--skiplink", type = str, help = "skiplinking vids", default=False)
 	args = parser.parse_args()
 
 	name  =  args.name
@@ -122,6 +123,11 @@ if __name__ == "__main__":
 	data_dir = args.datadir
 	condition = args.cond
 	animal = args.animal
+	skiplink = args.skiplink
+	if skiplink == 'true':
+		skiplink = True
+	else:
+		skiplink = False
 	# condition = args.cond
 	# name = "240510_2"
 	# pipe_path = "/home/danhan/Documents/pipeline"
@@ -162,23 +168,24 @@ if __name__ == "__main__":
 		config = load_yaml_config(f"{pipe_path}/metadata/{animal}/{name}.yaml")
 		vid_inds = config["list_vidnums"][0]
 
-		for cam_name, cam_path in zip(cam_dirs.keys(), cam_dirs.values()):
-			file_list = [file for file in os.listdir(cam_path) if not file.endswith(".mp4")]
-			vid_list = [vid for vid in os.listdir(cam_path) if vid.endswith(".mp4")]
-			for file in file_list:
-				file_dir = os.path.join(cam_path, file)
-				sdir = f"{data_dir}/{name}/{condition}/{cam_name}/{file}"
-				if os.path.exists(sdir):
-					print(f"File {sdir} exists, deleting :)")
-					os.remove(sdir)
-				os.symlink(file_dir, sdir)
-			for vid in vid_list:
-				vid_dir = os.path.join(cam_path, vid)
-				sdir = f"{data_dir}/{name}/{condition}/{cam_name}/{vid}"
-				if os.path.exists(sdir):
-					print(f"Vid {sdir} exists, deleting >:(")
-					os.remove(sdir)
-				os.symlink(vid_dir, sdir)
+		if not skiplink:
+			for cam_name, cam_path in zip(cam_dirs.keys(), cam_dirs.values()):
+				file_list = [file for file in os.listdir(cam_path) if not file.endswith(".mp4")]
+				vid_list = [vid for vid in os.listdir(cam_path) if vid.endswith(".mp4")]
+				for file in file_list:
+					file_dir = os.path.join(cam_path, file)
+					sdir = f"{data_dir}/{name}/{condition}/{cam_name}/{file}"
+					if os.path.exists(sdir):
+						print(f"File {sdir} exists, deleting :)")
+						os.remove(sdir)
+					os.symlink(file_dir, sdir)
+				for vid in vid_list:
+					vid_dir = os.path.join(cam_path, vid)
+					sdir = f"{data_dir}/{name}/{condition}/{cam_name}/{vid}"
+					if os.path.exists(sdir):
+						print(f"Vid {sdir} exists, deleting >:(")
+						os.remove(sdir)
+					os.symlink(vid_dir, sdir)
 
 	if condition == 'behavior':
 		check_vid_nums(data_dir,animal,name)
