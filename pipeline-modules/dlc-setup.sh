@@ -4,9 +4,8 @@ set -e
 #######################################################
 #
 #All the neccessary setup before training the DLC model. This will extract frames and stuff for hand labelling
-#then open a GUI where you will have to hgand label the frames. This step is only necessary if you are training a new model. 
-#It is not necessary if you are retraining or not training.
-#
+#then open a GUI where you will have to hgand label the frames. 
+#Use skipext and skiplabel options if not training
 #######################################################
 
 help_message () {

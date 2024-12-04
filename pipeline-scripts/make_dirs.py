@@ -115,7 +115,7 @@ if __name__ == "__main__":
 	parser.add_argument("--pipepath", type = str, help = "Path to pipeline dir")
 	parser.add_argument("--cond", type = str, help = "Conditon for this expt")
 	parser.add_argument("--datadir", type = str, help = "Directory for data")
-	parse.add_argument("--skiplink", type = str, help = "skiplinking vids", default=False)
+	parser.add_argument("--skiplink", type = str, help = "skiplinking vids", default=False)
 	args = parser.parse_args()
 
 	name  =  args.name
