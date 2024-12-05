@@ -795,7 +795,14 @@ class Videos(object):
             inds_trials = self.inds_trials()
             ncams = len(self.DatGroups)
             for trial in inds_trials:
-                x = [self.num_frames2(indcam, trial) for indcam in range(ncams)]
+                x = []
+                # x = [self.num_frames2(indcam, trial) for indcam in range(ncams)]
+                for indcam in range(ncams):
+                    try:
+                        x.append(self.num_frames2(indcam,trial))
+                    except AssertionError:
+                        x.append(-1)
+
                 if len(set(x))>1:
                     skip = True
                 else:
@@ -1890,7 +1897,7 @@ class Videos(object):
 
 
     def campy_preprocess_check_frametimes(self, FIX_FRAMETIME_PROBLEMS=False, CHECK_MATCH_VIDEOS=True,
-            CHECK_SAME_FRAMES_ACROSS_CAMS=True):
+            CHECK_SAME_FRAMES_ACROSS_CAMS=False):
         """ assign correctly all frametimes to videos, and check various 
         sanity checks. 
         PARAMS:
@@ -2547,7 +2554,10 @@ class Videos(object):
             elif frames_get=="all":
                 frames = []
                 for i in range(len(dict_cameras)):
-                    n = self.num_frames2(i, indtrial)
+                    try:
+                        n = self.num_frames2(i, indtrial)
+                    except AssertionError:
+                        return [],[]
                     frames.append(n)
                 min_frames = min(frames)
                 frames_get = range(0,min_frames)
@@ -2646,10 +2656,8 @@ class Videos(object):
 
         idx = self.wrapper_extract_dat_video(None, indcam, indtrial)["index"]
         # idx = self.datgroup_extract_single_video_data(indcam, indtrial)["index"]
-        if idx == -1:
-            return 0
-        else:
-            return self.num_frames(idx)
+        
+        return self.num_frames(idx)
 
 
     def num_frames(self, ind_video):
@@ -2702,7 +2710,6 @@ class Videos(object):
         --- str, fails
         RETURNS:
         - datv, single item in self.DatVideos
-        - Returns -1 if no video for given trial
         """
         def get_vidindex_from_cam_trial(indcam, indtrial):
             """
@@ -2712,7 +2719,6 @@ class Videos(object):
             --- str or int
             RETURNS:
             - indvid, tuple
-            - dict {'index':-1} if no video
             """
 
             if isinstance(indcam, int):
@@ -2742,8 +2748,7 @@ class Videos(object):
                 print("** You are looking for")
                 print(indtrial)
                 print(indcam)
-                print("Didnt find any")
-                return {'index':-1}
+                assert False,"Didn't find any"
             elif len(x)>1:
                 print(x)
                 assert False, "found too manby"
@@ -2775,16 +2780,12 @@ class Videos(object):
             return _datvideo_from_index(index)
         elif ver=="cam_trial":
             index_vid = get_vidindex_from_cam_trial(index[0], index[1])
-            if index_vid==-1:
-                return -1
-            else:
-                return _datvideo_from_index(index_vid)
+            return _datvideo_from_index(index_vid)
         else:
             print(index)
             assert False
 
 
-            
     def get_indgrp_from_index(self, idx_cam):
         """
         Flexible index, gets the list of indgrps that match this camera

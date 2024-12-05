@@ -349,10 +349,15 @@ if __name__=="__main__":
             for cam in cam_list:
                 f.write(f"{cam}\n")
         np.savetxt(f"{temp_dir}/dltCoefs.txt",align_coefs,delimiter=',')
+    skipped_trials =[]
     for trial in list_trials:
         for part in list_part:
             #Save only the columns with pts relevent to the dlt calibration
             pts, columns = V.dlc_extract_pts_matrix(trial, [part])
+            #If no data skip
+            if len(pts)+len(columns) == 0:
+                skipped_trials.append(trial)
+                continue
             pts_df = pd.DataFrame(pts)
             pts_df.columns = columns
             new_pts = []
@@ -384,7 +389,8 @@ if __name__=="__main__":
     # also save original DLC and delete temp_dir.
     # run campy extraction as
     if step == 2:
-        for trial in list_trials:
+        list_trials_good = [t for t in list_trials if t not in skipped_trials]
+        for trial in list_trials_good:
             
             for i, cam in enumerate(cam_list):
                 datv = V.helper_index_good((cam, trial))

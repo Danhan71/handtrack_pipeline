@@ -162,13 +162,16 @@ def jump_quant(date, expt, animal, HT, vid_inds, condition="behavior", ploton=Fa
 	#     columns.append(f"{cam}_disp")
 	#     columns.append(f"{cam}_like")
 	good_cams = []
+	skipped_trials = []
 	for trial in list_trials:
+		skip = False
 		df = pd.DataFrame()
 		for cam in cams:
 			suffix = f"camera_{cam}_-trial_{trial}-dat.pkl"
 			this_file = [file for file in pkl_list if file.endswith(suffix)]
 			assert len(this_file) <= 1, f"{len(this_file)} many files found. Extra copy of pkl file for this cam/trial? Or new naming convention (uh oh). PKL list = {pkl_list[0:2]}..."
 			if len(this_file) == 0:
+				skip = True
 				continue
 			good_cams.append(cam)
 			with open(this_file[0], 'rb') as f:
@@ -185,11 +188,15 @@ def jump_quant(date, expt, animal, HT, vid_inds, condition="behavior", ploton=Fa
 				}
 				add_df = pd.DataFrame(data=d)
 				df = pd.concat([df,add_df], axis=1)
+		if skip:
+			skipped_trials.append(trial)
+			continue
 		df_list.append(df)
 	
 	fig_dict = {}
 
 	m = len(good_cams) + 1
+	list_trials_good = [t for t in list_trials if t not in skipped_trials]
 	for df,t in zip(df_list,list_trials):
 		#t+1 because t here is vid trial num (0 ind) and t in handtrack is matlab trial (1 ind)
 		if t+1 not in HT.AllDay:
@@ -222,6 +229,11 @@ def jump_quant(date, expt, animal, HT, vid_inds, condition="behavior", ploton=Fa
 				axes[i].legend()
 				axes[i].grid(True)
 			fig_dict[t+1] = fig
+	#Put empty arrays in skipped trials
+	for t in skipped_trials:
+		if t+1 not in HT.AllDay:
+			HT.AllDay[t+1] = {}
+		HT.AllDay[t+1]['disp'] = np.array([])
 
 	return fig_dict
 
