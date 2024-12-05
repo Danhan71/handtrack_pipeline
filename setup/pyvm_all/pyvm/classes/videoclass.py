@@ -795,7 +795,6 @@ class Videos(object):
             inds_trials = self.inds_trials()
             ncams = len(self.DatGroups)
             for trial in inds_trials:
-                print(trial)
                 x = [self.num_frames2(indcam, trial) for indcam in range(ncams)]
                 if len(set(x))>1:
                     skip = True
@@ -2647,7 +2646,10 @@ class Videos(object):
 
         idx = self.wrapper_extract_dat_video(None, indcam, indtrial)["index"]
         # idx = self.datgroup_extract_single_video_data(indcam, indtrial)["index"]
-        return self.num_frames(idx)
+        if idx == -1:
+            return 0
+        else:
+            return self.num_frames(idx)
 
 
     def num_frames(self, ind_video):
@@ -2700,6 +2702,7 @@ class Videos(object):
         --- str, fails
         RETURNS:
         - datv, single item in self.DatVideos
+        - Returns -1 if no video for given trial
         """
         def get_vidindex_from_cam_trial(indcam, indtrial):
             """
@@ -2709,6 +2712,7 @@ class Videos(object):
             --- str or int
             RETURNS:
             - indvid, tuple
+            - -1 if no video
             """
 
             if isinstance(indcam, int):
@@ -2738,7 +2742,8 @@ class Videos(object):
                 print("** You are looking for")
                 print(indtrial)
                 print(indcam)
-                assert False, "Didnt find any"
+                print("Didnt find any")
+                return -1
             elif len(x)>1:
                 print(x)
                 assert False, "found too manby"
@@ -2770,7 +2775,10 @@ class Videos(object):
             return _datvideo_from_index(index)
         elif ver=="cam_trial":
             index_vid = get_vidindex_from_cam_trial(index[0], index[1])
-            return _datvideo_from_index(index_vid)
+            if index_vid==-1:
+                return -1
+            else:
+                return _datvideo_from_index(index_vid)
         else:
             print(index)
             assert False
