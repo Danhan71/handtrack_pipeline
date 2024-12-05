@@ -47,7 +47,7 @@ class HandTrack(object):
         self.regressor = reg
 
     def process_data_singletrial(self, trial_ml2, ploton=False, 
-            filter_by_likeli_thresh=True, return_in_meters = True, finger_raise_time=0.05,
+            filter_by_likeli_thresh=False, return_in_meters = True, finger_raise_time=0.05,
             ts_cam_offset=0.06, aggregate=False):
         """ Does manythings:
         - Converts cam data into strokes formate, for both strokes and gaps.
