@@ -2712,7 +2712,7 @@ class Videos(object):
             --- str or int
             RETURNS:
             - indvid, tuple
-            - -1 if no video
+            - dict {'index':-1} if no video
             """
 
             if isinstance(indcam, int):
@@ -2743,7 +2743,7 @@ class Videos(object):
                 print(indtrial)
                 print(indcam)
                 print("Didnt find any")
-                return -1
+                return {'index':-1}
             elif len(x)>1:
                 print(x)
                 assert False, "found too manby"
