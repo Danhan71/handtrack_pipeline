@@ -380,6 +380,6 @@ if __name__ == "__main__":
 	with open (f'{data_dir}/{animal}/{date}_{expt}{sess_print}/skipped_trials.txt','w') as f:
 		for trial in trials_no_ts_data:
 			f.write(f"{trial}\n")
-		f.write("Trial_Failures,Reasons")
+		f.write("Trial_Failures,Reasons\n")
 		for k,v in fails.items():
-			f.write(f"{k},{v}")
+			f.write(f"{k},{v}\n")
