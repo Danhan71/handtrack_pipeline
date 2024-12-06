@@ -43,7 +43,7 @@ def fit_regression_cam(HT, trange, supp=None, reg_type='basic'):
 		try:
 			dat, _, _ = HT.process_data_singletrial(trial, ploton=False, finger_raise_time=0.0)
 		except:
-			print("Not regressing this trial bc failure")
+			print(f"Not regressing trial {trial} bc failure")
 			dat = {}
 		#Skips trials nbo data
 		if dat == {}:
