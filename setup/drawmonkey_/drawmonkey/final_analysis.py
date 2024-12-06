@@ -259,8 +259,8 @@ if __name__ == "__main__":
 		if not expt_info_list[i].isdigit():
 			expt.append(expt_info_list[i])
 	expt = '_'.join(expt)
-	if len(expt_info_list) == 3:
-		sess = expt_info_list[2]
+	if len(expt_info_list) >= 3:
+		sess = expt_info_list[-1]
 		sess_print = "_" + sess
 	else:
 		sess = 1
@@ -291,7 +291,7 @@ if __name__ == "__main__":
 	print("Vid", trange)
 
 	fd = loadSingleDataQuick(animal, date, expt, sess)
-	HT = HandTrack(ind1_vid, ind1_ml2, fd, animal=animal, date=date, expt=expt)
+	HT = HandTrack(ind1_vid, ind1_ml2, fd, sess=sess, animal=animal, date=date, expt=expt)
 	HT.load_campy_data(ind1_ml2, sess=sess_print)
 	trials_no_ts_data = []
 
