@@ -130,7 +130,7 @@ def fit_regression_cam(HT, trange, supp=None, reg_type='basic'):
 	# 	pickle.dump([cam_one_list,touch_one_list],f)
 	return reg
 
-def jump_quant(date, expt, animal, HT, vid_inds, condition="behavior", ploton=False):
+def jump_quant(date, expt, animal, HT, vid_inds, sess, sess_print, condition="behavior", ploton=False):
 	"""
 	Plots fiugres for looking at jumps in data. Mian figure cumulative displacement vs frame, with line saturation based on likelihood of DLC label
 	PARAMS:
@@ -139,11 +139,12 @@ def jump_quant(date, expt, animal, HT, vid_inds, condition="behavior", ploton=Fa
 	RETURNS:
 	Big fig with all trials and cameras from this day
 	"""
+	name = f"{date}_{expt}{sess_print}"
 	list_trials=list(range(vid_inds[0],vid_inds[1]))
-	data_dir = f"{BASEDIR}/{animal}/{date}_{expt}/{condition}/extracted_dlc_data"
+	data_dir = f"{BASEDIR}/{animal}/{name}/{condition}/extracted_dlc_data"
 
 	V = Videos()
-	V.load_data_wrapper(date=date, expt=expt, condition=condition, animal=animal)
+	V.load_data_wrapper(date=date, expt=expt, condition=condition, animal=animal, session=sess)
 
 	V.import_dlc_data()
 	sdir = f"{V.Params['load_params']['basedir']}/extracted_dlc_data"
@@ -265,6 +266,7 @@ if __name__ == "__main__":
 	else:
 		sess = 1
 		sess_print = ""
+	expt_with_sess = f"{expt}{sess_print}"
 
 	animal = args.animal
 	ind1_ml2 = 1
@@ -291,8 +293,8 @@ if __name__ == "__main__":
 	print("Vid", trange)
 
 	fd = loadSingleDataQuick(animal, date, expt, sess)
-	HT = HandTrack(ind1_vid, ind1_ml2, fd, sess=sess, animal=animal, date=date, expt=expt)
-	HT.load_campy_data(ind1_ml2, sess=sess_print)
+	HT = HandTrack(ind1_vid, ind1_ml2, fd, sess_print=sess_print, animal=animal, date=date, expt=expt)
+	HT.load_campy_data(ind1_ml2)
 	trials_no_ts_data = []
 
 	# fd = loadSingleDataQuick("Pancho", "220317", "chunkbyshape4", 1)
@@ -314,7 +316,7 @@ if __name__ == "__main__":
 
 	#Doesn't actually add much information, see all day figs dispalcement hist
 	#Running with ploton False so still accumulates jump data for all day fig
-	_ = jump_quant(date, expt, animal, HT=HT, vid_inds=vid_inds)
+	_ = jump_quant(date, expt, animal, HT=HT, vid_inds=vid_inds, sess=sess, sess_print=sess_print)
 	jump_quant_figs = [None]
 
 	SAVEDIR = f"{data_dir}/{animal}/{date}_{expt}{sess_print}/figures"
@@ -372,10 +374,6 @@ if __name__ == "__main__":
 	print(trials_no_ts_data)
 	print(list(fails.keys()))
 
-	all_day_figs = HT.plot_data_all_day()
-	if all_day_figs is not None:
-		SAVEDIR = f"{data_dir}/{animal}/{date}_{expt}{sess_print}/figures"
-		all_day_figs.savefig(f"{SAVEDIR}/all_day_summary.pdf")
 
 	with open (f'{data_dir}/{animal}/{date}_{expt}{sess_print}/skipped_trials.txt','w') as f:
 		for trial in trials_no_ts_data:
@@ -383,3 +381,8 @@ if __name__ == "__main__":
 		f.write("Trial_Failures,Reasons\n")
 		for k,v in fails.items():
 			f.write(f"{k},{v}\n")
+
+	all_day_figs = HT.plot_data_all_day()
+	if all_day_figs is not None:
+		SAVEDIR = f"{data_dir}/{animal}/{date}_{expt}{sess_print}/figures"
+		all_day_figs.savefig(f"{SAVEDIR}/all_day_summary.pdf")

@@ -322,7 +322,7 @@ class Videos(object):
         #     self.Params[name] = self.Params["load_params"][f"list_{name}"][ind]
 
 
-    def load_data_wrapper(self, date, expt, animal, condition):
+    def load_data_wrapper(self, date, expt, animal, condition, session=None):
         """ High level wrapper to load expt.
         PARAMS:
         - expt, str, e.g, "cagetest2"
@@ -332,9 +332,13 @@ class Videos(object):
         - must have entered this expt and condition in pyvm/metadata
         """
         from pyvm.utils.experiments import get_params
-
+        if session == 1 or session is None:
+            sess_print='Done' #I wanted to make it rhyme
+            sess_print=''
+        else:
+            sess_print=f"_{session}"
         # 1) Load metadata
-        p = get_params(f"{date}_{expt}", animal)
+        p = get_params(f"{date}_{expt}{sess_print}", animal)
 
         # 2) convert params to videoclass-expected
         p["camera_names"] = {i:name for i, name in enumerate(p["list_camnames"])}

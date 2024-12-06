@@ -21,7 +21,7 @@ class HandTrack(object):
     NOTE:
     - Generally use a new Handtrack Instance for each filedata (fd).
     """
-    def __init__(self, ind1_vid, ind1_ml2, fd, date, expt, animal, sess, regressor = 0):
+    def __init__(self, ind1_vid, ind1_ml2, fd, date, expt, animal, sess_print, regressor = 0):
         """
         PARAMS
         - ind1_vid, the first video ind with data. Should correspnd to
@@ -36,7 +36,7 @@ class HandTrack(object):
         self.IndFirst["ml2"] = ind1_ml2
         self.Date = str(date)
         self.Expt = expt
-        self.Sess = sess
+        self.SessPrint = sess_print
         self.Fd = fd
         self.regressor = regressor
         self.animal = animal
@@ -763,13 +763,13 @@ class HandTrack(object):
 
         return out
 
-    def load_campy_data(self, trial_ml2, fail_if_skip=True, return_empty_if_skip=False, sess=""):
+    def load_campy_data(self, trial_ml2, fail_if_skip=True, return_empty_if_skip=False):
         """ Helper to load pre-extracted and saved campy data.
         And to pull out this single trial.
         RETURNS:
         - dataframe, each row a single frame.
         """
-        sdir = f"{BASEDIR}/{self.animal}/{self.Date}_{self.Expt}{sess}/behavior/extracted_campy_data/dat.pkl"
+        sdir = f"{BASEDIR}/{self.animal}/{self.Date}_{self.Expt}{self.SessPrint}/behavior/extracted_campy_data/dat.pkl"
         df_campy = pd.read_pickle(sdir)
 
         # flatten by extracting campy trametimes
@@ -850,15 +850,11 @@ class HandTrack(object):
         trial_dlc = self.convert_trialnums(trial_ml2=trial_ml2)
         
         # 1) 3d pts.
-        if self.sess == 1:
-            sess_print=''
-        else:
-            sess_print == f'_{self.sess}'
-        path = f"{BASEDIR}/{self.animal}/{self.Date}_{self.Expt}{sess_print}/behavior/extracted_dlc_data/3d-part_{bodypart}-trial_{trial_dlc}-dat.npy"
+        path = f"{BASEDIR}/{self.animal}/{self.Date}_{self.Expt}{self.SessPrint}/behavior/extracted_dlc_data/3d-part_{bodypart}-trial_{trial_dlc}-dat.npy"
         pts_raw = np.load(path)
         
         # 2) Load each camera data (e.g.,Likelihood)
-        list_path = findPath(f"{BASEDIR}/{self.animal}/{self.Date}_{self.Expt}{sess_print}/behavior/extracted_dlc_data", [["camera", f"trial_{trial_dlc}-", "dat"]], None)
+        list_path = findPath(f"{BASEDIR}/{self.animal}/{self.Date}_{self.Expt}{self.SessPrint}/behavior/extracted_dlc_data", [["camera", f"trial_{trial_dlc}-", "dat"]], None)
 
         def _get_cam(path):
             """ return string, name of this camera, etracted from path"""
