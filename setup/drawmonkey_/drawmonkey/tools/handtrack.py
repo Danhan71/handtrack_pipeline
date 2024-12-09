@@ -309,13 +309,19 @@ class HandTrack(object):
                 axes[2].plot(t, y, 'xr', label="y")
                 axes[2].legend()
 
-            # - video data
-            t = pts_cam[:,3]
-            x = pts_cam[:,0]
-            y = pts_cam[:,1]
-            z = pts_cam[:,2]
-
-
+            # - video data (only after fiaxtion, but include gaps)
+            strokes_cam = datall["strokes_cam"]
+            gaps_cam = datall["gaps_cam"]
+            
+            t = np.concatenate((strokes_cam[:3],gaps_cam[:3]))
+            x = np.concatenate((strokes_cam[:0],gaps_cam[:0]))
+            y = np.concatenate((strokes_cam[:1],gaps_cam[:1]))
+            z = np.concatenate((strokes_cam[:2],gaps_cam[:2]))
+            # t = pts_cam[:,3]
+            # x = pts_cam[:,0]
+            # y = pts_cam[:,1]
+            # z = pts_cam[:,2]
+            
             indax = 1
             axes[indax].plot(t, x, 'xk', label="x")
             axes[indax].plot(t, y, 'xr', label="y")
@@ -420,9 +426,6 @@ class HandTrack(object):
             # z coordinates
             fig, ax = plt.subplots(1,1)
             list_figs.append(fig)
-
-            strokes_cam = datall["strokes_cam"]
-            gaps_cam = datall["gaps_cam"]
 
             pts_strokes_cam = np.concatenate(strokes_cam)
             z_strokes = pts_strokes_cam[:,2]
