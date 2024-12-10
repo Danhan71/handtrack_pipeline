@@ -231,13 +231,11 @@ class Videos(object):
                     if len(good_frames_bycam[i])>0:
                         good_frames = good_frames_bycam[i]
                 # Find all videos for this camera
-                print(basedir)
                 pathlist = find_videos(basedir)
 
                 assert len(pathlist)>0, "didnt find video, check name"
                 # Colelct each video
                 for path in pathlist:
-                    print(path)
                     # Only keep if is the original video
                     if "downsampled" in path:
                         continue
@@ -427,8 +425,6 @@ class Videos(object):
             xthresh = xmaxa * xpart
             ythresh = ymaxa * ypart
 
-            print('x',xthresh)
-            print('y',ythresh)
 
             bad_frames = this_df[(this_df[xcol]<xthresh) | (this_df[ycol]<ythresh)]
             print(bad_frames)
@@ -451,7 +447,6 @@ class Videos(object):
         ncams = self.num_cams()
         dict_cams = self.get_cameras()
         cam_list = [c[1][0] for c in dict_cams.items()]
-        print(cam_list)
         # indtrial = self.Dat
         # ind_group = 0
 
@@ -947,7 +942,6 @@ class Videos(object):
 
         gframelist = indframes
 
-        print(p)
         collectFrames([p], [gframelist], newdir)
 
 
@@ -1088,7 +1082,6 @@ class Videos(object):
         import yaml
         # The current good frames, in original indinces
         path_to_collected_frames = self.get_paths_good_grp(ind_grp)["collected_frames"]
-        print(path_to_collected_frames)
         fthis = f"{path_to_collected_frames}/framenums_old_new.yaml"
         with open(fthis) as file:
             mapping_old_new = yaml.load(file, Loader=yaml.FullLoader)
@@ -1134,8 +1127,6 @@ class Videos(object):
         for cam in cam_list:
             good_frames_dict[cam] = [frame for frame in list_goodframes_oldnum \
                                      if frame not in bad_frames[cam]]
-        print(list_goodframes_oldnum)
-        print(good_frames_dict['fly1'])
 
         #input good frames into datstruct and reoganize the data
         self.input_good_frames_dan(good_frames_dict, True)
@@ -1285,7 +1276,6 @@ class Videos(object):
                         
                 path_to = f"{path_shared}/collected_frames"
                 DAT["path_to_collected_frames"] = path_to
-                print(path_to)
                 if os.path.isdir(path_to):
                     if overwrite:
                         import shutil
@@ -2314,9 +2304,7 @@ class Videos(object):
             # x (width)
             ratio_x = wh_orig[0]/wh_dlc[0]
             ratio_y = wh_orig[1]/wh_dlc[1]
-
-            print(ratio_x, ratio_y)
-
+            
             # upscale all dlc datapoints.
             df = datv["data_dlc"]
             data_dlc_downscaled = df.copy() # save copy of original.

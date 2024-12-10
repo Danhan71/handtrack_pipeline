@@ -162,9 +162,10 @@ def jump_quant(date, expt, animal, HT, vid_inds, sess, sess_print, condition="be
 	#     columns.append(f"{cam}_y")
 	#     columns.append(f"{cam}_disp")
 	#     columns.append(f"{cam}_like")
-	good_cams = []
+	good_cams = {}
 	skipped_trials = []
 	for trial in list_trials:
+		good_cams[trial] = []
 		skip = False
 		df = pd.DataFrame()
 		for cam in cams:
@@ -172,9 +173,8 @@ def jump_quant(date, expt, animal, HT, vid_inds, sess, sess_print, condition="be
 			this_file = [file for file in pkl_list if file.endswith(suffix)]
 			assert len(this_file) <= 1, f"{len(this_file)} many files found. Extra copy of pkl file for this cam/trial? Or new naming convention (uh oh). PKL list = {pkl_list[0:2]}..."
 			if len(this_file) == 0:
-				skip = True
 				continue
-			good_cams.append(cam)
+			good_cams[trial].append(cam)
 			with open(this_file[0], 'rb') as f:
 				data = pd.read_pickle(f)
 				data = pd.DataFrame(data)
@@ -189,17 +189,19 @@ def jump_quant(date, expt, animal, HT, vid_inds, sess, sess_print, condition="be
 				}
 				add_df = pd.DataFrame(data=d)
 				df = pd.concat([df,add_df], axis=1)
-		if skip:
+		#catch trials with not data
+		if len(df) > 0:
+			df_list.append(df)
+		else:
 			skipped_trials.append(trial)
-			continue
-		df_list.append(df)
 	
 	fig_dict = {}
 
-	m = len(good_cams) + 1
+	
 	list_trials_good = [t for t in list_trials if t not in skipped_trials]
-	for df,t in zip(df_list,list_trials):
+	for df,t in zip(df_list,list_trials_good):
 		#t+1 because t here is vid trial num (0 ind) and t in handtrack is matlab trial (1 ind)
+		m = len(good_cams[t]) + 1
 		if t+1 not in HT.AllDay:
 			HT.AllDay[t+1] = {}
 
@@ -207,7 +209,7 @@ def jump_quant(date, expt, animal, HT, vid_inds, sess, sess_print, condition="be
 		disp_list = []
 		if ploton:
 			fig, axes = plt.subplots(nrows=m, ncols = 1, figsize=(18,10*m))
-		for cam in good_cams:
+		for cam in good_cams[t]:
 			if ploton:
 				axes[0].scatter(x=df.index, y=df[f"{cam}_disp"].cumsum().fillna(0),s=df[f"{cam}_like"], label=cam)
 			disp_list.extend(df[f"{cam}_disp"])
@@ -218,8 +220,8 @@ def jump_quant(date, expt, animal, HT, vid_inds, sess, sess_print, condition="be
 			axes[0].set_title(f'Frame by Frame Displacements for Each Camera Trial {t}')
 			axes[0].legend()
 			axes[0].grid(True)
-			rng = range(1,len(good_cams)+2)
-			for i,cam in zip(rng,good_cams):
+			rng = range(1,len(good_cams[t])+2)
+			for i,cam in zip(rng,good_cams[t]):
 				n_points = len(df)
 				indices=np.arange(n_points)
 				colors = plt.cm.viridis(indices/max(indices))
@@ -240,6 +242,8 @@ def jump_quant(date, expt, animal, HT, vid_inds, sess, sess_print, condition="be
 
 
 if __name__ == "__main__":
+
+	import traceback
 
 	parser = argparse.ArgumentParser(description="Final Plots etc")
 	parser.add_argument("name", type=str, help="Experiment name/date")
@@ -337,7 +341,8 @@ if __name__ == "__main__":
 			dat, list_figs, list_reg_figs = HT.process_data_singletrial(trial_ml2, ploton=True, \
 															  finger_raise_time=finger_raise_time, aggregate=True)
 		except Exception as e:
-			fails[trial_ml2] = e
+			print(traceback.format_exc())
+			fails[trial_ml2] = traceback.format_exc()
 			continue
 
 		# with open('/home/danhan/Documents/dat.pkl','wb') as f:

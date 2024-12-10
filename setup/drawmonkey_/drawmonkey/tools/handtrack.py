@@ -312,11 +312,20 @@ class HandTrack(object):
             # - video data (only after fiaxtion, but include gaps)
             strokes_cam = datall["strokes_cam"]
             gaps_cam = datall["gaps_cam"]
+
+            strokes_cam_concat = np.concatenate(strokes_cam)
+            gaps_cam_concat = np.concatenate(gaps_cam)
             
-            t = np.concatenate((strokes_cam[:3],gaps_cam[:3]))
-            x = np.concatenate((strokes_cam[:0],gaps_cam[:0]))
-            y = np.concatenate((strokes_cam[:1],gaps_cam[:1]))
-            z = np.concatenate((strokes_cam[:2],gaps_cam[:2]))
+            all_pts_concat = np.concatenate((strokes_cam_concat,gaps_cam_concat))
+            t_fix = min(strokes_cam_concat[:,3])
+            t_end = max(strokes_cam_concat[:,3])
+            pts_after_fix = [p for p in all_pts_concat if t_fix <= p[3] <= t_end]
+            pts_after_fix=np.stack(pts_after_fix)
+        
+            t = pts_after_fix[:,3]
+            x = pts_after_fix[:,0]
+            y = pts_after_fix[:,1]
+            z = pts_after_fix[:,2]
             # t = pts_cam[:,3]
             # x = pts_cam[:,0]
             # y = pts_cam[:,1]
@@ -490,7 +499,7 @@ class HandTrack(object):
             # print("reg pts list", reg_pts_list)
 
             # print("raw gap pts", datall["gaps_cam"])
-            # print("reg gap pts", reg_gaps_list)
+            # print("reg gap   print(pts_after_fix)pts", reg_gaps_list)
             # assert False
 
             
@@ -578,12 +587,22 @@ class HandTrack(object):
                     axes[2].plot(t, y, 'xr', label="y")
                     axes[2].legend()
 
-                # - video data
-                t = pts_cam[:,3]
-                x = pts_cam[:,0]
-                y = pts_cam[:,1]
-                z = pts_cam[:,2]
+                reg_strokes_cam = datall["reg_strokes_cam"]
+                reg_gaps_cam = datall["reg_gaps_cam"]
 
+                strokes_cam_concat = np.concatenate(reg_strokes_cam)
+                gaps_cam_concat = np.concatenate(reg_gaps_cam)
+
+                all_pts_concat = np.concatenate((strokes_cam_concat,gaps_cam_concat))
+                t_fix = min(strokes_cam_concat[:,3])
+                t_end = max(strokes_cam_concat[:,3])
+                pts_after_fix = [p for p in all_pts_concat if t_fix <= p[3] <= t_end]
+                pts_after_fix=np.stack(pts_after_fix)
+            
+                t = pts_after_fix[:,3]
+                x = pts_after_fix[:,0]
+                y = pts_after_fix[:,1]
+                z = pts_after_fix[:,2]
 
                 indax = 1
                 axes[indax].plot(t, x, 'xk', label="x")
@@ -688,9 +707,6 @@ class HandTrack(object):
                 # z coordinates
                 fig, ax = plt.subplots(1,1)
                 list_reg_figs.append(fig)
-
-                reg_strokes_cam = datall["reg_strokes_cam"]
-                reg_gaps_cam = datall["reg_gaps_cam"]
 
                 pts_reg_strokes_cam = np.concatenate(reg_strokes_cam)
                 z_strokes = pts_reg_strokes_cam[:,2]
@@ -849,7 +865,6 @@ class HandTrack(object):
         """
         from pythonlib.tools.expttools import findPath
 
-        print("TODO: Get accurate frametime after pass in frame extraction to Buttons")
         trial_dlc = self.convert_trialnums(trial_ml2=trial_ml2)
         
         # 1) 3d pts.
