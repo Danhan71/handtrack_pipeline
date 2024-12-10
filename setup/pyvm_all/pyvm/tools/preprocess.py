@@ -653,7 +653,7 @@ def updateFiledataParams(filedata):
         filedata["params"]["n_trialoutcomes"] = min_n
 
     #import os
-    os.makedirs(filedata["params"]["figuredir"], exist_ok=True)
+    # os.makedirs(filedata["params"]["figuredir"], exist_ok=True)
     # filedata["params"]["sample_rate"] = filedata["trials"][trial]["AnalogData"]["SampleInterval"][()] # period for sampling, in ms
     filedata["params"]["sample_rate"] = filedata["MLConfig"]["AISampleRate"][0]
 
