@@ -1364,7 +1364,7 @@ class HandTrack(object):
         disps = pd.DataFrame(df['disp'],index=df.index)
         errs = pd.DataFrame(df['reg_errs'],index=df.index)
 
-        disp_good,disp_out = separate_outliers(disps)
+        disp_good,_ = separate_outliers(disps)
         # err_good,err_out = separate_outliers(errs)
         good_disps = np.concatenate(list(disp_good.values()))
         # good_errs = np.concatenate(list(err_good.values()))
@@ -1407,29 +1407,14 @@ class HandTrack(object):
         # err_vals = np.concatenate(list(err_out.values()))
         # err_xbins = np.linspace(min(err_vals), max(err_vals), b)
 
-        try:
-            disp_vals = np.concatenate(list(disp_out.values()))
-            disp_xbins = np.linspace(min(disp_vals), max(disp_vals), b)
-        except:
-            pass
-        else:
-            counts,edges,bars = ax[0][2].hist(disp_out.values(),label=disp_out.keys(),bins=disp_xbins,stacked=True)
-            color_to_label = {bar[0].get_facecolor(): label for bar, label in zip(bars, disp_out.keys())}        
-            for bar_group, dataset_counts in zip(bars, counts):
-                for rect in bar_group:
-                    # Only label bars with non-zero height
-                    if rect.get_height() > 0:
-                        # Determine the label based on the color
-                        label = color_to_label.get(rect.get_facecolor(), "Unknown")
-                        # Calculate the position for the text
-                        x_pos = rect.get_x() + rect.get_width() / 2
-                        y_pos = rect.get_y() + rect.get_height() / 2
-                        # Add the label
-                        ax[0][2].text(x_pos, y_pos, label, ha='center', va='center', color='white', fontsize=8)
-            ax[0][2].set_title('Displacement Outliers')
-            # for k,v in err_out.items():
-            #     ax[1][1].scatter(k,v,color='black')
+        disp_norm = (all_disps - min(all_disps))/max(all_disps)
+        indxs = [i for i,d in enumerate(disp_norm)]
+        ax[0][2].scatter(indxs,disp_norm)
+        over_half = len([d for d in disp_norm if d > 0.5])
+        ax[0][2].set_title(f'''min-max norm disps over time
+        # {over_half}/{len(disp_norm)} > 0.5 ''')
 
+    
         for i in errs.index:
             ax[1][0].annotate(int(i),(int(i),errs.loc[i]))
         return fig
@@ -1509,3 +1494,30 @@ def getTrialsCameraFrametimes(fd, trial, chan="Btn1", thresh = 0.5):
             # pts_cam_zt = [(p[2], p[3]) for p in pts_cam]
             # reg_pts_cam_xy = self.regressor.predict(pts_cam_xy)
             # reg_pts_cam = np.array([np.concatenate((p,q)) for p,q in zip(reg_pts_cam_xy,pts_cam_zt)])
+
+
+
+#Makes stacked bar plot where each bar has ytrial label embedded in it. wiht ltos of trial
+#just looks messy
+# try:
+#             disp_vals = np.concatenate(list(disp_out.values()))
+#             disp_xbins = np.linspace(min(disp_vals), max(disp_vals), b)
+#         except:
+#             pass
+#         else:
+#             counts,edges,bars = ax[0][2].hist(disp_out.values(),label=disp_out.keys(),bins=disp_xbins,stacked=True)
+#             color_to_label = {bar[0].get_facecolor(): label for bar, label in zip(bars, disp_out.keys())}        
+#             for bar_group, dataset_counts in zip(bars, counts):
+#                 for rect in bar_group:
+#                     # Only label bars with non-zero height
+#                     if rect.get_height() > 0:
+#                         # Determine the label based on the color
+#                         label = color_to_label.get(rect.get_facecolor(), "Unknown")
+#                         # Calculate the position for the text
+#                         x_pos = rect.get_x() + rect.get_width() / 2
+#                         y_pos = rect.get_y() + rect.get_height() / 2
+#                         # Add the label
+#                         ax[0][2].text(x_pos, y_pos, label, ha='center', va='center', color='white', fontsize=8)
+#             ax[0][2].set_title('Displacement Outliers')
+#             # for k,v in err_out.items():
+#             #     ax[1][1].scatter(k,v,color='black')
