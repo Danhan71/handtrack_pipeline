@@ -425,7 +425,10 @@ if __name__ == "__main__":
 		regression = None
 
 	SAVEDIR = f"{data_dir}/{animal}/{date}_{expt}{sess_print}/figures"
-	os.makedirs(SAVEDIR, exist_ok=True)
+	if os.path.exists(SAVEDIR):
+		import shutil
+		shutil.rmtree(SAVEDIR)
+	os.makedirs(SAVEDIR)
 
 	#Doesn't actually add much information, see all day figs dispalcement hist
 	#Running with ploton False so still accumulates jump data for all day fig

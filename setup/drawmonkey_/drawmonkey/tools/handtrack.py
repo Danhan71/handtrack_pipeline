@@ -367,6 +367,7 @@ class HandTrack(object):
             # np.save("/home/danhan/Desktop/str_cam0.npy", datall["strokes_cam"][0])
 
 
+
             ########
             titles = ["strokes_touch", "strokes_cam", "gaps_cam"]
             D = Dataset([])
@@ -487,6 +488,7 @@ class HandTrack(object):
                 stitch = [(p[0],p[1],z,t) for p,z,t in zip(reg_cam_pts,trans_z_cam,strok_cam_t)]
                 trans_pts_list.append(np.array(stitch))
 
+            
             for gap_cam in datall["gaps_cam"]:
                 #Regress x and y
                 gap_cam_xyz = [(p[0],p[1],p[2]) for p in gap_cam]
@@ -554,8 +556,8 @@ class HandTrack(object):
 
             if return_in_meters:
                 #Do xyz transform pts
-                pts_time_cam_all = trans_pts_cam.copy()
-                pts_time_cam_all[:, :3] = convert_pix_to_meters(pts_time_cam_all[:, :3])
+                trans_pts_time_cam_all = trans_pts_cam.copy()
+                trans_pts_time_cam_all[:, :3] = convert_pix_to_meters(trans_pts_time_cam_all[:, :3])
                 strokes_meters = []
                 for strok in strokes:
                     x = strok.copy()
@@ -659,7 +661,7 @@ class HandTrack(object):
                 pts_after_fix = np.stack(pts_after_fix)
 
                 trans_all_pts_concat = np.concatenate((trans_strokes_concat,trans_gaps_concat))
-                trans_pts_after_fix = [p for p in all_pts_concat if t_fix <= p[3] <= t_end]
+                trans_pts_after_fix = [p for p in trans_all_pts_concat if t_fix <= p[3] <= t_end]
                 trans_pts_after_fix = np.stack(trans_pts_after_fix)
             
                 t = pts_after_fix[:,3]
@@ -668,12 +670,13 @@ class HandTrack(object):
                 z = pts_after_fix[:,2]
                 zp = trans_pts_after_fix[:,2]
 
+
                 indax = 1
                 axes[indax].plot(t, x, 'xk', label="x")
                 axes[indax].plot(t, y, 'xr', label="y")
                 # axes[indax].plot(t, z, 'xb', label="z")
                 axes[indax].plot(t, 5*z, 'xb', label="5*z")
-                axes[indax].plot(t, 5*zp, 'xb', label="5*z'")
+                axes[indax].plot(t, 5*zp, 'xg', label="5*z'")
                 axes[indax].axhline(0)
                 if axes[indax].get_ylim()[1] > 0.3:
                     axes[indax].set_ylim((-0.3,0.3))
@@ -684,7 +687,7 @@ class HandTrack(object):
                 axes[indax].plot(t, y, 'xr', label="y")
                 # axes[indax].plot(t, z, 'xb', label="z")
                 axes[indax].plot(t, 5*z, 'xb', label="5*z")
-                axes[indax].plot(t, 5*zp, 'xb', label="5*z'")
+                axes[indax].plot(t, 5*zp, 'xg', label="5*z'")
                 if axes[indax].get_ylim()[1] > 0.3:
                     axes[indax].set_ylim((-0.3,0.3))
 
