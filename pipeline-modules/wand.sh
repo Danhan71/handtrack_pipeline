@@ -171,6 +171,12 @@ elif [ $step == 4 ]; then
 	else
 		echo "No coeffs found in ${pipe_path}/dlt_coeffs/${calib_prefix} check this dir and ensure correct files (dltCoefs.csv and columns.csv)"
 	fi
+	#Remove regression files if they exist
+	trans_path="${data_dir}/${animal}/${name}/transforms" 
+	if [ -d $trans_path ]; then
+		echo "Removing old regression and transformation matrices"
+		rm -r $trans_path
+	fi
 elif [ $step == 5 ]; then
 	python3 ${draw_monk}/final_analysis.py ${name} --animal ${animal} --reg ${reg} --supp ${supp} --pipe ${pipe_path} --data ${data_dir}
 	checkpoints="${data_dir}/${animal}/${name}/checkpoints"

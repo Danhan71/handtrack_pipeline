@@ -21,7 +21,7 @@ class HandTrack(object):
     NOTE:
     - Generally use a new Handtrack Instance for each filedata (fd).
     """
-    def __init__(self, ind1_vid, ind1_ml2, fd, date, expt, animal, sess_print, regressor = 0):
+    def __init__(self, ind1_vid, ind1_ml2, fd, date, expt, animal, sess_print, regressor = 0, z_mat = [0,0,1]):
         """
         PARAMS
         - ind1_vid, the first video ind with data. Should correspnd to
@@ -38,14 +38,15 @@ class HandTrack(object):
         self.Expt = expt
         self.SessPrint = sess_print
         self.Fd = fd
-        self.regressor = regressor
+        self.Regressor = regressor
+        self.ZMat = z_mat
         self.animal = animal
         self.AllDay = {}
 
         # trial_map = [1, 6] # if [1,6], then ml2 trial 1 is vid6
 
     def setRegressor(self,reg):
-        self.regressor = reg
+        self.Regressor = reg
 
     def process_data_singletrial(self, trial_ml2, ploton=False, 
             filter_by_likeli_thresh=False, return_in_meters = True, finger_raise_time=0.05,
@@ -461,32 +462,56 @@ class HandTrack(object):
 
         #Plot the data with the linear reg cam pts
 
-        if self.regressor != 0:
+        if self.Regressor != 0:
+
+            #NOTE will keep the xy reg pts and the xyz regs pts separate for now, just in case the z trabnsform does
+            #not work. If the z transform seems to work consistently then may just leave out the xy only guy
             print("###DOING REGRESSION ON CAM PTS###")
             reg_pts_list = []
             reg_gaps_list = []
-            err_list = []
+            trans_pts_list = []
+            trans_gap_list = []
             
             for strok_cam in datall["strokes_cam"]:
+                #Regress x and y
                 strok_cam_xyz = [(p[0],p[1],p[2]) for p in strok_cam]
                 strok_cam_z = [p[2] for p in strok_cam]
                 strok_cam_t = [p[3] for p in strok_cam]
-                reg_cam_pts = self.regressor.predict(strok_cam_xyz)
+                reg_cam_pts = self.Regressor.predict(strok_cam_xyz)
                 stitch = [(p[0],p[1],z,t) for p,z,t in zip(reg_cam_pts,strok_cam_z,strok_cam_t)]
                 reg_pts_list.append(np.array(stitch))
 
+                #transform z using z_mat
+                M = self.ZMat
+                trans_z_cam = [p[0]*M[0]+p[1]*M[1]+p[2]*M[2] for p in strok_cam]
+                stitch = [(p[0],p[1],z,t) for p,z,t in zip(reg_cam_pts,trans_z_cam,strok_cam_t)]
+                trans_pts_list.append(np.array(stitch))
+
             for gap_cam in datall["gaps_cam"]:
+                #Regress x and y
                 gap_cam_xyz = [(p[0],p[1],p[2]) for p in gap_cam]
                 gap_cam_t = [p[3] for p in gap_cam]
-                reg_gap_pts = self.regressor.predict(gap_cam_xyz)
+                reg_gap_pts = self.Regressor.predict(gap_cam_xyz)
                 stitch = [(p[0],p[1],z[2],t) for p,t,z in zip(reg_gap_pts, gap_cam_t,gap_cam_xyz)]
                 reg_gaps_list.append(np.array(stitch))
 
+                #Transform z using t z_mat
+                M = self.ZMat
+                trans_z_gap = [p[0]*M[0]+p[1]*M[1]+p[2]*M[2] for p in gap_cam]
+                stitch = [(p[0],p[1],z,t) for p,z,t in zip(reg_gap_pts,trans_z_gap,gap_cam_t)]
+                trans_gap_list.append(np.array(stitch))
+
+            #Regress x,y
             pts_cam = dat["pts_time_cam_all"]
             pts_cam_xyz = [(p[0],p[1],p[2]) for p in pts_cam]
             pts_cam_t = [p[3] for p in pts_cam]
-            reg_pts_cam_xy = self.regressor.predict(pts_cam_xyz)
+            reg_pts_cam_xy = self.Regressor.predict(pts_cam_xyz)
             reg_pts_cam = np.array([(p[0],p[1],z[2],t) for p,t,z in zip(reg_pts_cam_xy,pts_cam_t,pts_cam_xyz)])
+
+            #Regress xyz
+            M=self.ZMat
+            pts_cam_z = [p[0]*M[0]+p[1]*M[1]+p[2]*M[2] for p in pts_cam]
+            trans_pts_cam = np.array([(p[0],p[1],z,t) for p,t,z in zip(reg_pts_cam_xy,pts_cam_t,pts_cam_z)])
 
 
 
@@ -504,7 +529,32 @@ class HandTrack(object):
 
             
             if return_in_meters:
+                #First do the x y pts only
                 pts_time_cam_all = reg_pts_cam.copy()
+                pts_time_cam_all[:, :3] = convert_pix_to_meters(pts_time_cam_all[:, :3])
+                strokes_meters = []
+                for strok in strokes:
+                    x = strok.copy()
+                    x[:, :2] = convert_pix_to_meters(x[:,:2])
+                    strokes_meters.append(x)
+                strokes = strokes_meters
+
+                strokes_meters = []
+                for strok in strokes_task:
+                    x = strok.copy()
+                    x[:, :2] = convert_pix_to_meters(x[:,:2])
+                    strokes_meters.append(x)
+                strokes_task = strokes_meters
+            dat["reg_strokes_task"] = strokes_task
+
+            datall["reg_strokes_cam"] = reg_pts_list
+            datall["reg_gaps_cam"] = reg_gaps_list
+            dat["reg_gaps_cam"] = reg_gaps_list
+            dat["reg_pts_time_cam_all"] = reg_pts_cam
+
+            if return_in_meters:
+                #Do xyz transform pts
+                pts_time_cam_all = trans_pts_cam.copy()
                 pts_time_cam_all[:, :3] = convert_pix_to_meters(pts_time_cam_all[:, :3])
                 strokes_meters = []
                 for strok in strokes:
@@ -522,10 +572,13 @@ class HandTrack(object):
 
             dat["reg_strokes_task"] = strokes_task
 
-            datall["reg_strokes_cam"] = reg_pts_list
-            datall["reg_gaps_cam"] = reg_gaps_list
-            dat["reg_gaps_cam"] = reg_gaps_list
-            dat["reg_pts_time_cam_all"] = reg_pts_cam
+            datall["trans_strokes_cam"] = trans_pts_list
+            datall["trans_gaps_cam"] = trans_gap_list
+            dat["trans_gaps_cam"] = trans_gap_list
+            dat["trans_pts_time_cam_all"] = trans_pts_cam
+
+            
+
 
             # print(reg_pts_cam)
             # assert False
@@ -590,25 +643,37 @@ class HandTrack(object):
                 reg_strokes_cam = datall["reg_strokes_cam"]
                 reg_gaps_cam = datall["reg_gaps_cam"]
 
+                trans_strokes_cam = datall["trans_strokes_cam"]
+                trans_gaps_cam = datall["trans_gaps_cam"]
+
                 strokes_cam_concat = np.concatenate(reg_strokes_cam)
                 gaps_cam_concat = np.concatenate(reg_gaps_cam)
+
+                trans_strokes_concat = np.concatenate(trans_strokes_cam)
+                trans_gaps_concat = np.concatenate(trans_gaps_cam)
 
                 all_pts_concat = np.concatenate((strokes_cam_concat,gaps_cam_concat))
                 t_fix = min(strokes_cam_concat[:,3])
                 t_end = max(strokes_cam_concat[:,3])
                 pts_after_fix = [p for p in all_pts_concat if t_fix <= p[3] <= t_end]
-                pts_after_fix=np.stack(pts_after_fix)
+                pts_after_fix = np.stack(pts_after_fix)
+
+                trans_all_pts_concat = np.concatenate((trans_strokes_concat,trans_gaps_concat))
+                trans_pts_after_fix = [p for p in all_pts_concat if t_fix <= p[3] <= t_end]
+                trans_pts_after_fix = np.stack(trans_pts_after_fix)
             
                 t = pts_after_fix[:,3]
                 x = pts_after_fix[:,0]
                 y = pts_after_fix[:,1]
                 z = pts_after_fix[:,2]
+                zp = trans_pts_after_fix[:,2]
 
                 indax = 1
                 axes[indax].plot(t, x, 'xk', label="x")
                 axes[indax].plot(t, y, 'xr', label="y")
                 # axes[indax].plot(t, z, 'xb', label="z")
                 axes[indax].plot(t, 5*z, 'xb', label="5*z")
+                axes[indax].plot(t, 5*zp, 'xb', label="5*z'")
                 axes[indax].axhline(0)
                 if axes[indax].get_ylim()[1] > 0.3:
                     axes[indax].set_ylim((-0.3,0.3))
@@ -619,6 +684,7 @@ class HandTrack(object):
                 axes[indax].plot(t, y, 'xr', label="y")
                 # axes[indax].plot(t, z, 'xb', label="z")
                 axes[indax].plot(t, 5*z, 'xb', label="5*z")
+                axes[indax].plot(t, 5*zp, 'xb', label="5*z'")
                 if axes[indax].get_ylim()[1] > 0.3:
                     axes[indax].set_ylim((-0.3,0.3))
 
@@ -705,7 +771,7 @@ class HandTrack(object):
                     plotDatStrokes(strokes, ax, clean_unordered=True)            
 
                 # z coordinates
-                fig, ax = plt.subplots(1,1)
+                fig, ax = plt.subplots(1,2)
                 list_reg_figs.append(fig)
 
                 pts_reg_strokes_cam = np.concatenate(reg_strokes_cam)
@@ -713,13 +779,26 @@ class HandTrack(object):
                 pts_gaps_cam = np.concatenate(reg_gaps_cam)
                 z_gaps = pts_gaps_cam[:,2]
 
+                pts_trans_strokes_cam = np.concatenate(trans_strokes_cam)
+                z_strokes_trans = pts_trans_strokes_cam[:,2]
+                pts_gaps_cam_trans = np.concatenate(trans_gaps_cam)
+                z_gaps_trans = pts_gaps_cam_trans[:,2]
+
                 vals = np.r_[z_strokes, z_gaps]
                 xbins = np.linspace(min(vals), max(vals), 60)
-                ax.hist(z_strokes, xbins, label="z_strokes", alpha=0.5)
-                ax.hist(z_gaps, xbins, label="z_gaps", alpha=0.5)
-                ax.legend()
-                ax.set_xlabel("z")
-                ax.set_title("z is close to 0 during touch")
+                ax[0].hist(z_strokes, xbins, label="z_strokes", alpha=0.5)
+                ax[0].hist(z_gaps, xbins, label="z_gaps", alpha=0.5)
+                ax[0].legend()
+                ax[0].set_xlabel("z")
+                ax[0].set_title("z is close to 0 during touch")
+
+                vals = np.r_[z_strokes_trans, z_gaps_trans]
+                xbins = np.linspace(min(vals), max(vals), 60)
+                ax[1].hist(z_strokes_trans, xbins, label="z_strokes", alpha=0.5)
+                ax[1].hist(z_gaps_trans, xbins, label="z_gaps", alpha=0.5)
+                ax[1].legend()
+                ax[1].set_xlabel("z")
+                ax[1].set_title("z is close to 0 during touch")
         else:
             list_reg_figs = []
         assert (list_figs is not None) == (list_reg_figs is not None), "why one none other not?"
@@ -733,7 +812,7 @@ class HandTrack(object):
             z_gaps = pts_gaps_cam[:,2]
             self.AllDay[trial_ml2]['z_gaps'] = np.array(z_gaps)
             self.AllDay[trial_ml2]['z_strokes'] = np.array(z_strokes)
-            if self.regressor != 0:
+            if self.Regressor != 0:
                 cam_all = np.concatenate(datall['strokes_cam'])
                 touch_all = np.concatenate(datall['strokes_touch'])
                 strok_cam_xyz = [(p[0],p[1],p[2]) for p in cam_all]
@@ -745,7 +824,7 @@ class HandTrack(object):
                 strok_touch_annoying.append(np.array(touch_all))
                 touch_interp = strokesInterpolate2(strok_touch_annoying,N)
                 touch_interp_xyz = [(p[0],p[1],0) for p in touch_interp[0]]
-                stroke_error = self.regressor.score(strok_cam_xyz,touch_interp_xyz)
+                stroke_error = self.Regressor.score(strok_cam_xyz,touch_interp_xyz)
                 self.AllDay[trial_ml2]['reg_errs'] = np.array(stroke_error)
 
                 x_res = [tch[0]-strk[0] for tch,strk in zip(touch_interp,strok_cam_xyz)]
@@ -1308,7 +1387,7 @@ class HandTrack(object):
         else:
             fig = None
 
-        if self.regressor != 0:
+        if self.Regressor != 0:
             reg_strokes_cam = dat["reg_strokes_cam"]
             reg_pts_cam = np.concatenate(reg_strokes_cam)[:,:2]
             reg_list_dists = [np.linalg.norm(p1-p2) for p1, p2 in zip(pts_ml2, reg_pts_cam)]
@@ -1478,21 +1557,21 @@ def getTrialsCameraFrametimes(fd, trial, chan="Btn1", thresh = 0.5):
             # for strok_cam in datall["strokes_cam"]:
             #     strok_cam_xy = [(p[0],p[1]) for p in strok_cam]
             #     strok_cam_zt = [(p[2], p[3]) for p in strok_cam]
-            #     reg_cam_pts = self.regressor.predict(strok_cam_xy)
+            #     reg_cam_pts = self.Regressor.predict(strok_cam_xy)
             #     stitch = [np.concatenate((p,q)) for p,q in zip(reg_cam_pts, strok_cam_zt)]
             #     reg_pts_list.append(np.array(stitch))
 
             # for gap_cam in datall["gaps_cam"]:
             #     gap_cam_xy = [(p[0],p[1]) for p in gap_cam]
             #     gap_cam_zt = [(p[2], p[3]) for p in gap_cam]
-            #     reg_gap_pts = self.regressor.predict(gap_cam_xy)
+            #     reg_gap_pts = self.Regressor.predict(gap_cam_xy)
             #     stitch = [np.concatenate((p,q)) for p,q in zip(reg_gap_pts, gap_cam_zt)]
             #     reg_gaps_list.append(np.array(stitch))
 
             # pts_cam = dat["pts_time_cam_all"]
             # pts_cam_xy = [(p[0],p[1]) for p in pts_cam]
             # pts_cam_zt = [(p[2], p[3]) for p in pts_cam]
-            # reg_pts_cam_xy = self.regressor.predict(pts_cam_xy)
+            # reg_pts_cam_xy = self.Regressor.predict(pts_cam_xy)
             # reg_pts_cam = np.array([np.concatenate((p,q)) for p,q in zip(reg_pts_cam_xy,pts_cam_zt)])
 
 

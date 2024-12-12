@@ -18,7 +18,7 @@ def displacement(x,y):
 	y_diff = y.diff()  
 	return np.sqrt(x_diff**2 + y_diff**2)
 
-def fit_regression_cam(HT, trange, supp=None, reg_type='basic'):
+def fit_regression_cam(HT, trange, supp=None, reg_type='basic', out = None):
 	"""
 	Fits linear regression for this HT object and trial list
  
@@ -31,12 +31,101 @@ def fit_regression_cam(HT, trange, supp=None, reg_type='basic'):
  
 	RETURNS: 
 	- scikit linear regression object trained on given reg type
+
+	Will also save this and the z transformation matrix as .pkl files in the expt folder to save future load times
 	"""
+	def generate_t_matrix(cam_pts,touch_pts,reg):
+		"""Funciton for caclulating optimized t matrix to use in regressing the z coordinate
+
+		Args:
+			cam_pts (array): list of cam pts ('x')
+			touch_pts (array): list of touch screen pts ('y')
+			reg (sklearn regression ovbject): regression coeffs, used to optimize t matrix to be orthogonal
+
+		Returns:
+			opt_T (array): 3 element vector for predicting z value from (x,y,z)
+
+		NOTE: in this function x refers to input data and y refers to taregt data, by lkinear algebra convention
+		"""
+		from scipy.optimize import minimize
+		reg_coefs = reg.coef_
+
+		
+		x = cam_pts
+		y = touch_pts
+		#Standardize data into z-score space,
+		#actually isnt that interpretable
+		# z_x = np.empty(x.shape)
+		# z_y = np.empty(y.shape)
+		# x_means = []
+		# x_stds = []
+		# for i in range(x.shape[1]):
+		# 	mean_x = np.mean(x[:,i])
+		# 	std_x = np.std(x[:,i])
+		# 	this_z_x = (x[:,i]-mean_x)
+		# 	z_x[:,i] = this_z_x
+		# 	x_means.append(mean_x)
+		# 	x_stds.append(std_x)
+
+		# 	mean_y = np.mean(y[:,i])
+		# 	std_y = np.std(y[:,i])
+		# 	if std_y == 0:
+		# 		this_z_y = 0
+		# 	else:
+		# 		this_z_y = (y[:,i]-mean_y)
+		# 	z_y[:,i] = this_z_y
+
+		# Define the objective function (error minimization)
+		def objective(T):
+			a,b,c = T
+			x3_prime = a * x[:,0] + b * x[:,1] + c * x[:,2]  # Compute x3' for all data points
+			error = (x3_prime-y[:,2])**2
+			return np.log(np.sum(error**2))  # Minimize squared error
+		def get_coordprime(T):
+			a,b,c = T
+			x3_prime = a * x[:,0] + b * x[:,1] + c * x[:,2]
+			return x3_prime
+		def orthogonal_constraint_x(T):
+			return np.dot(T,reg_coefs[0])
+		def orthogonal_constraint_y(T):
+			return np.dot(T,reg_coefs[1])
+		def unit_norm(T):
+			a,b,c=T
+			return 1 - np.sqrt((a**2 + b**2 + c**2))
+
+		# Initial guess
+		initial_guess = [0, 0, 1]  # Start with a, b ~ 0 and c ~ 1
+
+		#Can add bounds, didn't find this to be necessary for a good calib though
+		bounds = ((-0.5,0.5),(-0.5,0.5),(0.8,None))
+
+		# Optimize
+		constraints = [{'type':'eq','fun':unit_norm}]
+					#     {'type':'eq','fun':orthogonal_constraint_x},\
+					#    {'type':'eq','fun':orthogonal_constraint_y}]
+		result = minimize(objective, initial_guess, constraints=constraints)
+
+		# Extract optimized transformation
+		opt_T = result.x
+
+		return opt_T
+		# print("Optimized transformation:", opt_T)
+
+		# # Apply the optimized transformation to data
+		# x3_primes_z = get_coordprime(opt_T)
+		# x3_prime = x3_primes_z * x_stds[2] + x_means[2]
+		# print("Transformed z':", x3_prime)
+
+		# # Check error
+		# error = np.exp(objective(opt_T))
+		# print("Total error:", error)
+
+		# plt.hist(x3_prime)
+		# plt.xlim((0.0004,0.0005))
 	strokes_cam_all = []
 	strokes_cam_allz = []
 	strokes_touch_all = []
 	touch_interpz = []
-
 	outcomes = {}
 	for trial in trange:
 
@@ -95,6 +184,7 @@ def fit_regression_cam(HT, trange, supp=None, reg_type='basic'):
  
 	if reg_type == 'basic':
 		reg = LinearRegression().fit(cam_one_list, touch_one_list)
+		z_mat = generate_t_matrix(cam_one_list,touch_one_list,reg)
 	#Sucks
 	elif reg_type == 'lasso':
 		from sklearn.linear_model import Lasso
@@ -124,11 +214,14 @@ def fit_regression_cam(HT, trange, supp=None, reg_type='basic'):
 	else:
 		assert False, "Code ur own model then, fool"
 	
-	# with open ('/home/danhan/Documents/reg.pkl','wb') as f:
-	# 	pickle.dump(reg,f)
-	# with open ('/home/danhan/Documents/dat.pkl','wb') as f:
-	# 	pickle.dump([cam_one_list,touch_one_list],f)
-	return reg
+	#Save if user speicfies outdir
+	if out is not None:
+		os.makedirs(out, exist_ok=True)
+		with open(f'{out}/reg.pkl','wb') as r, open(f'{out}/z_mat.pkl','wb') as z:
+			pickle.dump(reg,r)
+			pickle.dump(z_mat,z)
+
+	return reg, z_mat
 
 def jump_quant(date, expt, animal, HT, vid_inds, sess, sess_print, condition="behavior", ploton=False):
 	"""
@@ -304,6 +397,9 @@ if __name__ == "__main__":
 	# fd = loadSingleDataQuick("Pancho", "220317", "chunkbyshape4", 1)
 	# HT = HandTrack(4, 1, fd, 220317, "chunkbyshape4")
 
+	SAVEDIR = f"{data_dir}/{animal}/{date}_{expt}{sess_print}"
+	
+
 	if reg:
 		# assert False
 		if supp:
@@ -313,18 +409,29 @@ if __name__ == "__main__":
 			supp=[supp_dlt,supp_gt]
 		else:
 			supp = None
-		regression = fit_regression_cam(HT, trange, supp=supp)
-		HT.regressor = regression
+		if os.path.exists(f'{SAVEDIR}/transforms/reg.pkl') and os.path.exists(f'{SAVEDIR}/transforms/z_mat.pkl') :
+			print('Not doing regression because reg file already exists, delete if you want \
+		 	to rerun the regression running step 4 again automatically removes it')
+			with open(f'{SAVEDIR}/transforms/reg.pkl','rb') as f:
+				regression = pickle.load(f)
+			with open(f'{SAVEDIR}/transforms/z_mat.pkl','rb') as f:
+				z_mat = pickle.load(f)
+		else:
+			#Include out=SAVEDIR if you want to save the regression for later use
+			regression,z_mat = fit_regression_cam(HT, trange, supp=supp, out=f'{SAVEDIR}/transforms')
+		HT.Regressor = regression
+		HT.ZMat = z_mat
 	else:
 		regression = None
+
+	SAVEDIR = f"{data_dir}/{animal}/{date}_{expt}{sess_print}/figures"
+	os.makedirs(SAVEDIR, exist_ok=True)
 
 	#Doesn't actually add much information, see all day figs dispalcement hist
 	#Running with ploton False so still accumulates jump data for all day fig
 	_ = jump_quant(date, expt, animal, HT=HT, vid_inds=vid_inds, sess=sess, sess_print=sess_print)
 	jump_quant_figs = [None]
 
-	SAVEDIR = f"{data_dir}/{animal}/{date}_{expt}{sess_print}/figures"
-	os.makedirs(SAVEDIR, exist_ok=True)
 
 	# if jump_quant_figs is not None:
 	# 	os.makedirs(f'{SAVEDIR}/jump_quants',exist_ok=True)
