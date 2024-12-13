@@ -100,9 +100,9 @@ def fit_regression_cam(HT, trange, supp=None, reg_type='basic', out = None):
 		bounds = ((-0.5,0.5),(-0.5,0.5),(0.8,None))
 
 		# Optimize
-		constraints = [{'type':'eq','fun':unit_norm}]
-					#     {'type':'eq','fun':orthogonal_constraint_x},\
-					#    {'type':'eq','fun':orthogonal_constraint_y}]
+		constraints = [{'type':'eq','fun':unit_norm},
+					    {'type':'eq','fun':orthogonal_constraint_x},\
+					   {'type':'eq','fun':orthogonal_constraint_y}]
 		result = minimize(objective, initial_guess, constraints=constraints)
 
 		# Extract optimized transformation

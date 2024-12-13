@@ -817,8 +817,10 @@ class HandTrack(object):
             self.AllDay[trial_ml2]['z_strokes'] = np.array(z_strokes)
             if self.Regressor != 0:
                 cam_all = np.concatenate(datall['strokes_cam'])
+                reg_cam_all = np.concatenate(datall['reg_strokes_cam'])
                 touch_all = np.concatenate(datall['strokes_touch'])
                 strok_cam_xyz = [(p[0],p[1],p[2]) for p in cam_all]
+                reg_strok_cam = [(p[0],p[1],p[2]) for p in reg_cam_all]
                 strok_cam_z = [p[2] for p in cam_all]
                 strok_cam_t = [p[3] for p in cam_all]
                 N = ['input_times']
@@ -830,8 +832,8 @@ class HandTrack(object):
                 stroke_error = self.Regressor.score(strok_cam_xyz,touch_interp_xyz)
                 self.AllDay[trial_ml2]['reg_errs'] = np.array(stroke_error)
 
-                x_res = [tch[0]-strk[0] for tch,strk in zip(touch_interp,strok_cam_xyz)]
-                y_res = [tch[1]-strk[1] for tch,strk in zip(touch_interp,strok_cam_xyz)]
+                x_res = [tch[0]-strk[0] for tch,strk in zip(touch_interp,reg_strok_cam)]
+                y_res = [tch[1]-strk[1] for tch,strk in zip(touch_interp,reg_strok_cam)]
                 self.AllDay[trial_ml2]['x_coord'] = np.array([tch[0] for tch in touch_interp])
                 self.AllDay[trial_ml2]['y_coord'] = np.array([tch[1] for tch in touch_interp])
                 self.AllDay[trial_ml2]['x_res'] = np.array(x_res)
@@ -1489,12 +1491,24 @@ class HandTrack(object):
         # err_vals = np.concatenate(list(err_out.values()))
         # err_xbins = np.linspace(min(err_vals), max(err_vals), b)
 
-        disp_norm = (all_disps - min(all_disps))/max(all_disps)
-        indxs = [i for i,d in enumerate(disp_norm)]
-        ax[0][2].scatter(indxs,disp_norm)
-        over_half = len([d for d in disp_norm if d > 0.5])
-        ax[0][2].set_title(f'''min-max norm disps over time
-        # {over_half}/{len(disp_norm)} > 0.5 ''')
+        #NOTE: Make this cumulative displacement, then this shoudl look better
+        disp_max = max(all_disps)
+        indxs = [i for i,d in enumerate(all_disps)]
+        ax[0][2].scatter(indxs, all_disps)
+        over_half = len([d for d in all_disps if d > disp_max/2])
+        ax[0][2].set_title(f'''disps over time
+        # {over_half}/{len(all_disps)} > 1/2 max''')
+        ax[2][2].scatter(all_disps[0:-1], all_disps[1:])
+        ax[2][2].set_xlabel("Disps n")
+        ax[2][2].set_ylabel("Disps n+1")
+        ax[2][2].set_title("Disps vs disps n+1")
+
+        # NOTE: for i,val in enumerate(all_disps):
+        #     #For tomorrow, add a column with list equal to len(disps)
+        #     #that has the trial number, then just use index of disp to get the trial number the disp
+        #     #is in :)
+        #     if val > disp_max/2:
+        #         ax[0][2].annotate(i+1,(i,val))
 
     
         for i in errs.index:
