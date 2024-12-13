@@ -809,12 +809,27 @@ class HandTrack(object):
         if aggregate:
             if trial_ml2 not in self.AllDay:
                 self.AllDay[trial_ml2] = {}
-            pts_strokes_cam = np.concatenate(strokes_cam)
-            z_strokes = pts_strokes_cam[:,2]
-            pts_gaps_cam = np.concatenate(gaps_cam)
+            #Get z coords but only after fixation period happens
+            reg_strokes_cam = np.concatenate(datall['reg_strokes_cam'])
+            trans_strokes_cam = np.concatenate(datall['trans_strokes_cam'])
+            reg_gaps_cam = np.concatenate(datall['reg_gaps_cam'])
+            trans_gaps_cam = np.concatenate(datall['trans_gaps_cam'])
+
+            reg_strokes_cam_concat = np.concatenate(reg_strokes_cam)
+            t_fix_on = min(reg_strokes_cam[:,3])
+            t_fix_off = max(reg_strokes_cam[:,3])
+
+            reg_z_strokes = reg_strokes_cam[:,2]
+            trans_z_strokes = trans_strokes_cam[:,2]
+
+            reg_z_gaps = [p[2] for p in reg_gaps_cam if t_fix_on <= p[3] <= t_fix_off]
+            trans_z_gaps = [p[2] for p in trans_gaps_cam if t_fix_on <= p[3] <= t_fix_off]
+            
             z_gaps = pts_gaps_cam[:,2]
-            self.AllDay[trial_ml2]['z_gaps'] = np.array(z_gaps)
-            self.AllDay[trial_ml2]['z_strokes'] = np.array(z_strokes)
+            self.AllDay[trial_ml2]['reg_z_gaps'] = np.array(reg_z_gaps)
+            self.AllDay[trial_ml2]['reg_z_strokes'] = np.array(reg_z_strokes)
+            self.AllDay[trial_ml2]['trans_z_gaps'] = np.array(trans_z_gaps)
+            self.AllDay[trial_ml2]['trans_z_strokes'] = np.array(trans_z_strokes)
             if self.Regressor != 0:
                 cam_all = np.concatenate(datall['strokes_cam'])
                 reg_cam_all = np.concatenate(datall['reg_strokes_cam'])
@@ -832,10 +847,10 @@ class HandTrack(object):
                 stroke_error = self.Regressor.score(strok_cam_xyz,touch_interp_xyz)
                 self.AllDay[trial_ml2]['reg_errs'] = np.array(stroke_error)
 
-                x_res = [tch[0]-strk[0] for tch,strk in zip(touch_interp,reg_strok_cam)]
-                y_res = [tch[1]-strk[1] for tch,strk in zip(touch_interp,reg_strok_cam)]
-                self.AllDay[trial_ml2]['x_coord'] = np.array([tch[0] for tch in touch_interp])
-                self.AllDay[trial_ml2]['y_coord'] = np.array([tch[1] for tch in touch_interp])
+                x_res = [tch[0]-strk[0] for tch,strk in zip(touch_interp[0],reg_strok_cam)]
+                y_res = [tch[1]-strk[1] for tch,strk in zip(touch_interp[0],reg_strok_cam)]
+                self.AllDay[trial_ml2]['x_coord'] = np.stack([tch[0] for tch in touch_interp[0]])
+                self.AllDay[trial_ml2]['y_coord'] = np.stack([tch[1] for tch in touch_interp[0]])
                 self.AllDay[trial_ml2]['x_res'] = np.array(x_res)
                 self.AllDay[trial_ml2]['y_res'] = np.array(y_res)
             else: 
@@ -1453,12 +1468,18 @@ class HandTrack(object):
         good_disps = np.concatenate(list(disp_good.values()))
         # good_errs = np.concatenate(list(err_good.values()))
 
-        all_strokes = np.concatenate(df['z_strokes'].values)
-        all_gaps = np.concatenate(df['z_gaps'].values)
+        all_strokes_reg = np.concatenate(df['reg_z_strokes'].values)
+        all_gaps_reg = np.concatenate(df['reg_z_gaps'].values)
+        all_strokes_trans = np.concatenate(df['trans_z_strokes'].values)
+        all_gaps_trans = np.concatenate(df['trans_z_gaps'].values)
         all_disps = np.concatenate(df['disp'].values)
-
-        gap_vals = np.r_[all_strokes, all_gaps]
-        gap_xbins = np.linspace(min(gap_vals), max(gap_vals), b)
+        disp_trials = []
+        for k,v in self.AllDay.items():
+            trial = k
+            size = len(v['disp'])
+            disp_trials.extend(list(np.full(size,trial)))
+        gap_vals = np.r_[all_strokes_reg, all_gaps_reg]
+        gap_xbins = np.linspace(min(gap_vals), max(gap_vals), 3*b)
 
         all_xres = np.concatenate(df['x_res'].values)
         all_yres = np.concatenate(df['y_res'].values)
@@ -1466,16 +1487,18 @@ class HandTrack(object):
         all_xs = np.concatenate(df['x_coord'].values)
         all_ys = np.concatenate(df['y_coord'].values)
 
-
-        fig,ax = plt.subplots(ncols=3,nrows=3,figsize=(30,30))
+        fig,ax = plt.subplots(ncols=4,nrows=3,figsize=(30,30))
         ax[0][0].hist(all_disps,bins=b,color='blue')
         ax[0][1].hist(good_disps,bins=b,color='blue')
         ax[1][0].scatter(errs.index,errs,color='blue')
-        ax[1][2].hist(all_gaps,gap_xbins,color='darkblue',alpha=0.6)
-        ax[1][2].hist(all_strokes,gap_xbins,color='darkorange',alpha=0.6)
+        ax[1][2].hist(all_gaps_reg,gap_xbins,color='darkblue',alpha=0.6)
+        ax[1][2].hist(all_strokes_reg,gap_xbins,color='darkorange',alpha=0.6)
+        ax[1][2].hist(all_strokes_trans,gap_xbins,color='darkgreen',alpha=0.6)
         ax[1][1].hist(all_res,bins=b)
         ax[2][0].scatter(all_xs,all_xres)
+        ax[2][0].set_xlabel('x coord')
         ax[2][1].scatter(all_ys,all_yres)
+        ax[2][1].set_xlabel('y coord')
 
         ax[0][0].set_title('Displacements, log(counts)')
         ax[0][0].set_yscale('log')
@@ -1483,10 +1506,25 @@ class HandTrack(object):
         ax[0][1].set_yscale('log')
         ax[1][0].set_title('Stroke Error')
         ax[1][0].set_xlabel('trial')
-        ax[1][2].set_title('z coords blue=gaps oran=strokes')
+        ax[1][2].set_title('z coords blue=gaps oran=strokes \n green = z-transform')
         ax[1][1].set_title('Hist of all Residuals')
         ax[2][0].set_title('x resid vs x coord')
         ax[2][1].set_title('y resid vs y coord')
+
+        all_gap_ptsr = []
+        all_gap_ptst = []
+        all_norm_ts = []
+        for trial in list(df.index):
+            reg_pts = df.loc[trial,'reg_z_gaps']
+            trans_pts = df.loc[trial,'trans_z_gaps']
+            norm_ts = np.linspace(0,1,num=len(reg_pts))
+            all_gap_ptsr.extend(reg_pts)
+            all_gap_ptst.extend(trans_pts)
+            all_norm_ts.extend(norm_ts)
+        ax[1][3].scatter(all_norm_ts,all_gap_ptst, label='trans zs')
+        ax[1][3].scatter(all_norm_ts,all_gap_ptsr,label='reg zs')
+        ax[1][3].set_title("Z coord gaps with norm time")
+        ax[1][3].legend()
 
         # err_vals = np.concatenate(list(err_out.values()))
         # err_xbins = np.linspace(min(err_vals), max(err_vals), b)
@@ -1498,17 +1536,14 @@ class HandTrack(object):
         over_half = len([d for d in all_disps if d > disp_max/2])
         ax[0][2].set_title(f'''disps over time
         # {over_half}/{len(all_disps)} > 1/2 max''')
-        ax[2][2].scatter(all_disps[0:-1], all_disps[1:])
-        ax[2][2].set_xlabel("Disps n")
-        ax[2][2].set_ylabel("Disps n+1")
-        ax[2][2].set_title("Disps vs disps n+1")
+        ax[0][3].scatter(all_disps[0:-1], all_disps[1:])
+        ax[0][3].set_xlabel("Disps n")
+        ax[0][3].set_ylabel("Disps n+1")
+        ax[0][3].set_title("Disps vs disps n+1")
 
-        # NOTE: for i,val in enumerate(all_disps):
-        #     #For tomorrow, add a column with list equal to len(disps)
-        #     #that has the trial number, then just use index of disp to get the trial number the disp
-        #     #is in :)
-        #     if val > disp_max/2:
-        #         ax[0][2].annotate(i+1,(i,val))
+        for i,val in enumerate(all_disps):
+            if val > disp_max/2:
+                ax[0][2].annotate(disp_trials[i],(i,val))
 
     
         for i in errs.index:
