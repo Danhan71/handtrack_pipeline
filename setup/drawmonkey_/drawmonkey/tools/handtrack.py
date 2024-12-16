@@ -1491,14 +1491,21 @@ class HandTrack(object):
         ax[0][0].hist(all_disps,bins=b,color='blue')
         ax[0][1].hist(good_disps,bins=b,color='blue')
         ax[1][0].scatter(errs.index,errs,color='blue')
-        ax[1][2].hist(all_gaps_reg,gap_xbins,color='darkblue',alpha=0.6)
-        ax[1][2].hist(all_strokes_reg,gap_xbins,color='darkorange',alpha=0.6)
-        ax[1][2].hist(all_strokes_trans,gap_xbins,color='darkgreen',alpha=0.6)
+        ax[1][3].hist(all_gaps_reg,gap_xbins,color='darkorange',alpha=0.6, label='gaps')
+        ax[1][2].hist(all_strokes_reg,gap_xbins,color='darkorange',alpha=0.6, label='strokes')
+        ax[1][2].hist(all_strokes_trans,gap_xbins,color='darkgreen',alpha=0.6,label='trans_strokes')
+        ax[1][3].hist(all_gaps_trans,gap_xbins,color='darkgreen',alpha=0.6,label='trans_gaps')
+        ax[1][2].sharex(ax[1][3])
         ax[1][1].hist(all_res,bins=b)
         ax[2][0].scatter(all_xs,all_xres)
         ax[2][0].set_xlabel('x coord')
         ax[2][1].scatter(all_ys,all_yres)
         ax[2][1].set_xlabel('y coord')
+        ax[2][2].scatter(all_xs,all_ys)
+        ax[2][2].axhline(0.15, color='black')
+        ax[2][2].axhline(-0.15, color='black')
+        ax[2][2].axvline(0.12, color='black')
+        ax[2][2].axvline(-0.12, color='black')
 
         ax[0][0].set_title('Displacements, log(counts)')
         ax[0][0].set_yscale('log')
@@ -1506,7 +1513,10 @@ class HandTrack(object):
         ax[0][1].set_yscale('log')
         ax[1][0].set_title('Stroke Error')
         ax[1][0].set_xlabel('trial')
-        ax[1][2].set_title('z coords blue=gaps oran=strokes \n green = z-transform')
+        ax[1][2].set_title('Hist of z-coords in strokes')
+        ax[1][2].legend()
+        ax[1][3].set_title('Hist of z-coords in gaps')
+        ax[1][3].legend()
         ax[1][1].set_title('Hist of all Residuals')
         ax[2][0].set_title('x resid vs x coord')
         ax[2][1].set_title('y resid vs y coord')
@@ -1521,10 +1531,10 @@ class HandTrack(object):
             all_gap_ptsr.extend(reg_pts)
             all_gap_ptst.extend(trans_pts)
             all_norm_ts.extend(norm_ts)
-        ax[1][3].scatter(all_norm_ts,all_gap_ptst, label='trans zs')
-        ax[1][3].scatter(all_norm_ts,all_gap_ptsr,label='reg zs')
-        ax[1][3].set_title("Z coord gaps with norm time")
-        ax[1][3].legend()
+        ax[2][3].scatter(all_norm_ts,all_gap_ptst, label='trans zs')
+        ax[2][3].scatter(all_norm_ts,all_gap_ptsr,label='reg zs')
+        ax[2][3].set_title("Z coord gaps with norm time")
+        ax[2][3].legend()
 
         # err_vals = np.concatenate(list(err_out.values()))
         # err_xbins = np.linspace(min(err_vals), max(err_vals), b)
@@ -1541,14 +1551,20 @@ class HandTrack(object):
         ax[0][3].set_ylabel("Disps n+1")
         ax[0][3].set_title("Disps vs disps n+1")
 
+        #Label outliers on plots where thats hyelpful
         for i,val in enumerate(all_disps):
-            if val > disp_max/2:
+            if val > 50:
                 ax[0][2].annotate(disp_trials[i],(i,val))
 
-    
         for i in errs.index:
             ax[1][0].annotate(int(i),(int(i),errs.loc[i]))
+
+        for i,(x,y) in enumerate(zip(all_xs,all_ys)):
+            if x < -0.12 or x > 0.12 or y < -0.15 or y > 0.15:
+                ax[2][2].annotate(disp_trials[i],(x,y))
+        
         return fig
+    
     
         
     
