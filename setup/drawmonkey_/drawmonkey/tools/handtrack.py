@@ -1574,7 +1574,8 @@ class HandTrack(object):
                 ax[0][2].annotate(disp_trials[i],(i,val))
 
         for i in errs.index:
-            ax[1][0].annotate(int(i),(int(i),errs.loc[i]))
+            if errs.loc[i][0] < 0.8:
+                ax[1][0].annotate(int(i),(int(i),errs.loc[i]))
 
         for i,(x,y) in enumerate(zip(all_xs,all_ys)):
             if x < -0.12 or x > 0.12 or y < -0.15 or y > 0.15:
