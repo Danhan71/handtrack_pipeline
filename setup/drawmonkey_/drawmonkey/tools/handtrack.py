@@ -815,6 +815,7 @@ class HandTrack(object):
             reg_gaps_cam = np.concatenate(datall['reg_gaps_cam'])
             trans_gaps_cam = np.concatenate(datall['trans_gaps_cam'])
 
+
             reg_strokes_cam_concat = np.concatenate(reg_strokes_cam)
             t_fix_on = min(reg_strokes_cam[:,3])
             t_fix_off = max(reg_strokes_cam[:,3])
@@ -824,12 +825,24 @@ class HandTrack(object):
 
             reg_z_gaps = [p[2] for p in reg_gaps_cam if t_fix_on <= p[3] <= t_fix_off]
             trans_z_gaps = [p[2] for p in trans_gaps_cam if t_fix_on <= p[3] <= t_fix_off]
+
+            reg_z_gaps_sep = []
+            trans_z_gaps_sep = []
+
+            for r_gap,t_gap in zip(datall['reg_gaps_cam'],datall['trans_gaps_cam']):
+                this_z_reg = [p[2] for p in r_gap if t_fix_on <= p[3] <= t_fix_off]
+                this_z_trans = [p[2] for p in t_gap if t_fix_on <= p[3] <= t_fix_off]
+
+                reg_z_gaps_sep.append(this_z_reg)
+                trans_z_gaps_sep.append(this_z_trans)
             
             z_gaps = pts_gaps_cam[:,2]
             self.AllDay[trial_ml2]['reg_z_gaps'] = np.array(reg_z_gaps)
             self.AllDay[trial_ml2]['reg_z_strokes'] = np.array(reg_z_strokes)
             self.AllDay[trial_ml2]['trans_z_gaps'] = np.array(trans_z_gaps)
             self.AllDay[trial_ml2]['trans_z_strokes'] = np.array(trans_z_strokes)
+            self.AllDay[trial_ml2]['reg_gaps_all'] = reg_z_gaps_sep
+            self.AllDay[trial_ml2]['trans_gaps_all'] = trans_z_gaps_sep
             if self.Regressor != 0:
                 cam_all = np.concatenate(datall['strokes_cam'])
                 reg_cam_all = np.concatenate(datall['reg_strokes_cam'])
@@ -1455,6 +1468,9 @@ class HandTrack(object):
         
         df = pd.DataFrame.from_dict(self.AllDay, orient='index')
         df = df.dropna()
+        reg_gaps_sep = df['reg_gaps_all']
+        trans_gaps_sep = df['trans_gaps_all']
+        df.drop(['reg_gaps_all', 'trans_gaps_all'], axis=1, inplace=True)
         df = df.map(np.atleast_1d)
         # with open('/home/dhanuska/dhanuska/df.pkl','wb') as f:
         #     pickle.dump(df,f)
@@ -1521,18 +1537,19 @@ class HandTrack(object):
         ax[2][0].set_title('x resid vs x coord')
         ax[2][1].set_title('y resid vs y coord')
 
+        
+        
         all_gap_ptsr = []
         all_gap_ptst = []
         all_norm_ts = []
-        for trial in list(df.index):
-            reg_pts = df.loc[trial,'reg_z_gaps']
-            trans_pts = df.loc[trial,'trans_z_gaps']
-            norm_ts = np.linspace(0,1,num=len(reg_pts))
-            all_gap_ptsr.extend(reg_pts)
-            all_gap_ptst.extend(trans_pts)
-            all_norm_ts.extend(norm_ts)
-        ax[2][3].scatter(all_norm_ts,all_gap_ptst, label='trans zs')
-        ax[2][3].scatter(all_norm_ts,all_gap_ptsr,label='reg zs')
+        for reg_gaps, trans_gaps in zip(reg_gaps_sep, trans_gaps_sep):
+            for r_gap, t_gap in zip(reg_gaps, trans_gaps):
+                norm_ts = np.linspace(0,1,num=len(r_gap))
+                all_gap_ptsr.extend(r_gap)
+                all_gap_ptst.extend(t_gap)
+                all_norm_ts.extend(norm_ts)
+        ax[2][3].plot(all_norm_ts,all_gap_ptst, label='trans zs', alpha=0.2)
+        ax[2][3].plot(all_norm_ts,all_gap_ptsr,label='reg zs', alpha=0.2)
         ax[2][3].set_title("Z coord gaps with norm time")
         ax[2][3].legend()
 
