@@ -83,7 +83,16 @@ class HandTrack(object):
         # DAT["pts_cam_interp"] = pts_cam_interp
         # DAT["strokes_cam_interp"] = strokes_cam_interp
 
-        ####### Convert cam data into strokes and gaps.
+        
+        def displacement(x,y):
+            '''
+            Little guy to calculate displacement for later
+            '''
+            x_diff = x.diff()
+            y_diff = y.diff()  
+            return np.sqrt(x_diff**2 + y_diff**2)
+        
+            ####### Convert cam data into strokes and gaps.
         def snap_pts_to_strokes(strokes_template, pts_to_snap, finger_raise_time=finger_raise_time):
             """
             takes datapoints in pts_to_snap, and generates strokes version of this, 
@@ -800,6 +809,8 @@ class HandTrack(object):
             if trial_ml2 not in self.AllDay:
                 self.AllDay[trial_ml2] = {}
             #Get z coords but only after fixation period happens
+            raw_strokes_cam = np.concatenate(datall['strokes_cam'])
+            raw_gaps_cam = np.concatenate(datall['gaps_cam'])
             reg_strokes_cam = np.concatenate(datall['reg_strokes_cam'])
             trans_strokes_cam = np.concatenate(datall['trans_strokes_cam'])
             reg_gaps_cam = np.concatenate(datall['reg_gaps_cam'])
@@ -813,6 +824,10 @@ class HandTrack(object):
             reg_z_strokes = reg_strokes_cam[:,2]
             trans_z_strokes = trans_strokes_cam[:,2]
 
+            all_data = np.concatenate((raw_strokes_cam,raw_gaps_cam))
+            all_data_xy_fix = np.array([np.array([p[0],p[1]]) for p in all_data if t_fix_on <= p[3] <= t_fix_off])
+            disps_in_fix = np.array(displacement(pd.Series(all_data_xy_fix[:,0]),pd.Series(all_data_xy_fix[:,1]))[1:])
+            
             reg_z_gaps = [p[2] for p in reg_gaps_cam if t_fix_on <= p[3] <= t_fix_off]
             trans_z_gaps = [p[2] for p in trans_gaps_cam if t_fix_on <= p[3] <= t_fix_off]
 
@@ -833,6 +848,7 @@ class HandTrack(object):
             self.AllDay[trial_ml2]['trans_z_strokes'] = np.array(trans_z_strokes)
             self.AllDay[trial_ml2]['reg_gaps_all'] = reg_z_gaps_sep
             self.AllDay[trial_ml2]['trans_gaps_all'] = trans_z_gaps_sep
+            self.AllDay[trial_ml2]['disps_in_fix'] = disps_in_fix
             if self.Regressor != 0:
                 cam_all = np.concatenate(datall['strokes_cam'])
                 reg_cam_all = np.concatenate(datall['reg_strokes_cam'])
@@ -1466,7 +1482,7 @@ class HandTrack(object):
         #     pickle.dump(df,f)
         b= 20
         
-        disps = pd.DataFrame(df['disp'],index=df.index)
+        disps = pd.DataFrame(df['disps_in_fix'],index=df.index)
         errs = pd.DataFrame(df['reg_errs'],index=df.index)
 
         disp_good,_ = separate_outliers(disps)
@@ -1478,11 +1494,11 @@ class HandTrack(object):
         all_gaps_reg = np.concatenate(df['reg_z_gaps'].values)
         all_strokes_trans = np.concatenate(df['trans_z_strokes'].values)
         all_gaps_trans = np.concatenate(df['trans_z_gaps'].values)
-        all_disps = np.concatenate(df['disp'].values)
+        all_disps = np.concatenate(df['disps_in_fix'].values)
         disp_trials = []
         for k,v in self.AllDay.items():
             trial = k
-            size = len(v['disp'])
+            size = len(v['disps_in_fix'])
             disp_trials.extend(list(np.full(size,trial)))
         gap_vals = np.r_[all_strokes_reg, all_gaps_reg]
         gap_xbins = np.linspace(min(gap_vals), max(gap_vals), 3*b)
@@ -1559,9 +1575,10 @@ class HandTrack(object):
         ax[0][3].set_title("Disps vs disps n+1")
 
         #Label outliers on plots where thats hyelpful
+
+        thresh_ind = min(len(all_disps),50)
         for i,val in enumerate(all_disps):
-            thresh_ind = min(len(all_disps),50)
-            if val > all_disps.sort()[-thresh_ind]:
+            if val > np.sort(all_disps)[-thresh_ind]:
                 ax[0][2].annotate(disp_trials[i],(i,val))
 
         for i in errs.index:
