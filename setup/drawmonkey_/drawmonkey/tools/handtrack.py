@@ -1548,8 +1548,8 @@ class HandTrack(object):
                 all_gap_ptsr.extend(r_gap)
                 all_gap_ptst.extend(t_gap)
                 all_norm_ts.extend(norm_ts)
-        ax[2][3].plot(all_norm_ts,all_gap_ptst, label='trans zs', alpha=0.2)
-        ax[2][3].plot(all_norm_ts,all_gap_ptsr,label='reg zs', alpha=0.2)
+        ax[2][3].plot(all_norm_ts,all_gap_ptst, label='trans zs', alpha=0.5)
+        ax[2][3].plot(all_norm_ts,all_gap_ptsr,label='reg zs', alpha=0.5)
         ax[2][3].set_title("Z coord gaps with norm time")
         ax[2][3].legend()
 
@@ -1570,7 +1570,8 @@ class HandTrack(object):
 
         #Label outliers on plots where thats hyelpful
         for i,val in enumerate(all_disps):
-            if val > 50:
+            thresh_ind = min(len(all_disps),50)
+            if val > all_disps.sort()[-thresh_ind]:
                 ax[0][2].annotate(disp_trials[i],(i,val))
 
         for i in errs.index:
