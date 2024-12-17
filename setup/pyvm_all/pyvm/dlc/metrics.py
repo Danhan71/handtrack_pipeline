@@ -373,14 +373,14 @@ Total Frames : {metrics["extracted_frames"]}
 
 
 
-def  main(name, do_list, numvids=None, numframes=None, custom_vid_list=None, custom_out=None):
+def  main(name, do_list, animal, numvids=None, numframes=None, custom_vid_list=None, custom_out=None):
 	from pyvm.globals import BASEDIR
 	if 'extract_custom' in do_list:
 		extract_frames(videos_list=custom_vid_list,config=None,
 				 numvids=numvids,numframestot=numframes,custom=True,out_path=custom_out)
 		return
 	for task in do_list:
-		dict_paths, _ = find_expt_config_paths(name, "behavior")
+		dict_paths, _ = find_expt_config_paths(name, "behavior", animal)
 		pcf = list(dict_paths.values())[0]
 		if task == "extract":
 			videos_list = findPath(f"{BASEDIR}/{animal}/{name}/behavior/DLC", [["combined"],["allvideos"]], ext = ".mp4")
@@ -410,13 +410,13 @@ if __name__=="__main__":
 
 	if do == "extract":
 		print("Doing frame extraction...")
-		main(name=name, do_list=["extract"], numvids=numvids, numframes=numframes)
+		main(name=name, animal=animal, do_list=["extract"], numvids=numvids, numframes=numframes)
 	elif do == "review":
 		print("Doing frame review, please see popups for instructions...")
-		main(name=name, do_list=["review"])
+		main(name=name, animal=animal, do_list=["review"])
 	elif do == "both":
 		print("Doing both steps...")
-		main(name=name, do_list=["extract","review"], numvids=numvids, numframes=numframes)
+		main(name=name, animal=animal, do_list=["extract","review"], numvids=numvids, numframes=numframes)
 
 	elif do == "extract_custom":
 		import math
