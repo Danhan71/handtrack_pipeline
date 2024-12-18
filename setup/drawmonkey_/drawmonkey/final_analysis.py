@@ -97,12 +97,12 @@ def fit_regression_cam(HT, trange, supp=None, reg_type='basic', out = None):
 		initial_guess = [0, 0, 1]  # Start with a, b ~ 0 and c ~ 1
 
 		#Can add bounds, didn't find this to be necessary for a good calib though
-		bounds = ((-0.5,0.5),(-0.5,0.5),(0.8,None))
+		bounds = ((-0.5,0.5),(-0.5,0.5),(0.98,1.02))
 
-		# Optimize
-		constraints = [{'type':'eq','fun':unit_norm},
-					    {'type':'eq','fun':orthogonal_constraint_x},\
-					   {'type':'eq','fun':orthogonal_constraint_y}]
+		# Optimize, orthogonal constraint is no good
+		constraints = [{'type':'eq','fun':unit_norm}]
+					    # {'type':'eq','fun':orthogonal_constraint_x},\
+					#    {'type':'eq','fun':orthogonal_constraint_y}]
 		result = minimize(objective, initial_guess, constraints=constraints)
 
 		# Extract optimized transformation
