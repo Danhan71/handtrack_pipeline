@@ -431,9 +431,9 @@ if __name__ == "__main__":
 	os.makedirs(SAVEDIR)
 
 	#Doesn't actually add much information, see all day figs dispalcement hist
-	#Running with ploton False so still accumulates jump data for all day fig
-	_ = jump_quant(date, expt, animal, HT=HT, vid_inds=vid_inds, sess=sess, sess_print=sess_print)
-	jump_quant_figs = [None]
+	
+	# _ = jump_quant(date, expt, animal, HT=HT, vid_inds=vid_inds, sess=sess, sess_print=sess_print)
+	# jump_quant_figs = [None]
 
 
 	# if jump_quant_figs is not None:
@@ -500,4 +500,4 @@ if __name__ == "__main__":
 	all_day_figs = HT.plot_data_all_day()
 	if all_day_figs is not None:
 		SAVEDIR = f"{data_dir}/{animal}/{date}_{expt}{sess_print}/figures"
-		all_day_figs.savefig(f"{SAVEDIR}/all_day_summary.pdf")
+		all_day_figs.savefig(f"{SAVEDIR}/all_day_summary.png")

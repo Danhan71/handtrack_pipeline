@@ -1498,6 +1498,7 @@ class HandTrack(object):
         disp_trials = []
         for k,v in self.AllDay.items():
             trial = k
+            print(v.keys())
             size = len(v['disps_in_fix'])
             disp_trials.extend(list(np.full(size,trial)))
         gap_vals = np.r_[all_strokes_reg, all_gaps_reg]
