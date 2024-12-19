@@ -11,7 +11,9 @@ import matplotlib.pyplot as plt
 from sklearn.linear_model import LinearRegression
 from pythonlib.tools.stroketools import strokesInterpolate2
 from pyvm.globals import BASEDIR, NCAMS
-from .utils import getTrialsIsAbort
+from .utils import getTrialsIsAbort 
+import os
+import traceback
 
 
 ncams = NCAMS
@@ -21,7 +23,7 @@ class HandTrack(object):
     NOTE:
     - Generally use a new Handtrack Instance for each filedata (fd).
     """
-    def __init__(self, ind1_vid, ind1_ml2, fd, date, expt, animal, sess_print, regressor = 0, z_mat = [0,0,1]):
+    def __init__(self, ind1_vid, ind1_ml2, fd, date, expt, animal, sess_print):
         """
         PARAMS
         - ind1_vid, the first video ind with data. Should correspnd to
@@ -38,17 +40,68 @@ class HandTrack(object):
         self.Expt = expt
         self.SessPrint = sess_print
         self.Fd = fd
-        self.Regressor = regressor
-        self.ZMat = z_mat
         self.animal = animal
+        self.Regressor = {}
+        self.ZMat = {}
         self.AllDay = {}
+
+        #Will automatically extract sets of data for different coeff sets.
+        #all functions that process data will adapt to number of coef sets
+        search_dir = f'{BASEDIR}/{self.animal}/{self.Date}_{self.Expt}{self.SessPrint}/behavior'
+        coef_dirs = [d[:-19] for d in os.listdir(search_dir) if d.endswith('extracted_dlc_data')]
+        assert len(coef_dirs) > 0, "no data for coefs found"
+        print(coef_dirs)
+        for coef in coef_dirs:
+            #Reg = 0 indicates to data process fucntions not to do reg 
+            self.Regressor[coef] = 0
+            self.ZMat[coef] = [0,0,1]
+            self.AllDay[coef] = {}
+        self.Coefs = coef_dirs
+        
+            
 
         # trial_map = [1, 6] # if [1,6], then ml2 trial 1 is vid6
 
     def setRegressor(self,reg):
         self.Regressor = reg
 
-    def process_data_singletrial(self, trial_ml2, ploton=False, 
+    def process_data_wrapper(self, trial_ml2 = None, ploton = False, aggregate = False, coefs = None, finger_raise_time=0.0, all_day=False):
+        """Higher level wrapper for all data process and plotting functions.
+
+        Args:
+            trial_ml2 (int): integer value for ml2 trial (i.e. usually 1 indexed trials). Rqd
+            ploton (bool): plot? Defaults to False
+            aggregate (bool): Collect AllDay data?. Defaults to False.
+            coefs (str or list, optional): str or list of strings for coefs to use. Default (None) is loop through coefs detected by HT initiation.
+            all_day (bool, optional): Just do all day plot (run after doing all trials data)
+        Returns:
+            dat: dict containing data for each set of coefficients {coefs:data}
+            figs/reg_figs: dict with list of figs for each coeffs {coefs:figs} 
+            all_day_figs: All day figure
+        """
+        dat = {}
+        figs = {}
+        reg_figs = {}
+        all_day_figs = {}
+        for coefs in self.Coefs:
+            if all_day:
+                all_day_figs[coefs] = self.plot_data_all_day(coefs=coefs)
+            else:
+                dat[coefs], figs[coefs], reg_figs[coefs] = self.process_data_singletrial(trial_ml2,\
+                                                        finger_raise_time=finger_raise_time, aggregate=aggregate,\
+                                                            ploton=ploton, coefs=coefs)
+                list_dists, reg_list_dists,_, _, fig_error, reg_fig_error  = self.analy_compute_errors(trial_ml2, ploton=True, coefs=coefs)
+
+                dat["errors_ptwise"] = list_dists
+                dat["reg_errors_ptwise"] = reg_list_dists
+
+                figs[coefs].append(fig_error)
+                reg_figs[coefs].append(reg_fig_error)
+
+            
+        return dat,figs,reg_figs,all_day_figs
+
+    def process_data_singletrial(self, trial_ml2, coefs = None ,ploton=False, 
             filter_by_likeli_thresh=False, return_in_meters = True, finger_raise_time=0.05,
             ts_cam_offset=0.06, aggregate=False):
         """ Does manythings:
@@ -69,6 +122,8 @@ class HandTrack(object):
         """
 
         from .utils import getTrialsStrokes, getTrialsFixationSuccess, getTrialsTaskAsStrokes
+        #Use first ind coefs if none specified, and check that coefs entered are valid
+        coefs = self.check_coefs(coefs)
 
         datall = {}
 
@@ -200,7 +255,7 @@ class HandTrack(object):
             return pts/conv["pix_over_m"]
 
         # 1) Extract cam and coinvert coords.
-        dfall, t, pts, camdict = self.get_trials_all_data(trial_ml2, filter_by_likeli_thresh=filter_by_likeli_thresh)
+        dfall, t, pts, camdict = self.get_trials_all_data(trial_ml2, filter_by_likeli_thresh=filter_by_likeli_thresh, coefs=coefs)
         if dfall is None:   
             # failed becuase no campy data
             return {}, [], []
@@ -467,7 +522,7 @@ class HandTrack(object):
 
         #Plot the data with the linear reg cam pts
 
-        if self.Regressor != 0:
+        if self.Regressor[coefs] != 0:
 
             #NOTE will keep the xy reg pts and the xyz regs pts separate for now, just in case the z trabnsform does
             #not work. If the z transform seems to work consistently then may just leave out the xy only guy
@@ -482,12 +537,12 @@ class HandTrack(object):
                 strok_cam_xyz = [(p[0],p[1],p[2]) for p in strok_cam]
                 strok_cam_z = [p[2] for p in strok_cam]
                 strok_cam_t = [p[3] for p in strok_cam]
-                reg_cam_pts = self.Regressor.predict(strok_cam_xyz)
+                reg_cam_pts = self.Regressor[coefs].predict(strok_cam_xyz)
                 stitch = [(p[0],p[1],z,t) for p,z,t in zip(reg_cam_pts,strok_cam_z,strok_cam_t)]
                 reg_pts_list.append(np.array(stitch))
 
                 #transform z using z_mat
-                M = self.ZMat
+                M = self.ZMat[coefs]
                 trans_z_cam = [p[0]*M[0]+p[1]*M[1]+p[2]*M[2] for p in strok_cam]
                 stitch = [(p[0],p[1],z,t) for p,z,t in zip(reg_cam_pts,trans_z_cam,strok_cam_t)]
                 trans_pts_list.append(np.array(stitch))
@@ -497,12 +552,12 @@ class HandTrack(object):
                 #Regress x and y
                 gap_cam_xyz = [(p[0],p[1],p[2]) for p in gap_cam]
                 gap_cam_t = [p[3] for p in gap_cam]
-                reg_gap_pts = self.Regressor.predict(gap_cam_xyz)
+                reg_gap_pts = self.Regressor[coefs].predict(gap_cam_xyz)
                 stitch = [(p[0],p[1],z[2],t) for p,t,z in zip(reg_gap_pts, gap_cam_t,gap_cam_xyz)]
                 reg_gaps_list.append(np.array(stitch))
 
                 #Transform z using t z_mat
-                M = self.ZMat
+                M = self.ZMat[coefs]
                 trans_z_gap = [p[0]*M[0]+p[1]*M[1]+p[2]*M[2] for p in gap_cam]
                 stitch = [(p[0],p[1],z,t) for p,z,t in zip(reg_gap_pts,trans_z_gap,gap_cam_t)]
                 trans_gap_list.append(np.array(stitch))
@@ -511,11 +566,11 @@ class HandTrack(object):
             pts_cam = dat["pts_time_cam_all"]
             pts_cam_xyz = [(p[0],p[1],p[2]) for p in pts_cam]
             pts_cam_t = [p[3] for p in pts_cam]
-            reg_pts_cam_xy = self.Regressor.predict(pts_cam_xyz)
+            reg_pts_cam_xy = self.Regressor[coefs].predict(pts_cam_xyz)
             reg_pts_cam = np.array([(p[0],p[1],z[2],t) for p,t,z in zip(reg_pts_cam_xy,pts_cam_t,pts_cam_xyz)])
 
             #Regress xyz
-            M=self.ZMat
+            M=self.ZMat[coefs]
             pts_cam_z = [p[0]*M[0]+p[1]*M[1]+p[2]*M[2] for p in pts_cam]
             trans_pts_cam = np.array([(p[0],p[1],z,t) for p,t,z in zip(reg_pts_cam_xy,pts_cam_t,pts_cam_z)])
 
@@ -806,8 +861,8 @@ class HandTrack(object):
         assert (list_figs is not None) == (list_reg_figs is not None), "why one none other not?"
 
         if aggregate:
-            if trial_ml2 not in self.AllDay:
-                self.AllDay[trial_ml2] = {}
+            if trial_ml2 not in self.AllDay[coefs]:
+                self.AllDay[coefs][trial_ml2] = {}
             #Get z coords but only after fixation period happens
             raw_strokes_cam = np.concatenate(datall['strokes_cam'])
             raw_gaps_cam = np.concatenate(datall['gaps_cam'])
@@ -842,14 +897,14 @@ class HandTrack(object):
                 trans_z_gaps_sep.append(this_z_trans)
             
             z_gaps = pts_gaps_cam[:,2]
-            self.AllDay[trial_ml2]['reg_z_gaps'] = np.array(reg_z_gaps)
-            self.AllDay[trial_ml2]['reg_z_strokes'] = np.array(reg_z_strokes)
-            self.AllDay[trial_ml2]['trans_z_gaps'] = np.array(trans_z_gaps)
-            self.AllDay[trial_ml2]['trans_z_strokes'] = np.array(trans_z_strokes)
-            self.AllDay[trial_ml2]['reg_gaps_all'] = reg_z_gaps_sep
-            self.AllDay[trial_ml2]['trans_gaps_all'] = trans_z_gaps_sep
-            self.AllDay[trial_ml2]['disps_in_fix'] = disps_in_fix
-            if self.Regressor != 0:
+            self.AllDay[coefs][trial_ml2]['reg_z_gaps'] = np.array(reg_z_gaps)
+            self.AllDay[coefs][trial_ml2]['reg_z_strokes'] = np.array(reg_z_strokes)
+            self.AllDay[coefs][trial_ml2]['trans_z_gaps'] = np.array(trans_z_gaps)
+            self.AllDay[coefs][trial_ml2]['trans_z_strokes'] = np.array(trans_z_strokes)
+            self.AllDay[coefs][trial_ml2]['reg_gaps_all'] = reg_z_gaps_sep
+            self.AllDay[coefs][trial_ml2]['trans_gaps_all'] = trans_z_gaps_sep
+            self.AllDay[coefs][trial_ml2]['disps_in_fix'] = disps_in_fix
+            if self.Regressor[coefs] != 0:
                 cam_all = np.concatenate(datall['strokes_cam'])
                 reg_cam_all = np.concatenate(datall['reg_strokes_cam'])
                 touch_all = np.concatenate(datall['strokes_touch'])
@@ -863,17 +918,17 @@ class HandTrack(object):
                 strok_touch_annoying.append(np.array(touch_all))
                 touch_interp = strokesInterpolate2(strok_touch_annoying,N)
                 touch_interp_xyz = [(p[0],p[1],0) for p in touch_interp[0]]
-                stroke_error = self.Regressor.score(strok_cam_xyz,touch_interp_xyz)
-                self.AllDay[trial_ml2]['reg_errs'] = np.array(stroke_error)
+                stroke_error = self.Regressor[coefs].score(strok_cam_xyz,touch_interp_xyz)
+                self.AllDay[coefs][trial_ml2]['reg_errs'] = np.array(stroke_error)
 
                 x_res = [tch[0]-strk[0] for tch,strk in zip(touch_interp[0],reg_strok_cam)]
                 y_res = [tch[1]-strk[1] for tch,strk in zip(touch_interp[0],reg_strok_cam)]
-                self.AllDay[trial_ml2]['x_coord'] = np.stack([tch[0] for tch in touch_interp[0]])
-                self.AllDay[trial_ml2]['y_coord'] = np.stack([tch[1] for tch in touch_interp[0]])
-                self.AllDay[trial_ml2]['x_res'] = np.array(x_res)
-                self.AllDay[trial_ml2]['y_res'] = np.array(y_res)
+                self.AllDay[coefs][trial_ml2]['x_coord'] = np.stack([tch[0] for tch in touch_interp[0]])
+                self.AllDay[coefs][trial_ml2]['y_coord'] = np.stack([tch[1] for tch in touch_interp[0]])
+                self.AllDay[coefs][trial_ml2]['x_res'] = np.array(x_res)
+                self.AllDay[coefs][trial_ml2]['y_res'] = np.array(y_res)
             else: 
-                self.AllDay[trial_ml2]['reg_errs'] = np.array([])
+                self.AllDay[coefs][trial_ml2]['reg_errs'] = np.array([])
 
         return (datall, list_figs, list_reg_figs)
 
@@ -958,13 +1013,14 @@ class HandTrack(object):
         return dfthis
 
 
-    def get_trials_all_data(self, trial_ml2, bodypart = "fingertip", 
+    def get_trials_all_data(self, trial_ml2, coefs, bodypart = "fingertip", 
             filter_by_likeli_thresh=False, thresh_likeli=0.8, return_empty_if_skip=True, align = True):
         """ [Get all data] Helper, get pre-extracted DLC pts, along with other things,
         like likehood, etc.
         Also gets campy frametimes.
         PARAMS:
         - trial (in ml2, so 1, 2, 3, ..)
+        - coef_ind, ind for coefs to take (will pull coef prefix out of HT object params)
         - filter_by_likeli_thresh, then dfall will be filtered to only keep
         frames that have all cameras likelis above thresh_likeli. the other outputs will not be filtered.
         - return_empty_if_skip, then returns Nones for everuthing if dont hvae campy data.
@@ -982,15 +1038,18 @@ class HandTrack(object):
         done you can set the align=True flag to false
         """
         from pythonlib.tools.expttools import findPath
+        import os
 
         trial_dlc = self.convert_trialnums(trial_ml2=trial_ml2)
+        coef_set = self.check_coefs(coefs)
         
         # 1) 3d pts.
-        path = f"{BASEDIR}/{self.animal}/{self.Date}_{self.Expt}{self.SessPrint}/behavior/extracted_dlc_data/3d-part_{bodypart}-trial_{trial_dlc}-dat.npy"
+        search_dir = f"{BASEDIR}/{self.animal}/{self.Date}_{self.Expt}{self.SessPrint}/behavior"
+        path = f"{search_dir}/{coefs}_extracted_dlc_data/3d-part_{bodypart}-trial_{trial_dlc}-dat.npy"
         pts_raw = np.load(path)
         
         # 2) Load each camera data (e.g.,Likelihood)
-        list_path = findPath(f"{BASEDIR}/{self.animal}/{self.Date}_{self.Expt}{self.SessPrint}/behavior/extracted_dlc_data", [["camera", f"trial_{trial_dlc}-", "dat"]], None)
+        list_path = findPath(f"{search_dir}/{coefs}_extracted_dlc_data", [["camera", f"trial_{trial_dlc}-", "dat"]], None)
 
         def _get_cam(path):
             """ return string, name of this camera, etracted from path"""
@@ -1150,8 +1209,199 @@ class HandTrack(object):
         #     assert False, "no data, after filtering by threshodl"
         
         return dfall, frametimes_mean, pts, camdict
+    def check_coefs(self, coefs):
+        """
+        Get defualt coef behavior/chekc if coefs submitted are good
+        """
+        if coefs is None:
+            import time
+            print("""Using alphabetical first set of coefs/extarcted dlc data since none entered
+            if you want to use a different one/use multiple please enter them 
+            by dlt coef prefix name as in pipe dir in funtion params""")
+            time.sleep(5)
+            coefs = self.Coefs[0]
+        else:
+            if isinstance(coefs, list):
+                for coef in coefs:
+                    assert coef in self.Coefs, "Invalid coefs entered, check arguments/ensure data for given coefs is extracted"
+            else:
+                assert coefs in self.Coefs, "Invalid coefs entered, check arguments/ensure data for given coefs is extracted"
+        return coefs
 
+    
+    def fit_regression(self, trange, coefs = None, out = None):
+        """Does regression for each coefs set.
 
+        Args:
+            trange (range): trial range to regress data on 
+            coefs (str or list, optional): What coefs use. Defaults to None.
+            out (str, optional): Save in outdir? Defaults to None/no save.
+                new subdir for each coef set will be used
+        """
+        for coefs in self.Coefs:
+            self._fit_regression(trange,coefs,out)
+        
+        
+    def _fit_regression(self, trange, coefs=None, out = None):
+        """
+        Fits linear regression for this HT object and trial list. Will also check if regs already exist
+        at out and not do if they do exist
+    
+        PARAMS:
+        - trange: range of trials
+        - reg_type : regression type, basic
+    
+
+        Will also save this and the z transformation matrix as .pkl files in the expt folder to save future load times
+        """
+
+        if out is not None and os.path.exists(f'{out}/{coefs}/reg.pkl') and os.path.exists(f'{out}/{coefs}/z_mat.pkl') :
+            print('Not doing regression because reg file already exists, delete if you want to rerun the regression. Running step 4 again automatically removes it.')
+            with open(f'{out}/{coefs}/reg.pkl','rb') as f:
+                self.Regressor[coefs] = pickle.load(f)
+            with open(f'{out}/{coefs}/z_mat.pkl','rb') as f:
+                self.ZMat[coefs] = pickle.load(f)
+            return
+
+        def generate_t_matrix(cam_pts,touch_pts):
+            """Funciton for caclulating optimized t matrix to use in regressing the z coordinate
+
+            Args:
+                cam_pts (array): list of cam pts ('x')
+                touch_pts (array): list of touch screen pts ('y')
+                reg (sklearn regression ovbject): regression coeffs, used to optimize t matrix to be orthogonal
+
+            Returns:
+                opt_T (array): 3 element vector for predicting z value from (x,y,z)
+
+            NOTE: in this function x refers to input data and y refers to taregt data, by lkinear algebra convention
+            """
+            from scipy.optimize import minimize
+            
+            x = cam_pts
+            y = touch_pts
+            #Standardize data into z-score space,
+            #actually isnt that interpretable
+            # z_x = np.empty(x.shape)
+            # z_y = np.empty(y.shape)
+            # x_means = []
+            # x_stds = []
+            # for i in range(x.shape[1]):
+            # 	mean_x = np.mean(x[:,i])
+            # 	std_x = np.std(x[:,i])
+            # 	this_z_x = (x[:,i]-mean_x)
+            # 	z_x[:,i] = this_z_x
+            # 	x_means.append(mean_x)
+            # 	x_stds.append(std_x)
+
+            # 	mean_y = np.mean(y[:,i])
+            # 	std_y = np.std(y[:,i])
+            # 	if std_y == 0:
+            # 		this_z_y = 0
+            # 	else:
+            # 		this_z_y = (y[:,i]-mean_y)
+            # 	z_y[:,i] = this_z_y
+
+            # Define the objective function (error minimization)
+            def objective(T):
+                a,b,c = T
+                x3_prime = a * x[:,0] + b * x[:,1] + c * x[:,2]  # Compute x3' for all data points
+                error = (x3_prime-y[:,2])**2
+                return np.log(np.sum(error**2))  # Minimize squared error
+            def get_coordprime(T):
+                a,b,c = T
+                x3_prime = a * x[:,0] + b * x[:,1] + c * x[:,2]
+                return x3_prime
+            def unit_norm(T):
+                a,b,c=T
+                return 1 - np.sqrt((a**2 + b**2 + c**2))
+
+            # Initial guess
+            initial_guess = [0, 0, 1]  # Start with a, b ~ 0 and c ~ 1
+
+            #Can add bounds, didn't find this to be necessary for a good calib though
+            bounds = ((-0.5,0.5),(-0.5,0.5),(0.98,1.02))
+
+            # Optimize, orthogonal constraint is no good
+            constraints = [{'type':'eq','fun':unit_norm}]
+            result = minimize(objective, initial_guess, constraints=constraints)
+
+            # Extract optimized transformation
+            opt_T = result.x
+
+            return opt_T
+        
+        strokes_cam_all = []
+        strokes_cam_allz = []
+        strokes_touch_all = []
+        touch_interpz = []
+        outcomes = {}
+        for trial in trange:
+
+            try:
+                dat, _, _ = self.process_data_singletrial(trial, ploton=False, finger_raise_time=0.0, coefs=coefs)
+            except Exception as e:
+                print(f"Not regressing trial {trial} bc failure")
+                print(traceback.format_exc())
+                dat = {}
+            #Skips trials nbo data
+            if dat == {}:
+                continue
+
+            for strok_cam, strok_touch in zip(dat["strokes_cam"], dat["strokes_touch"]):
+                strokes_cam_allz.append(np.array(strok_cam))
+                strokes_touch_all.append(np.array(strok_touch))
+
+        assert (strokes_touch_all != {}), "No data for this expt"
+
+        N = ["input_times"]
+        for strok in strokes_cam_allz:
+            N.append(np.array([p[3] for p in strok]))
+
+        touch_interp = strokesInterpolate2(strokes_touch_all, N)
+
+        
+        for strok in touch_interp:
+            add_z = [[p[0],p[1],0] for p in strok]
+            touch_interpz.append(np.array(add_z))
+
+        #take out z for regression
+        for strok in strokes_cam_allz:
+            strokes_cam_all.append(np.array([[p[0],p[1], p[2]] for p in strok]))
+
+        cam_one_list = np.array([])
+        touch_one_list = np.array([])
+
+        #Makes one list of pts out of the middle 50% of strokes (the tail ends tend to be bad cam data and mess up regression)
+        for strok_cam, strok_touch in zip(strokes_cam_all, touch_interpz):
+            assert len(strok_cam)==len(strok_touch), "Stroke lens misaligned, maybe can just remove this assert idk"
+            n = len(strok_touch)
+            q1 = int(n/4)
+            q3 = int(3*n/4)
+            if len(cam_one_list) == 0 and len(touch_one_list) == 0:
+                cam_one_list = np.array(strok_cam[q1:q3])
+                touch_one_list = np.array(strok_touch[q1:q3])
+            else:
+                cam_one_list = np.concatenate((cam_one_list,strok_cam[q1:q3]))
+                touch_one_list = np.concatenate((touch_one_list,strok_touch[q1:q3]))
+    
+        #Touhc list is 'ground truth' cam list is data to fit
+        assert len(cam_one_list) == len(touch_one_list), "cam, touch different lengths"
+    
+        
+        reg = LinearRegression().fit(cam_one_list, touch_one_list)
+        z_mat = generate_t_matrix(cam_one_list,touch_one_list)
+        
+        #Save if user speicfies outdir
+        if out is not None:
+            os.makedirs(f"{out}/{coefs}", exist_ok=True)
+            with open(f'{out}/{coefs}/reg.pkl','wb') as r, open(f'{out}/{coefs}/z_mat.pkl','wb') as z:
+                pickle.dump(reg,r)
+                pickle.dump(z_mat,z)
+
+        self.Regressor[coefs] = reg
+        self.ZMat[coefs] = z_mat
+    
     def coordinate_conversion(self):
         """ Returns useful conversion factors
         """
@@ -1377,7 +1627,7 @@ class HandTrack(object):
 
 
     #################### ANALYSES
-    def analy_compute_errors(self, trial_ml2, ploton=False):
+    def analy_compute_errors(self, trial_ml2, coefs = None, ploton=False):
         """ compute ptwise errors, only for timepoints where touchscreen says there
         is pt. interpolates cam to match timepoints exactly.
         PARAMS:
@@ -1392,9 +1642,11 @@ class HandTrack(object):
 
         # from pythonlib.tools.distfunctools import distStrok
 
+        coefs = self.check_coefs(coefs)
+
         # Compute error
         dat, _, _ = self.process_data_singletrial(trial_ml2, filter_by_likeli_thresh=True,
-            return_in_meters=True)
+            return_in_meters=True, coefs=coefs)
         if not dat:
             print("No touch screen data found here")
             return None, None, None, None, None, None
@@ -1426,7 +1678,7 @@ class HandTrack(object):
         else:
             fig = None
 
-        if self.Regressor != 0:
+        if self.Regressor[coefs] != 0:
             reg_strokes_cam = dat["reg_strokes_cam"]
             reg_pts_cam = np.concatenate(reg_strokes_cam)[:,:2]
             reg_list_dists = [np.linalg.norm(p1-p2) for p1, p2 in zip(pts_ml2, reg_pts_cam)]
@@ -1445,7 +1697,7 @@ class HandTrack(object):
 
 
         return list_dists,reg_list_dists, np.mean(list_dists),mean_reg_list_dists, fig, reg_fig
-    def plot_data_all_day(self):
+    def plot_data_all_day(self, coefs = None):
         def separate_outliers(data):
             """Function to seprate outliers from reg data for plotting purposes
             Args:
@@ -1472,7 +1724,21 @@ class HandTrack(object):
                 
             return good_dat,outliers
         
-        df = pd.DataFrame.from_dict(self.AllDay, orient='index')
+        if coefs is None:
+            import time
+            print("""Using alphabetical first set of coefs/extarcted dlc data since none entered
+                  if you want to use a different one/use multiple please enter them 
+                  by dlt coef prefix name as in pipe dir in funtion params""")
+            time.sleep(5)
+            coefs = self.Coefs[0]
+        else:
+            if isinstance(coefs, list):
+                for coef in coefs:
+                    assert coef in self.Coefs, "Invalid coefs entered, check arguments/ensure data for given coefs is extracted"
+            else:
+                assert coefs in self.Coefs, "Invalid coefs entered, check arguments/ensure data for given coefs is extracted"
+
+        df = pd.DataFrame.from_dict(self.AllDay[coefs], orient='index')
         df = df.dropna()
         reg_gaps_sep = df['reg_gaps_all']
         trans_gaps_sep = df['trans_gaps_all']
@@ -1496,7 +1762,7 @@ class HandTrack(object):
         all_gaps_trans = np.concatenate(df['trans_z_gaps'].values)
         all_disps = np.concatenate(df['disps_in_fix'].values)
         disp_trials = []
-        for k,v in self.AllDay.items():
+        for k,v in self.AllDay[coefs].items():
             trial = k
             size = len(v['disps_in_fix'])
             disp_trials.extend(list(np.full(size,trial)))

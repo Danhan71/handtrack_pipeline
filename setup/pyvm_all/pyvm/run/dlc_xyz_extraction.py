@@ -261,12 +261,13 @@ def determineDLTAuto(date):
     '''
     Function to autkoamtically determine DLT coeff prefix.
     Rewrite this function if you have different coeffs than used circa 2024
+    Do lists, so that code cna handle cases where there are multiple camera pairs to use
     '''
     prefix = None
     if int(date) < 220914:
-        prefix = "220412_no_f1bf2"
+        prefix = ["220412_no_f1bf2"]
     if int(date) >= 220914:
-        prefix = "220914_f12_dlc"
+        prefix = ["220914_f12_dlc", "220914_flea_bfs1_dlc"]
     return prefix
 
 
@@ -282,7 +283,7 @@ if __name__=="__main__":
     parser.add_argument("--cond", type=str, help="Experiment condition")
     parser.add_argument("--pipe", type=str, help="Pipeline path")
     parser.add_argument("--step", type=int, help="Prematlab data extraction 1, post matlab 2")
-    parser.add_argument("--coeff", type=str, help="Suffix for dir that coeffs are in in pipeline", default=None)
+    parser.add_argument("--coeff", type=list, help="Name of coef dir eg 220914_f12_dlc", default=None)
 
     args = parser.parse_args()
 
@@ -295,10 +296,10 @@ if __name__=="__main__":
     animal = args.animal
     condition = args.cond
     pipe = args.pipe
-    prefix = args.coeff
-    if prefix is None:
+    prefixes = args.coeff
+    if prefixes is None:
         #Rewrite this fxn with your own dates if needed
-        prefix = determineDLTAuto(date)
+        prefixes = determineDLTAuto(date)
     print (date, expt, condition, animal)
 
     ################# RUN
@@ -307,111 +308,117 @@ if __name__=="__main__":
 
     #OLD DLT coeff bs
 
-    # Load DLT coefficients
-    # assert os.path.ispath(path)
-    coef_path = f"{pipe}/dlt_coeffs/{prefix}"
-    dlt_coefs = np.loadtxt(f"{coef_path}/dltCoefs.csv", delimiter=",")
-    with open(f"{coef_path}/columns.csv", 'r') as file:
-        coef_cols = file.read().splitlines()
+        # Load DLT coefficients
+        # assert os.path.ispath(path)
+    for prefix in prefixes:
+        coef_path = f"{pipe}/dlt_coeffs/{prefix}"
+        dlt_coefs = np.loadtxt(f"{coef_path}/dltCoefs.csv", delimiter=",")
+        with open(f"{coef_path}/columns.csv", 'r') as file:
+            coef_cols = file.read().splitlines()
 
-    align_coefs = align_dlt_coefs(dlt_coefs=dlt_coefs, cols=coef_cols, V=V)
-    assert dlt_coefs.shape == align_coefs.shape, "coefs not aligned, some formatting error mprobaly"
-    print("LOADED DLT Coefs, with shape:")
-    print(align_coefs.shape)
+        align_coefs = align_dlt_coefs(dlt_coefs=dlt_coefs, cols=coef_cols, V=V)
+        assert dlt_coefs.shape == align_coefs.shape, "coefs not aligned, some formatting error mprobaly"
+        print("LOADED DLT Coefs, with shape:")
+        print(align_coefs.shape)
 
 
-    ## Extract/import dlc data for each trial, in appropriate data structure.
-    V.import_dlc_data()
+        ## Extract/import dlc data for each trial, in appropriate data structure.
+        V.import_dlc_data()
 
-    ## compute 3d pts and then save
-    sdir = f"{V.Params['load_params']['basedir']}/extracted_dlc_data"
-    import os
-    os.makedirs(sdir, exist_ok=True)
-    from pythonlib.tools.expttools import writeStringsToFile
+        ## compute 3d pts and then save
+        sdir = f"{V.Params['load_params']['basedir']}/{prefix}_extracted_dlc_data"
+        import os
+        os.makedirs(sdir, exist_ok=True)
+        from pythonlib.tools.expttools import writeStringsToFile
 
-    list_trials = V.inds_trials()
-    list_part, _ = V.dlc_get_list_parts_feats()
-    cams = V.Params['load_params']['camera_names']
+        list_trials = V.inds_trials()
+        list_part, _ = V.dlc_get_list_parts_feats()
+        cams = V.Params['load_params']['camera_names']
 
-    #Restrict cameras to just those foind in dlt coeffs, but in right order
-    cam_list = [cam for cam in cams.values() if cam in coef_cols]
+        #Restrict cameras to just those foind in dlt coeffs, but in right order
+        cam_list = [cam for cam in cams.values() if cam in coef_cols]
 
-    temp_dir_base=f"{pipe}/temp_matlab_files"
-    temp_dir = f"{temp_dir_base}/{animal}/{date}_{expt}"
-    #Make relevant dirs in step 1, temp_dir should not already exists to avoid overwriting already extracted data
-    if step == 1:
-        os.makedirs(temp_dir_base, exist_ok=True)
-        if os.path.exists(temp_dir):
-            print(f"meowmeow temp_dir {temp_dir} already exists. Deleting")
-            shutil.rmtree(temp_dir)
-        os.makedirs(temp_dir)
-        with open(f"{temp_dir}/cams.txt", 'w') as f:
-            for cam in cam_list:
-                f.write(f"{cam}\n")
-        np.savetxt(f"{temp_dir}/dltCoefs.txt",align_coefs,delimiter=',')
-    skipped_trials =[]
-    for trial in list_trials:
-        for part in list_part:
-            #Save only the columns with pts relevent to the dlt calibration
-            pts, columns = V.dlc_extract_pts_matrix(trial, [part])
-            #If no data skip
-            if len(pts)+len(columns) == 0:
-                skipped_trials.append(trial)
-                continue
-            pts_df = pd.DataFrame(pts)
-            pts_df.columns = columns
-            new_pts = []
-            for col in columns:
+        temp_dir_base=f"{pipe}/temp_matlab_files/{prefix}"
+        temp_dir = f"{temp_dir_base}/{animal}/{date}_{expt}"
+        #Make relevant dirs in step 1, temp_dir should not already exists to avoid overwriting already extracted data
+        if step == 1:
+            os.makedirs(temp_dir_base, exist_ok=True)
+            if os.path.exists(temp_dir):
+                print(f"meowmeow temp_dir {temp_dir} already exists. Deleting")
+                shutil.rmtree(temp_dir)
+            os.makedirs(temp_dir)
+            with open(f"{temp_dir}/cams.txt", 'w') as f:
                 for cam in cam_list:
-                    if cam in col:
-                        new_pts.append(pts_df[col].tolist())
-            pts = new_pts
-            if step == 1:
-                np.savetxt(f"{temp_dir}/pts_t{trial}.txt", np.array(pts))
+                    f.write(f"{cam}\n")
+            np.savetxt(f"{temp_dir}/dltCoefs.txt",align_coefs,delimiter=',')
+        skipped_trials =[]
+        for trial in list_trials:
+            for part in list_part:
+                #Save only the columns with pts relevent to the dlt calibration
+                pts, columns = V.dlc_extract_pts_matrix(trial, [part])
+                #If no data skip
+                if len(pts)+len(columns) == 0:
+                    skipped_trials.append(trial)
+                    continue
+                pts_df = pd.DataFrame(pts)
+                pts_df.columns = columns
+                new_pts = []
+                for col in columns:
+                    for cam in cam_list:
+                        if cam in col:
+                            new_pts.append(pts_df[col].tolist())
+                pts = new_pts
+                if step == 1:
+                    np.savetxt(f"{temp_dir}/pts_t{trial}.txt", np.array(pts))
 
-                # pts3 = easyWand_triangulate(pts=pts,calib_dir=calib,pipe_path=pipe,cam_list=cam_list)
-                # # pts3 = mean_of_stack(pts3_all)
+                    # pts3 = easyWand_triangulate(pts=pts,calib_dir=calib,pipe_path=pipe,cam_list=cam_list)
+                    # # pts3 = mean_of_stack(pts3_all)
 
-                # # pts3 = dlt_reconstruct(align_coefs, pts)
-            if step == 2:
-                #Import triangulated data from matlab (could just have matlab save it but I think its easier to do all that here)
-                pts3 = pd.read_csv(f"{temp_dir}/xyz_pts_t{trial}.txt")
-                # export as finalize dataframes.
-                np.save(f"{sdir}/3d-part_{part}-trial_{trial}-dat.npy", pts3)
-                np.savetxt(f"{sdir}/3d-part_{part}-trial_{trial}-dat.txt", pts3, delimiter=",")
-        #         np.savetxt(f"{sdir}/part_{part}-trial_{trial}-columns.csv", columns, delimiter=",")
-                writeStringsToFile(f"{sdir}/3d-part_{part}-trial_{trial}-columns.csv", columns)
-    
-            
-            print("Extracted:", trial, part, "to", f"{sdir}/3d-part_{part}-trial_{trial}-dat.npy")
-
-
-    # also save original DLC and delete temp_dir.
-    # run campy extraction as
-    if step == 2:
-        list_trials_good = [t for t in list_trials if t not in skipped_trials]
-        for trial in list_trials_good:
-            
-            for i, cam in enumerate(cam_list):
-                datv = V.helper_index_good((cam, trial))
-        #         datv = V.datgroup_extract_single_video_data2(i, trial, True)
-                dfthis = datv["data_dlc"]
-                dfthis.to_pickle(f"{sdir}/camera_{cam}_-trial_{trial}-dat.pkl")
-
-        #         from pythonlib.tools.expttools import writeDictToYaml, makeTimeStamp
-        #         V.Params["tstamp"] = makeTimeStamp()
-        #         writeDictToYaml(V.Params, f"{sdir}/params.yaml")
-
-
-        #         # export as finalize dataframes.
-        #         np.save(f"{sdir}/part_{part}-trial_{trial}-dat.npy", pts)
-        #         np.savetxt(f"{sdir}/part_{part}-trial_{trial}-dat.npy", pts, delimiter=",")
-        # #         np.savetxt(f"{sdir}/part_{part}-trial_{trial}-columns.csv", columns, delimiter=",")
-        #         writeStringsToFile(f"{sdir}/part_{part}-trial_{trial}-columns.csv", columns)
+                    # # pts3 = dlt_reconstruct(align_coefs, pts)
+                if step == 2:
+                    #Import triangulated data from matlab (could just have matlab save it but I think its easier to do all that here)
+                    pts3 = pd.read_csv(f"{temp_dir}/xyz_pts_t{trial}.txt")
+                    # export as finalize dataframes.
+                    np.save(f"{sdir}/3d-part_{part}-trial_{trial}-dat.npy", pts3)
+                    np.savetxt(f"{sdir}/3d-part_{part}-trial_{trial}-dat.txt", pts3, delimiter=",")
+            #         np.savetxt(f"{sdir}/part_{part}-trial_{trial}-columns.csv", columns, delimiter=",")
+                    writeStringsToFile(f"{sdir}/3d-part_{part}-trial_{trial}-columns.csv", columns)
+        
                 
-                print("Extracted original dlc data:", trial, "to", f"{sdir}/camera_{cam}_-trial_{trial}-dat.pkl")
+                print("Extracted:", trial, part, "to", f"{sdir}/3d-part_{part}-trial_{trial}-dat.npy")
 
-        shutil.rmtree(temp_dir)
-        V.campy_preprocess_check_frametimes()
-        V.campy_export_to_ml2()
+
+        # also save original DLC and delete temp_dir.
+        # run campy extraction as
+        if step == 2:
+            list_trials_good = [t for t in list_trials if t not in skipped_trials]
+            for trial in list_trials_good:
+                
+                #save cam list in data dir for future use (also in proper order)
+                with open(f"{sdir}/cams.txt", 'w') as f:
+                    for cam in cam_list:
+                        f.write(f"{cam}\n")
+
+                for i, cam in enumerate(cam_list):
+                    datv = V.helper_index_good((cam, trial))
+            #         datv = V.datgroup_extract_single_video_data2(i, trial, True)
+                    dfthis = datv["data_dlc"]
+                    dfthis.to_pickle(f"{sdir}/camera_{cam}_-trial_{trial}-dat.pkl")
+
+            #         from pythonlib.tools.expttools import writeDictToYaml, makeTimeStamp
+            #         V.Params["tstamp"] = makeTimeStamp()
+            #         writeDictToYaml(V.Params, f"{sdir}/params.yaml")
+
+
+            #         # export as finalize dataframes.
+            #         np.save(f"{sdir}/part_{part}-trial_{trial}-dat.npy", pts)
+            #         np.savetxt(f"{sdir}/part_{part}-trial_{trial}-dat.npy", pts, delimiter=",")
+            # #         np.savetxt(f"{sdir}/part_{part}-trial_{trial}-columns.csv", columns, delimiter=",")
+            #         writeStringsToFile(f"{sdir}/part_{part}-trial_{trial}-columns.csv", columns)
+                    
+                    print("Extracted original dlc data:", trial, "to", f"{sdir}/camera_{cam}_-trial_{trial}-dat.pkl")
+
+            shutil.rmtree(temp_dir)
+            V.campy_preprocess_check_frametimes()
+            V.campy_export_to_ml2()
      
