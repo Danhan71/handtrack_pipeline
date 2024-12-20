@@ -160,10 +160,10 @@ elif [ $step == 4 ]; then
 	#  python3 ${pyvm}/run/dlc_xyz_extraction.py ${name} ${animal} --cond ${cond} --pipe ${pipe_path} --coeff ${calib_prefix} --step 1
 	# Uncomment the following line and remove the previous line if you want to use auto coeff names
 	python3 ${pyvm}/run/dlc_xyz_extraction.py ${name} ${animal} --cond ${cond} --pipe ${pipe_path} --step 1
-	dir="${pipe_path}/temp_matlab_files"
+	dir="${pipe_path}/temp_matlab_files/${animal}/${name}"
 	for coeff_dir in "${dir}"/*; do
 		if [ -d "${coeff_dir}" ]; then
-			matlab -nodisplay -r "cd('${pipe_path}/setup/easyWand/easyWand5');reconstruct_middleman('${coeff_dir}/${animal}/${name}');exit"
+			matlab -nodisplay -r "cd('${pipe_path}/setup/easyWand/easyWand5');reconstruct_middleman('${coeff_dir}');exit"
 		fi
 	done
 	#  python3 ${pyvm}/run/dlc_xyz_extraction.py ${name} ${animal} --cond ${cond} --pipe ${pipe_path} --step 2 --coeff ${calib_prefix}

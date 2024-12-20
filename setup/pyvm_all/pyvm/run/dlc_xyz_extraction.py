@@ -338,8 +338,8 @@ if __name__=="__main__":
         #Restrict cameras to just those foind in dlt coeffs, but in right order
         cam_list = [cam for cam in cams.values() if cam in coef_cols]
 
-        temp_dir_base=f"{pipe}/temp_matlab_files/{prefix}"
-        temp_dir = f"{temp_dir_base}/{animal}/{date}_{expt}"
+        temp_dir_base=f"{pipe}/temp_matlab_files/"
+        temp_dir = f"{temp_dir_base}/{animal}/{date}_{expt}/{prefix}"
         #Make relevant dirs in step 1, temp_dir should not already exists to avoid overwriting already extracted data
         if step == 1:
             os.makedirs(temp_dir_base, exist_ok=True)
