@@ -50,7 +50,6 @@ class HandTrack(object):
         search_dir = f'{BASEDIR}/{self.animal}/{self.Date}_{self.Expt}{self.SessPrint}/behavior'
         coef_dirs = [d[:-19] for d in os.listdir(search_dir) if d.endswith('extracted_dlc_data')]
         assert len(coef_dirs) > 0, "no data for coefs found"
-        print(coef_dirs)
         for coef in coef_dirs:
             #Reg = 0 indicates to data process fucntions not to do reg 
             self.Regressor[coef] = 0
@@ -1041,7 +1040,7 @@ class HandTrack(object):
         import os
 
         trial_dlc = self.convert_trialnums(trial_ml2=trial_ml2)
-        coef_set = self.check_coefs(coefs)
+        coefs = self.check_coefs(coefs)
         
         # 1) 3d pts.
         search_dir = f"{BASEDIR}/{self.animal}/{self.Date}_{self.Expt}{self.SessPrint}/behavior"
