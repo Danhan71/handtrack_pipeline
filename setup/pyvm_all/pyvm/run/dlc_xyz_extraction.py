@@ -9,6 +9,7 @@ import pandas as pd
 from pythonlib.tools.expttools import writeStringsToFile
 import cv2
 import shutil
+from pyvm.globals import BASEDIR
 
 
 
@@ -257,7 +258,7 @@ def easyWand_triangulate(pts,calib_dir,pipe_path,cam_list):
     xyz = eng.triangulate_middle_man(calib_dir,matlab.double(pts),cam_list)
     return np.array(xyz);
 
-def determineDLTAuto(date):
+def determineDLTAuto(date,cams):
     '''
     Function to autkoamtically determine DLT coeff prefix.
     Rewrite this function if you have different coeffs than used circa 2024
@@ -265,9 +266,18 @@ def determineDLTAuto(date):
     '''
     prefix = None
     if int(date) < 220914:
-        prefix = ["220412_no_f1bf2"]
+        if "fly1" in cams and "bfs2" in cams:
+            prefix = ["220412_no_f1bf2"]
+        else:
+            assert False, f"Need cams fly1 and bfs2 only have {', '.join(cams)}"
     if int(date) >= 220914:
-        prefix = ["220914_f12_dlc", "220914_flea_bfs1_dlc"]
+        prefix = []
+        if "fly1" in cams and "fly2" in cams:
+            prefix.append("220914_f12_dlc")
+        if "flea" in cams and "bfs1" in cams:
+            prefix.append("220914_flea_bfs1_dlc")
+        if len(prefix) == 0:
+            assert False, f"Need cams fly1 & fly2 and/or cams bfs1 & flea, only have {', '.join(cams)}"
     return prefix
 
 
@@ -297,9 +307,14 @@ if __name__=="__main__":
     condition = args.cond
     pipe = args.pipe
     prefixes = args.coeff
+
+    #quick cam_dirs to make sure coefs and cams agree (e.g. cam used in coefs broke)
+    metadat = load_yaml_config(f"{data_dir}/{name}/metadat.yaml")
+    cams = metadat["conditions_dict"][condition]["map_camname_to_path"].keys()
+
     if prefixes is None:
         #Rewrite this fxn with your own dates if needed
-        prefixes = determineDLTAuto(date)
+        prefixes = determineDLTAuto(date, cams)
     print (date, expt, condition, animal)
 
     ################# RUN
