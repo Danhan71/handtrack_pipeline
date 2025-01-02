@@ -16,8 +16,13 @@ def generate_expt_yaml (expt_name, pipe_path, data_dir, condition, animal):
 
 	#Generate condition dependent parameters
 	if condition == "behavior":
-		this_datadir=f"{data_dir}/{expt_name}/Camera1"
-		vidmax = len([name for name in os.listdir(this_datadir) if name.endswith(".mp4")])
+		vidmax = 0
+		for i in range(0,len(list_camnames)):
+			this_datadir=f"{data_dir}/{expt_name}/Camera{i}"
+			if os.path.exists(this_datadir):
+				vidmax = max(len([name for name in os.listdir(this_datadir) if name.endswith(".mp4")]),vidmax)
+			else:
+				continue
 		# vidmax = min(20,vidmax)
 		list_conditions = ["behavior"]
 		list_bodyparts = [["fingertip"]]
@@ -78,35 +83,6 @@ def generate_expt_yaml (expt_name, pipe_path, data_dir, condition, animal):
 # BASEDIR = '/data2/camera'
 # BASEDIR = 'Y:\hopfield_data01\ltian\camera\Pancho\220714'
 # BASEDIR = 'Y:/hopfield_data01/ltian/camera/Pancho'
-
-def check_vid_nums(data_dir,animal,name):
-	'''
-	Function to check num vids for each camera, any cam with less than max vids will have last vid
-	deleted, to avoid issues with vid corruption. Rest of pipeline can handled mismatched lengths methinks.
-	'''
-	assert False
-	list_camnames = get_cam_list(name, animal)
-	#Brazenly discriminate against bfs2, if there are more than 4 cameras (4 cam setup bfs2 is okay)
-	if len(list_camnames) > 4:
-		list_camnames = [cam for cam in list_camnames if cam != 'bfs2']
-	vid_dir = f'{data_dir}/{name}/behavior'
-	dir_lengths = {}
-	for cam in list_camnames:
-		this_dir = f'{vid_dir}/{cam}'
-		vids = [f for f in os.listdir(this_dir) if f.endswith('.mp4')]
-		dir_lengths[cam] = len(vids)
-	vids_max = max(dir_lengths.values())
-	cut_cams = [k for k,v in dir_lengths.items() if v < vids_max]
-	for cam in list_camnames:
-		this_dir = f'{vid_dir}/{cam}'
-		if cam in cut_cams:
-			vids = [f for f in os.listdir(this_dir) if f.endswith('.mp4')]
-			trial_cutoff = max([int(vid.split('vid-t')[1].split('.mp4')[0]) for vid in vids])
-			os.remove(f'{this_dir}/vid-t{trial_cutoff}.mp4')
-
-
-
-
 
 if __name__ == "__main__":
 
@@ -196,6 +172,34 @@ if __name__ == "__main__":
 
 		# Print summary of vidoes
 		# print_summary_videos(METADAT)
+
+
+## Code graveyard
+
+# def check_vid_nums(data_dir,animal,name):
+# 	'''
+# 	Function to check num vids for each camera, any cam with less than max vids will have last vid
+# 	deleted, to avoid issues with vid corruption. Rest of pipeline can handled mismatched lengths methinks.
+# 	'''
+# 	assert False
+# 	list_camnames = get_cam_list(name, animal)
+# 	#Brazenly discriminate against bfs2, if there are more than 4 cameras (4 cam setup bfs2 is okay)
+# 	if len(list_camnames) > 4:
+# 		list_camnames = [cam for cam in list_camnames if cam != 'bfs2']
+# 	vid_dir = f'{data_dir}/{name}/behavior'
+# 	dir_lengths = {}
+# 	for cam in list_camnames:
+# 		this_dir = f'{vid_dir}/{cam}'
+# 		vids = [f for f in os.listdir(this_dir) if f.endswith('.mp4')]
+# 		dir_lengths[cam] = len(vids)
+# 	vids_max = max(dir_lengths.values())
+# 	cut_cams = [k for k,v in dir_lengths.items() if v < vids_max]
+# 	for cam in list_camnames:
+# 		this_dir = f'{vid_dir}/{cam}'
+# 		if cam in cut_cams:
+# 			vids = [f for f in os.listdir(this_dir) if f.endswith('.mp4')]
+# 			trial_cutoff = max([int(vid.split('vid-t')[1].split('.mp4')[0]) for vid in vids])
+# 			os.remove(f'{this_dir}/vid-t{trial_cutoff}.mp4')
 
 
 

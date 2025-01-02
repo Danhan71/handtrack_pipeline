@@ -81,9 +81,6 @@ while true; do
     esac
 done
 
-if [ -f "${pyvm}/globals.py" ]; then
-	rm ${pyvm}/globals.py
-fi
 
 if [ ! -d "${data_dir}/${animal}" ]; then
 	echo "###### ERROR"
