@@ -7,13 +7,7 @@ import argparse
 import yaml
 
 
-def generate_expt_yaml (expt_name, pipe_path, data_dir, condition, animal):
-
-	list_camnames = get_cam_list(expt_name, animal)
-	#Brazenly discriminate against bfs2, if there are more than 4 cameras (4 cam setup bfs2 is okay)
-	if len(list_camnames) > 4:
-		list_camnames = [cam for cam in list_camnames if cam != 'bfs2']
-
+def generate_expt_yaml (expt_name, pipe_path, data_dir, condition, animal, list_camnames):
 	#Generate condition dependent parameters
 	if condition == "behavior":
 		vidmax = 0
@@ -111,8 +105,10 @@ if __name__ == "__main__":
 	# data_dir = f"{BASEDIR}/{name}/Camera1"
 
 	
-	generate_expt_yaml(expt_name=name, pipe_path=pipe_path, data_dir=data_dir, condition=condition, animal=animal)
 	METADAT = get_metadata(name, animal=animal, condition=condition)
+	list_camnames = METADAT["list_camnames"]
+	generate_expt_yaml(expt_name=name, pipe_path=pipe_path, data_dir=data_dir, condition=condition, animal=animal, list_camnames=list_camnames)
+	
 
 
 	# basedir = f"{BASEDIR}/{DATE}"

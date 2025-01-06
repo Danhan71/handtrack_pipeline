@@ -1,1 +1,1 @@
-echo "works"
+echo "“But so that we may not cause offense, go to the lake and throw out your line. Take the first fish you catch; open its mouth and you will find a four-drachma coin. Take it and give it to them for my tax and yours.” Matthew 17:27"

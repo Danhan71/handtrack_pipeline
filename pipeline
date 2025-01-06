@@ -90,8 +90,11 @@ elif [ "$1" = wand ]; then
 	echo wand and 3d coords ${@:2}
 	time ${pipe_path}/pipeline-modules/wand.sh ${@:2}
 elif [ "$1" = analyze ]; then
-	echo model evaluation ${@:2}
+	echo model analysis evaluation ${@:2}
 	time ${pipe_path}/pipeline-modules/analyze.sh ${@:2}
+elif [ "$1" = evaluate ]; then
+	echo "Evaluate this:"
+	time ${pipe_path}/pipeline-modules/evaluate.sh
 elif [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
 	help_message
 else
