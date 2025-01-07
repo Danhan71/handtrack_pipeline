@@ -10,6 +10,7 @@ from pythonlib.tools.expttools import writeStringsToFile
 import cv2
 import shutil
 from pyvm.globals import BASEDIR
+from pythonlib.tools.expttools import load_yaml_config
 
 
 
@@ -309,7 +310,7 @@ if __name__=="__main__":
     prefixes = args.coeff
 
     #quick cam_dirs to make sure coefs and cams agree (e.g. cam used in coefs broke)
-    metadat = load_yaml_config(f"{data_dir}/{name}/metadat.yaml")
+    metadat = load_yaml_config(f"{BASEDIR}/{animal}/{name}/metadat.yaml")
     cams = metadat["conditions_dict"][condition]["map_camname_to_path"].keys()
 
     if prefixes is None:

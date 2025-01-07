@@ -10,3 +10,4 @@ pipeline-scripts/logs
 setup/pyvm_all/pyvm/globals.py
 *.pyc
 .nfs*
+checkpoints

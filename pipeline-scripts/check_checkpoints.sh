@@ -8,12 +8,8 @@ help_message () {
 	echo ""
 	echo "Make sure config file is filled out with the proper information/dirs"
     echo ""
-    echo " >>>> Usage : ./check_dates_checkpoints {animal} {checkpoint_name}"
+    echo " >>>> Usage : ./check_checkpoints {animal}"
     echo ""
-    echo "  *Checkpoint names are the same as the various pipeline modules"
-    echo "  * If multiple steps, use [name][step#]"
-    echo "  E.G: analyze, wand1, wand2,...,wand5,done"
-    echo "  Use done as checkpoinbt to check dates fully run"
 }
 
 comm () { ${scripts}/print_comment.py "$1" "-"; }
@@ -31,23 +27,25 @@ fi
 
 animal="$1"
 
-check_ps=('init' 'dlc-setup' 'analyze' 'wand4' 'wand5' 'done')
 
-for cp in "${check_ps[@]}"
-do
-    mapfile -t dirs < <(find "${data_dir}/${animal}" -maxdepth 3 -name "${cp}" -exec dirname {} \; | sort -u)
+mapfile -t dirs < <(find "${data_dir}/${animal}" -maxdepth 1 | sort -u)
 
-    for dir in "${dirs[@]}"
-    do 
-        dep_count=$(grep -o "/" <<< "$dir" | wc -l)
-        # echo $dep_count
-        # echo $dir
-        expt=$(echo "$dir" | cut -d'/' -f${dep_count})
-        if [ ! -f "${dir}/done" ] && [ $cp != 'done' ]; then
-            echo "${expt},${cp}"
-        elif [ $cp == 'done' ]; then
-            echo "${expt},done"
-        fi
-    done
+for dir in "${dirs[@]}"
+do 
+    dep_count=$(grep -o "/" <<< "$dir" | wc -l)
+    dep_count=$((dep_count+1))
+    expt=$(echo "$dir" | cut -d'/' -f${dep_count})
+
+    if [ -f "${dir}/checkpoints/done" ] || [ -f "${dir}/wand5" ]; then
+        echo "${expt},done"
+    elif [ -f "${dir}/checkpoints/wand4" ]; then
+        echo "${expt},wand4"
+    elif [ -f "${dir}/checkpoints/analyze" ]; then
+        echo "${expt},analyze"
+    elif [ -f "${dir}/checkpoints/dlc_setup" ]; then
+        echo "${expt},dlc_setup"
+    elif [ -f "${dir}/checkpoints/init" ]; then
+        echo "${expt},init"
+    fi
 done > ${scripts}/logs/checkpoints/${animal}_checkpoints.csv
 sort ${scripts}/logs/checkpoints/${animal}_checkpoints.csv -o ${scripts}/logs/checkpoints/${animal}_checkpoints.csv

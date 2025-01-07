@@ -21,6 +21,8 @@ help_message () {
 	echo "	analyze		Only run analysis steps, do not need to train. Must run dlc-setup first."
 	echo "	campy		Extract campy data"
 	echo "	wand		Wand clibration/3D grid stuff/easyWand"
+	echo "Helper Scripts:"
+	echo "	rename		Script to fully rename an initialized experiment (e.g. if behavior and cam name don't match)"
 	echo ""
 	echo "See /pipeline-modules for module code"
 	echo "See /pipeline-scripts for some useful little scripts"
@@ -90,8 +92,10 @@ elif [ "$1" = wand ]; then
 	echo wand and 3d coords ${@:2}
 	time ${pipe_path}/pipeline-modules/wand.sh ${@:2}
 elif [ "$1" = analyze ]; then
-	echo model analysis evaluation ${@:2}
+	echo model evaluation ${@:2}
 	time ${pipe_path}/pipeline-modules/analyze.sh ${@:2}
+elif [ "$1" = rename ]; then
+	time ${pipe_path}/pipeline-scripts/rename_expt.sh ${@:2}
 elif [ "$1" = evaluate ]; then
 	echo "Evaluate this:"
 	time ${pipe_path}/pipeline-modules/evaluate.sh
@@ -102,5 +106,4 @@ else
 	help_message &&
 	exit 1
 fi
-
 
