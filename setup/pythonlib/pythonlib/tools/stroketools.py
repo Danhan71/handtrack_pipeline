@@ -69,9 +69,9 @@ def strokesInterpolate2(strokes, N, kind="linear", base="time", plot_outcome=Fal
             strok = np.array(strok.copy())
 
             if base=="index":
-                strok[:,2] = np.arange(len(strok))
+                strok[:,-1] = np.arange(len(strok))
             elif base=="space":
-                t_orig_for_space = strok[:,2]
+                t_orig_for_space = strok[:,-1]
                 strok = convertTimeCoord([strok], ver="dist")[0]
             else:
                 assert base=="time"
@@ -84,7 +84,7 @@ def strokesInterpolate2(strokes, N, kind="linear", base="time", plot_outcome=Fal
                 # get new timepoints
                 #cnhg
                 # print(strok)
-                t = strok[:,2]
+                t = strok[:,-1]
                 nold = len(t)
                 COMPUTE_TNEW = True
                 if N[0]=="npts":
@@ -120,11 +120,12 @@ def strokesInterpolate2(strokes, N, kind="linear", base="time", plot_outcome=Fal
                 if COMPUTE_TNEW:
                     tnew = np.linspace(t[0], t[-1], nnew)
 
-                strokinterp = np.empty((len(tnew), 3))
-                strokinterp[:,2] = tnew
+                strokinterp = np.empty((len(tnew), 4))
+                strokinterp[:,-1] = tnew
             
-                # fill the x,y, columns
-                for i in [0, 1]:
+                # fill the x,y,z columns
+                col_range= range(len(strok[0])-1)
+                for i in col_range:
                     f = interp1d(t, strok[:,i], kind=kind)
                     strokinterp[:,i] = f(tnew)
 
@@ -140,7 +141,7 @@ def strokesInterpolate2(strokes, N, kind="linear", base="time", plot_outcome=Fal
                 print(strokinterp.shape)
                 print(strokinterp[:5,:])
                 print(t_time[:5])
-                strokinterp[:,2] = t_time
+                strokinterp[:,-1] = t_time
             strokes_interp.append(strokinterp)
             stroke_ind += 1
 
@@ -209,10 +210,17 @@ def smoothStrokes(strokes, sample_rate, window_time=0.05, window_type="hanning",
                 # print("removing stroke since shorter than window")
                 pass
         # Do smoothing
-        strokes_sm.append(np.array([
-            smoothDat(s[:,0], window_len=window_len, window=window_type), 
-            smoothDat(s[:,1], window_len=window_len, window=window_type), 
-            s[:,2]]).T)
+        if len(s[0]) == 3:
+            strokes_sm.append(np.array([
+                smoothDat(s[:,0], window_len=window_len, window=window_type), 
+                smoothDat(s[:,1], window_len=window_len, window=window_type),
+                s[:,-1]]).T)
+        elif len(s[0]) == 4:
+            strokes_sm.append(np.array([
+                smoothDat(s[:,0], window_len=window_len, window=window_type), 
+                smoothDat(s[:,1], window_len=window_len, window=window_type),
+                smoothDat(s[:,2], window_len=window_len, window=window_type),
+                s[:,-1]]).T)
         if False:
             # debugging
             if did_adapt:
@@ -254,7 +262,7 @@ def smoothStrokes(strokes, sample_rate, window_time=0.05, window_type="hanning",
             for s, sf in zip(strokes, strokes_sm):
                 for idx_pt in [0, -1]:
                     d = np.linalg.norm(s[idx_pt, :2] - sf[idx_pt, :2])
-                    duration = s[-1,2] - s[0,2]
+                    duration = s[-1,-1] - s[0,-1]
 
                     # Shorter duration strokes are more likely to have larger diff from filtering, so
                     # give them a bit more leweway
@@ -319,17 +327,17 @@ def strokesFilter(strokes, Wn, fs, N=9, plotresponse=False,
     is not too low. (for lowpass). If too low, then, obviously, becomes close to a single
     dot.
     """
-
+    #meowmewmoew
     # plotprepost_xy = True
 
     from scipy import signal
-    assert dims==(0,1), "not yet coded"
+    assert dims==(0,1,2) or dims==(0,1), "not yet coded"
 
     if Wn[0] is None:
         btype = "lowpass"
         Wn = Wn[1]
-        if not DEBUG:
-            assert Wn>=10, "for drawing task, going lower if prob mistake. esp if this strokes is velocity..."
+        # if not DEBUG:
+        #     assert Wn>=10, "for drawing task, going lower if prob mistake. esp if this strokes is velocity..."
     elif Wn[1] is None:
         btype = "highpass"
         Wn = Wn[0]
@@ -338,7 +346,7 @@ def strokesFilter(strokes, Wn, fs, N=9, plotresponse=False,
 
     # Filtering params
     sos = signal.butter(N, Wn, btype, analog=False, fs=fs, output='sos')
-    padlen = 3 * (2 * len(sos) + 1 - min((sos[:, 2] == 0).sum(),
+    padlen = 3 * (2 * len(sos) + 1 - min((sos[:, -1] == 0).sum(),
                         (sos[:, 5] == 0).sum()))
     if plotresponse:
         w, h = signal.sosfreqz(sos, fs=fs)

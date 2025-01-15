@@ -64,7 +64,7 @@ class HandTrack(object):
     def setRegressor(self,reg):
         self.Regressor = reg
 
-    def process_data_wrapper(self, trial_ml2 = None, ploton = False, aggregate = False, coefs = None, finger_raise_time=0.0, all_day=False):
+    def process_data_wrapper(self, trial_ml2 = None, ploton = False, aggregate = False, coefs = None, finger_raise_time=0.0, ts_cam_offset=0.0,  all_day=False):
         """Higher level wrapper for all data process and plotting functions.
 
         Args:
@@ -110,7 +110,7 @@ class HandTrack(object):
 
         PARAMS:
         - runs for a single trial.
-        - ts_cam_offset = Number of seconds the ts lags behind the camera, usually 2-3 frames (0.)
+        - ts_cam_offset = Number of seconds the ts lags behind the camera, usually 2-3 frames (0.4-0.6)
         - aggregate, collect data across whole day for summary plots?
 
         RETURNS:
@@ -895,7 +895,6 @@ class HandTrack(object):
                 reg_z_gaps_sep.append(this_z_reg)
                 trans_z_gaps_sep.append(this_z_trans)
             
-            z_gaps = pts_gaps_cam[:,2]
             self.AllDay[coefs][trial_ml2]['reg_z_gaps'] = np.array(reg_z_gaps)
             self.AllDay[coefs][trial_ml2]['reg_z_strokes'] = np.array(reg_z_strokes)
             self.AllDay[coefs][trial_ml2]['trans_z_gaps'] = np.array(trans_z_gaps)

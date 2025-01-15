@@ -397,7 +397,7 @@ def get_paths_videos_in_dir(camname, date, condition, animal, inds_cams=None,
 
     vdir = f"{BASEDIR}/{animal}/{date}/{condition}/{camname}"
     print(vdir)
-    assert os.path.exists(vdir), "first generate these directories.. and move cam files to them"
+    assert os.path.exists(vdir), f"first generate dirs for {camname}.. and move cam files to them"
 
     # Then get all vidoes
     videos = glob.glob(f"{vdir}/*.mp4") + glob.glob(f"{vdir}/*.avi")
