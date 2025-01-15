@@ -22,6 +22,11 @@ a="$1"
 old="$2"
 new="$3"
 
+if [ "$1" = "--help" ]; then 
+    help_message
+    exit 1
+fi
+
 echo "Changing expt ${old} to ${new}"
 
 if [ -d "${data_dir}/${a}/${old}" ]; then

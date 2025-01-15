@@ -9,6 +9,10 @@ import yaml
 
 def generate_expt_yaml (expt_name, pipe_path, data_dir, condition, animal, list_camnames):
 	#Generate condition dependent parameters
+	if list_camnames is None:
+		#Somewhat dirty fix to allow for DLC metadata generation b4 other metadat generation
+		#Metadata file will be updata with proper cam names on the second pass
+		list_camnames = [d for d in os.listdir(f"{data_dir}/{expt_name}") if "Camera" in d]
 	if condition == "behavior":
 		vidmax = 0
 		for i in range(0,len(list_camnames)):
@@ -105,10 +109,15 @@ if __name__ == "__main__":
 	# data_dir = f"{BASEDIR}/{name}/Camera1"
 
 	
+	#First pass to get info needed by get_metadata function
+	generate_expt_yaml(expt_name=name, pipe_path=pipe_path, data_dir=data_dir, condition=condition, animal=animal, list_camnames=None)
 	METADAT = get_metadata(name, animal=animal, condition=condition)
 	list_camnames = METADAT["list_camnames"]
+	#Second pass to put in proper cam names 
 	generate_expt_yaml(expt_name=name, pipe_path=pipe_path, data_dir=data_dir, condition=condition, animal=animal, list_camnames=list_camnames)
-	
+	#Doing it in this way allows for flexible camera copying, as cameras with missing data will
+	#not make it to the end. There is propanly a cleaner wauy to do this but thtta would require changing
+	#too much code so this is what yo get.
 
 
 	# basedir = f"{BASEDIR}/{DATE}"
