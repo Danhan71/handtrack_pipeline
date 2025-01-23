@@ -182,14 +182,17 @@ def smoothStrokes(strokes, sample_rate, window_time=0.05, window_type="hanning",
     """
     from .timeseriestools import  smoothDat
 
+    if window_type=='median':
+        #Idk median filter is probably a safe bet
+        sanity_check_endpoint_not_different = False
     window_len = np.floor(window_time/(1/sample_rate))
-    if window_len%2==0:
+    if not int(window_len)&1:
         window_len+=1
     window_len = int(window_len)
 
     # -- check that no strokes are shorter than window
     strokes_sm = []
-    for s in strokes:
+    for s in strokes:        
         did_adapt = False
         if len(s)<window_len:
             if adapt_win_len=="adapt":
@@ -210,17 +213,21 @@ def smoothStrokes(strokes, sample_rate, window_time=0.05, window_type="hanning",
                 # print("removing stroke since shorter than window")
                 pass
         # Do smoothing
-        if len(s[0]) == 3:
+        if len(s[0]) == 2:
+            strokes_sm.append(np.array([
+                smoothDat(s[:,0], window_len=window_len, window=window_type),
+                s[:,1]]).T)
+        elif len(s[0]) == 3:
             strokes_sm.append(np.array([
                 smoothDat(s[:,0], window_len=window_len, window=window_type), 
                 smoothDat(s[:,1], window_len=window_len, window=window_type),
-                s[:,-1]]).T)
+                s[:,2]]).T)
         elif len(s[0]) == 4:
             strokes_sm.append(np.array([
                 smoothDat(s[:,0], window_len=window_len, window=window_type), 
                 smoothDat(s[:,1], window_len=window_len, window=window_type),
                 smoothDat(s[:,2], window_len=window_len, window=window_type),
-                s[:,-1]]).T)
+                s[:,3]]).T)
         if False:
             # debugging
             if did_adapt:

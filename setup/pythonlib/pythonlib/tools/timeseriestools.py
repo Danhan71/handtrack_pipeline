@@ -92,7 +92,7 @@ def smoothDat(x, window_len=11, window='hanning', flip_at_edges=False):
     if window_len<3:
         return x
 
-    if not window in ['flat', 'hanning', 'hamming', 'bartlett', 'blackman']:
+    if not window in ['flat', 'hanning', 'hamming', 'bartlett', 'blackman', 'median']:
         raise ValueError("Window is on of 'flat', 'hanning', 'hamming', 'bartlett', 'blackman'")
 
     if np.any(np.isnan(x)):
@@ -106,7 +106,7 @@ def smoothDat(x, window_len=11, window='hanning', flip_at_edges=False):
         # signal prepared by repeating the endpoint value 
         s = np.r_[np.ones(int((window_len-1)/2))*x[0], x, np.ones(int((window_len-1)/2))*x[-1]]
         
-    if window == 'flat': #moving average
+    if window == 'flat' or window == 'median': #moving average
         w=np.ones(window_len,'d')
     else:
         w=eval('np.'+window+'(window_len)')

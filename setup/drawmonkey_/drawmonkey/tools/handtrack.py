@@ -313,6 +313,7 @@ class HandTrack(object):
         # Plot to compare extracted strokes
 
         if ploton:
+            plt.style.use("dark_background")
             # assert False, "plot z coordinates of gaps by color. incorporate this into plotDatStrokes"
             from pythonlib.dataset.dataset  import Dataset
             from pythonlib.drawmodel.strokePlots import plotDatStrokes
@@ -644,7 +645,7 @@ class HandTrack(object):
             # assert False
 
             if ploton:
-
+                plt.style.use("dark_background")
                 list_reg_figs = []
 
                 # 1) Plot each coordinate timecourse, seaprate plots
@@ -1696,6 +1697,8 @@ class HandTrack(object):
 
         return list_dists,reg_list_dists, np.mean(list_dists),mean_reg_list_dists, fig, reg_fig
     def plot_data_all_day(self, coefs = None):
+        plt.style.use("dark_background")
+
         def separate_outliers(data):
             """Function to seprate outliers from reg data for plotting purposes
             Args:
@@ -1774,13 +1777,13 @@ class HandTrack(object):
         all_ys = np.concatenate(df['y_coord'].values)
 
         fig,ax = plt.subplots(ncols=4,nrows=3,figsize=(30,30))
-        ax[0][0].hist(all_disps,bins=b,color='blue')
-        ax[0][1].hist(good_disps,bins=b,color='blue')
-        ax[1][0].scatter(errs.index,errs,color='blue')
-        ax[1][3].hist(all_gaps_reg,gap_xbins,color='darkorange',alpha=0.6, label='gaps')
-        ax[1][2].hist(all_strokes_reg,gap_xbins,color='darkorange',alpha=0.6, label='strokes')
-        ax[1][2].hist(all_strokes_trans,gap_xbins,color='darkgreen',alpha=0.6,label='trans_strokes')
-        ax[1][3].hist(all_gaps_trans,gap_xbins,color='darkgreen',alpha=0.6,label='trans_gaps')
+        ax[0][0].hist(all_disps,bins=b,color='teal')
+        ax[0][1].hist(good_disps,bins=b,color='teal')
+        ax[1][0].scatter(errs.index,errs,color='teal')
+        ax[1][3].hist(all_gaps_reg,gap_xbins,color='orangered',alpha=0.6, label='gaps')
+        ax[1][2].hist(all_strokes_reg,gap_xbins,color='orangered',alpha=0.6, label='strokes')
+        ax[1][2].hist(all_strokes_trans,gap_xbins,color='lime',alpha=0.6,label='trans_strokes')
+        ax[1][3].hist(all_gaps_trans,gap_xbins,color='lime',alpha=0.6,label='trans_gaps')
         ax[1][2].sharex(ax[1][3])
         ax[1][1].hist(all_res,bins=b)
         ax[2][0].scatter(all_xs,all_xres)
@@ -1788,10 +1791,10 @@ class HandTrack(object):
         ax[2][1].scatter(all_ys,all_yres)
         ax[2][1].set_xlabel('y coord')
         ax[2][2].scatter(all_xs,all_ys)
-        ax[2][2].axhline(0.15, color='black')
-        ax[2][2].axhline(-0.15, color='black')
-        ax[2][2].axvline(0.12, color='black')
-        ax[2][2].axvline(-0.12, color='black')
+        ax[2][2].axhline(0.15, color='grey')
+        ax[2][2].axhline(-0.15, color='grey')
+        ax[2][2].axvline(0.12, color='grey')
+        ax[2][2].axvline(-0.12, color='grey')
 
         ax[0][0].set_title('Displacements, log(counts)')
         ax[0][0].set_yscale('log')
