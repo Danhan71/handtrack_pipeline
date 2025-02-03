@@ -110,7 +110,7 @@ class HandTrack(object):
 
         PARAMS:
         - runs for a single trial.
-        - ts_cam_offset = Number of seconds the ts lags behind the camera, usually 2-3 frames (0.4-0.6)
+        - ts_cam_offset = Number of seconds the ts lags behind the camera, usually 2-3 frames (0.032-0.048)
         - aggregate, collect data across whole day for summary plots?
 
         RETURNS:
