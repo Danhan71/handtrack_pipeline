@@ -610,6 +610,7 @@ class HandTrack(object):
 
             datall["reg_strokes_cam"] = reg_pts_list
             datall["reg_gaps_cam"] = reg_gaps_list
+            datall["reg_pts_time_cam_all"] = reg_pts_cam
             dat["reg_gaps_cam"] = reg_gaps_list
             dat["reg_pts_time_cam_all"] = reg_pts_cam
 
@@ -635,6 +636,7 @@ class HandTrack(object):
 
             datall["trans_strokes_cam"] = trans_pts_list
             datall["trans_gaps_cam"] = trans_gap_list
+            datall["trans_pts_time_cam_all"] = trans_pts_cam
             dat["trans_gaps_cam"] = trans_gap_list
             dat["trans_pts_time_cam_all"] = trans_pts_cam
 
