@@ -88,7 +88,7 @@ class HandTrack(object):
             else:
                 dat[coefs], figs[coefs], reg_figs[coefs] = self.process_data_singletrial(trial_ml2,\
                                                         finger_raise_time=finger_raise_time, aggregate=aggregate,\
-                                                            ploton=ploton, coefs=coefs)
+                                                            ploton=ploton, coefs=coefs, ts_cam_offset=ts_cam_offset)
                 list_dists, reg_list_dists,_, _, fig_error, reg_fig_error  = self.analy_compute_errors(trial_ml2, ploton=True, coefs=coefs)
 
                 dat["errors_ptwise"] = list_dists
@@ -102,7 +102,7 @@ class HandTrack(object):
 
     def process_data_singletrial(self, trial_ml2, coefs = None ,ploton=False, 
             filter_by_likeli_thresh=False, return_in_meters = True, finger_raise_time=0.05,
-            ts_cam_offset=0.06, aggregate=False):
+            ts_cam_offset=0.00, aggregate=False):
         """ Does manythings:
         - Converts cam data into strokes formate, for both strokes and gaps.
         - interpoaltes cam so that matches ml2 timings.
