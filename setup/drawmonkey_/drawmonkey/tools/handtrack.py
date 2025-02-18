@@ -313,7 +313,6 @@ class HandTrack(object):
         # Plot to compare extracted strokes
 
         if ploton:
-            plt.style.use("dark_background")
             # assert False, "plot z coordinates of gaps by color. incorporate this into plotDatStrokes"
             from pythonlib.dataset.dataset  import Dataset
             from pythonlib.drawmodel.strokePlots import plotDatStrokes
@@ -647,7 +646,6 @@ class HandTrack(object):
             # assert False
 
             if ploton:
-                plt.style.use("dark_background")
                 list_reg_figs = []
 
                 # 1) Plot each coordinate timecourse, seaprate plots
