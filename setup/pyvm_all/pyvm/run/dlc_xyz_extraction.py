@@ -357,7 +357,7 @@ if __name__=="__main__":
         #Restrict cameras to just those foind in dlt coeffs, but in right order
         rest_cam_dict = {k:cam for k,cam in cams.items() if cam in coef_cols}
         #Change params so only searchging for cams we are using
-        V.Params['load_params']['camera_names'] = 'rest_cam_dict'
+        V.Params['load_params']['camera_names'] = rest_cam_dict
         cam_list = list(rest_cam_dict.values())
 
 
