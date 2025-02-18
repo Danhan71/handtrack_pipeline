@@ -2549,7 +2549,7 @@ class Videos(object):
                     try:
                         n = self.num_frames2(i, indtrial)
                     except AssertionError:
-                        return [],[]
+                        continue
                     frames.append(n)
                 min_frames = min(frames)
                 frames_get = range(0,min_frames)
