@@ -2002,7 +2002,7 @@ def timepoint_extract_features_continuous(strokes, twind, list_feature=["mean_xy
             # (x,y), shape (2,)
             val = np.mean(pts,0)[:2]
         else:
-            print(feature)
+            print(f)
             assert False, "code it"
         features.append(val)
     

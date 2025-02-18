@@ -1071,12 +1071,11 @@ class HandTrack(object):
             Look at notebook called check_frametimes in the /pipeline/setup folder for some plots on what I mean by this.
 
             PARAMS:
-            volt_times, list like of times for voltage onsets (starts at first frame after 0 (~.02s))
+            volt_times, list like of times for voltage onsets (starts at first frame after 0 (16ms))
             cam_times, frame times for camera (willl be cont. timed through whole trial)
 
             RETURN:
-            volt_align and cam_align times, will not be zero indexed as the code does not necessarily require that. 
-            May zero index in the future if there a re problems.
+            volt_align and cam_align times, sliced and aligned arrays for cam and volt data
             """
 
             #make pd.series
@@ -1143,8 +1142,15 @@ class HandTrack(object):
         if align == True:
             t_intrial, frametimes_mean, pts, camdict = align_frametimes(volt_times=t_intrial_raw,\
              cam_times=frametimes_mean_raw, pts_in=pts_raw, camdict_in=camdict_raw)
+            align_data = {
+                't_intrial': t_intrial,
+                'frametimes_mean': frametimes_mean,
+                'pts': pts,
+                'camdict': camdict
+            }
         else:
             t_intrial, frametimes_mean, pts, camdict = (t_intrial_raw, frametimes_mean_raw, pts_raw, camdict_raw)
+            align_data = {}
         
 
         assert len(t_intrial)==len(frametimes_mean), f"op1={len(t_intrial)}, op2={len(frametimes_mean)}"
@@ -1194,11 +1200,11 @@ class HandTrack(object):
         recorded before the actualy trial starts (when cam sends first volt out or soemthing)
         but if it doesnt work then maybe theres a bigger problem, hence why this section only replaces up to 5 pts 
         """
-        temp_len=len(dfall['t_trial'])
-        for i in range(min(5,temp_len-2)):
-            if np.isnan(dfall.loc[i,'t_trial']):
-                dfall.loc[i,'t_trial'] = dfall.loc[min(temp_len-1,5),'t_trial'] - (min(temp_len,5)-i)*(dfall.loc[min(temp_len,6),'t_trial']-dfall.loc[min(temp_len-1,5),'t_trial'])
-        assert not np.any(np.isnan(dfall['t_trial'])),'problem bigger than the above hack can solve (more than first 5 vals na)'
+        # temp_len=len(dfall['t_trial'])
+        # for i in range(min(5,temp_len-2)):
+        #     if np.isnan(dfall.loc[i,'t_trial']):
+        #         dfall.loc[i,'t_trial'] = dfall.loc[min(temp_len-1,5),'t_trial'] - (min(temp_len,5)-i)*(dfall.loc[min(temp_len,6),'t_trial']-dfall.loc[min(temp_len-1,5),'t_trial'])
+        # assert not np.any(np.isnan(dfall['t_trial'])),'problem bigger than the above hack can solve (more than first 5 vals na)'
 
         # 6) Filter to only keep if have good likeli scores
         if filter_by_likeli_thresh:
@@ -1209,7 +1215,7 @@ class HandTrack(object):
         #     print(pts)
         #     assert False, "no data, after filtering by threshodl"
         
-        return dfall, frametimes_mean, pts, camdict
+        return dfall, frametimes_mean, pts, camdict, 
     def check_coefs(self, coefs):
         """
         Get defualt coef behavior/chekc if coefs submitted are good
