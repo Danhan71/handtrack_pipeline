@@ -321,12 +321,15 @@ if __name__=="__main__":
     ################# RUN
     V = Videos()
     V.load_data_wrapper(date=date, expt=expt, condition=condition, animal=animal)
+    #Save originla cam dict so changes arent perm
+    og_cam_dict = V.Params['load_params']['camera_names']
 
     #OLD DLT coeff bs
 
         # Load DLT coefficients
         # assert os.path.ispath(path)
     for prefix in prefixes:
+        V.Params['load_params']['camera_names'] = og_cam_dict
         coef_path = f"{pipe}/dlt_coeffs/{prefix}"
         dlt_coefs = np.loadtxt(f"{coef_path}/dltCoefs.csv", delimiter=",")
         with open(f"{coef_path}/columns.csv", 'r') as file:
@@ -352,7 +355,11 @@ if __name__=="__main__":
         cams = V.Params['load_params']['camera_names']
 
         #Restrict cameras to just those foind in dlt coeffs, but in right order
-        cam_list = [cam for cam in cams.values() if cam in coef_cols]
+        rest_cam_dict = {k:cam for k,cam in cams.items() if cam in coef_cols}
+        #Change params so only searchging for cams we are using
+        V.Params['load_params']['camera_names'] = 'rest_cam_dict'
+        cam_list = list(rest_cam_dict.values())
+
 
         temp_dir_base=f"{pipe}/temp_matlab_files/"
         temp_dir = f"{temp_dir_base}/{animal}/{date}_{expt}/{prefix}"

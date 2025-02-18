@@ -260,6 +260,7 @@ class HandTrack(object):
             return {}, [], []
 
         dfall = self.convert_coords(dfall)
+        #t_trial time is time reckoning of the volt times (i.e. trial times) not the campy times 
         pts_time_cam_all = dfall[["x", "y", "z", "t_trial"]].values # all times, not just those in ml2 strokes
 
         # get strokes from onset to touch done
@@ -1077,19 +1078,15 @@ class HandTrack(object):
             """
 
             #make pd.series
-            volt_times = pd.Series(volt_times)
-            cam_times= pd.Series(cam_times)
+            volt_times = np.array(volt_times)
+            cam_times= np.array(cam_times)
 
-            #slice out the garbage at the beginning of the volt times, assuming only major time difference is at beginning
-            volt_diffs = volt_times.diff()
-            voltdiff_max = max([d for d in volt_diffs if str(d) != "nan"])
+            #slice out the garbage at the beginning of the volt times, assuming only major time difference is at beginning. Prepend t[0] so that first diff is 0
+            volt_diffs = np.diff(volt_times, prepend=volt_times[0])
+            voltdiff_max = np.max(volt_diffs)
+            max_ind = np.argmax(volt_diffs)
             # assert volt_max > 0.03, "very small jump here, maybe bad trial or soemthing else went wrong?"
-            max_ind = 0
-            for i in range(len(volt_diffs)):
-                if str(volt_diffs[i]) != "nan":
-                    if volt_diffs[i] == voltdiff_max:
-                        max_ind = i
-                        break
+            
             from random import sample
             if voltdiff_max > 0.04:
                 assert max_ind < 5, "Comment this out if you are aware of why the first 5+ frames are bad, this is just a check as most seem to be a few frames"
@@ -1101,6 +1098,11 @@ class HandTrack(object):
             # rand_list = sample(range(len(cam_times)), len(volt_align))
             # cam_align = cam_times[rand_list]
             # pts_align = pts_in[rand_list]
+            diffs_after_cut = np.diff(volt_align)
+            mean_diff = np.mean(diffs_after_cut)
+            #Make sure no other jumps exist
+            assert np.all([0.9*mean_diff<=d<=1.1*mean_diff for d in diffs_after_cut])
+            
             last_ind = len(volt_align)
             if (len(pts_in) < last_ind):
                 if getTrialsIsAbort:
