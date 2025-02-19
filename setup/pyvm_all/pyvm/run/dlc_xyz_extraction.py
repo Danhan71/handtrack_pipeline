@@ -354,8 +354,14 @@ if __name__=="__main__":
         list_part, _ = V.dlc_get_list_parts_feats()
         cams = V.Params['load_params']['camera_names']
 
-        #Restrict cameras to just those foind in dlt coeffs, but in right order
-        rest_cam_dict = {k:cam for k,cam in cams.items() if cam in coef_cols}
+        #Restrict cameras to just those needed for dlt coeffs, but in right order
+        rest_cam_dict = {}
+        curr_ind = 0
+        for k,cam in cams.items():
+            if cam in coef_cols:
+                rest_cam_dict[curr_ind] = cam
+                curr_ind += 1
+
         #Change params so only searchging for cams we are using
         V.Params['load_params']['camera_names'] = rest_cam_dict
         cam_list = list(rest_cam_dict.values())
