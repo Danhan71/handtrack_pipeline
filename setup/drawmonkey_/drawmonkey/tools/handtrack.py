@@ -1361,12 +1361,13 @@ class HandTrack(object):
 
         assert (strokes_touch_all != {}), "No data for this expt"
 
-        #Thsi is actualyl wrong, just use the volt times 
+        #Thsi is actualyl wrong, data should all be in same times from process
         # N = ["input_times"]
         # for strok in strokes_cam_allz:
         #     N.append(np.array([p[3] for p in strok]))
 
-        # touch_interp = strokesInterpolate2(strokes_touch_all, N)
+        #Not imterpolated, just kept this name bc I didnt feel like changing al the other var names
+        touch_interp = strokes_touch_all
 
         
         for strok in touch_interp:
