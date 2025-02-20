@@ -101,7 +101,7 @@ class HandTrack(object):
         return dat,figs,reg_figs,all_day_figs
 
     def process_data_singletrial(self, trial_ml2, coefs = None ,ploton=False, 
-            filter_by_likeli_thresh=False, return_in_meters = True, finger_raise_time=0.05,
+            filter_by_likeli_thresh=False, return_in_meters = True, finger_raise_time=0.00,
             ts_cam_offset=0.00, aggregate=False):
         """ Does manythings:
         - Converts cam data into strokes formate, for both strokes and gaps.
@@ -1361,11 +1361,12 @@ class HandTrack(object):
 
         assert (strokes_touch_all != {}), "No data for this expt"
 
-        N = ["input_times"]
-        for strok in strokes_cam_allz:
-            N.append(np.array([p[3] for p in strok]))
+        #Thsi is actualyl wrong, just use the volt times 
+        # N = ["input_times"]
+        # for strok in strokes_cam_allz:
+        #     N.append(np.array([p[3] for p in strok]))
 
-        touch_interp = strokesInterpolate2(strokes_touch_all, N)
+        # touch_interp = strokesInterpolate2(strokes_touch_all, N)
 
         
         for strok in touch_interp:
@@ -1899,11 +1900,11 @@ def getTrialsCameraFrametimes(fd, trial, chan="Btn1", thresh = 0.5):
     v[v<thresh] = 0
     vdiff = np.diff(v)
 
-    # Get onsets, offsets
+    # Get onsets, offsets index
     ons = np.where(vdiff==1)[0]+1 # plus 1, sinec want first frame of new state.
     offs = np.where(vdiff==-1)[0]+1
 
-    #If shifted by one assume that there is just an onset or offset error in the beginning
+    #If shifted by one assume that there is just an onset or offset misalignment in the beginning
     size_diff = len(offs) - len(ons)
     if size_diff == 1:
         offs = offs[1:len(offs)]
