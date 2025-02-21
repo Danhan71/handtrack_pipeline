@@ -1219,7 +1219,7 @@ class HandTrack(object):
 
     
     def fit_regression(self, trange, coefs = None, out = None):
-        """Does regression for each coefs set.
+        """Does regression for each coefs set. First upsamples each stroke to 500hz to match the ts fs then regresses the pts
 
         Args:
             trange (range): trial range to regress data on 
