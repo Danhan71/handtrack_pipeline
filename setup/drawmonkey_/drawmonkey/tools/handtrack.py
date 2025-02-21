@@ -1344,14 +1344,16 @@ class HandTrack(object):
         assert (strokes_touch_all != {}), "No data for this expt"
 
         #Interpolate cam strokes up to match the ts times
-        interp_ts = [strok[:,2] for strok in strokes_touch_allt]
-        N = ['input_times',interp_ts]
+        N = ['input_times']
+        for strok_touch, strok_cam in zip(strokes_touch_allt,strokes_cam_allt):
+            tmin = min(strok_cam[:,3])
+            tmax = max(strok_cam[:,3])
+            strok_touch_rest = strok_touch[(strok_touch[:,2] >= tmin) & (strok_touch[:,2] <= tmax)]
+            #Make list of rest touch strokes for reg, no t and add z=0
+            strokes_touch_all.append(np.array([[p[0],p[1],0] for p in strok_touch_rest]))
+            N.append(strok_touch_rest[:,2])
         strokes_cam_interp = strokesInterpolate2(strokes_cam_allt,N)
         
-
-        #add 0 for z and take out t in ts data
-        for strok in strokes_touch_allt:
-            strokes_touch_all.append(np.array([[p[0],p[1],0] for p in strok])) 
         #take out t for regression
         for strok in strokes_cam_interp:
             strokes_cam_all.append(np.array([[p[0],p[1],p[2]] for p in strok]))
