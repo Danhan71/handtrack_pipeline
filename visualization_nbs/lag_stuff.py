@@ -167,7 +167,7 @@ def corrAlign(cam_pts, touch_pts, ploton=False):
     return lag,fig
 
 def get_lags(dfs_func, monkey, run):
-    euclid_lags = {}
+    euc_lags = {}
     corr_lags = {}
     corr_lags_index = []
     euc_lags_index = []
@@ -184,7 +184,7 @@ def get_lags(dfs_func, monkey, run):
     os.makedirs(corr_dir, exist_ok=True)
     for trial, dat in dfs_func.items():
         corr_lags[trial] = []
-        euclid_lags[trial] = []
+        euc_lags[trial] = []
         if len(dat) == 0:
             continue
         dat = dat['220914_f12_dlc']
@@ -285,10 +285,10 @@ if __name__ == '__main__':
 
     save_df = {}
 
-    for name, df in dfs.items():
+    for name, df in dfs.items(): 
         this_df = {}
-        this_df['euc_lags'],this_df['corr_lags_index'],this_df['euc_lags'],this_df['euc_lags_index'] = get_lags(df,name[:-1],name[-1])
+        this_df['corr_lags'],this_df['corr_lags_index'],this_df['euc_lags'],this_df['euc_lags_index'] = get_lags(df,name[:-1],name[-1])
         save_df[name] = this_df
 
     with open('/home/danhan/Documents/lag_data.pkl','wb') as f:
-        pickle.dump(this_df,f)
+        pickle.dump(save_df,f)

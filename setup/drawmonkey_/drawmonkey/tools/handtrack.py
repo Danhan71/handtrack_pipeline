@@ -1048,8 +1048,11 @@ class HandTrack(object):
         def align_frametimes(volt_times, cam_times, pts_in, camdict_in):
             """
             Function to align the framteim edata between cameras nand voltage. Volt times are precise to trial on and off 
-            while cam time is constant during and after trials. This function slices off the tail end of the cam frames to align.
+            while cam time is constant during and after trials. This function slices off pts before the voltas transition to current trial and 
+            the tail end of the cam frames to align.
             Look at notebook called check_frametimes in the /pipeline/setup folder for some plots on what I mean by this.
+            There is also a thing where every ~34 frames, there is an extra volt trace making that frame diff be 22ms instead of 20 ms,
+            so this makes space same.
 
             PARAMS:
             volt_times, list like of times for voltage onsets (starts at first frame after 0 (16ms))
@@ -1059,8 +1062,9 @@ class HandTrack(object):
             volt_align and cam_align times, sliced and aligned arrays for cam and volt data
             """
 
-            #make pd.series
-            volt_times = np.array(volt_times)
+            #make np.arrays and lin space volt times
+            volt_times_raw = np.array(volt_times)
+            volt_times = np.linspace(volt_times_raw[0],volt_times_raw[-1],num=len(volt_times_raw))
             cam_times= np.array(cam_times)
 
             #slice out the garbage at the beginning of the volt times, assuming only major time difference is at beginning. Prepend t[0] so that first diff is 0
