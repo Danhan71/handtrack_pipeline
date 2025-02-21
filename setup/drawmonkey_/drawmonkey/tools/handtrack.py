@@ -133,9 +133,6 @@ class HandTrack(object):
         # tnew = np.concatenate([s[:,2] for s in strokes])
         # pts_cam_interp = f(tnew)
         # # ii) in strokes format
-        # strokes_cam_interp = [f(s[:,2]) for s in strokes]
-        # DAT["pts_cam_interp"] = pts_cam_interp
-        # DAT["strokes_cam_interp"] = strokes_cam_interp
 
         
         def displacement(x,y):
@@ -152,6 +149,7 @@ class HandTrack(object):
             takes datapoints in pts_to_snap, and generates strokes version of this, 
             based on relatiing its timettamps to those fo strokes_template. Assumes
             that pts_to_snap can yield both sstrokes and gaps. 
+            Also interpolates pts_to_snap to ts fs (500hz)
             
             PARAMS:
             - strokes_template, strokes type, this determines the onsets and offsets of
@@ -175,16 +173,15 @@ class HandTrack(object):
             # --- Which are dimensions of time?
             dim_t_1 = strokes_template[0].shape[1]-1
             dim_t_2 = pts_to_snap.shape[1]-1
+            fs_cam = 1/np.mean(np.diff(pts_to_snap[:,dim_t_2]))
 
             # Interpolate video to match touchscreen times
             # t is t from camera reckoning
             t = pts_to_snap[:,dim_t_2]
             pts = pts_to_snap[:,:dim_t_2]
-            funcinterp = interp1d(t, pts, axis=0)
 
             # create strokes_cam, using original cam pts, taking within bounds of strokes.
             strokes_cam = []
-            strokes_cam_interp = []
             gaps_cam = [] # same format as strokes..
             t0 = 0.
             for i, strok in enumerate(strokes_template):
@@ -195,30 +192,18 @@ class HandTrack(object):
                 tall = strok[:,dim_t_1]
                 
                 # - strokes
-                inds = (pts_to_snap[:,dim_t_2]>=t1) & (pts_to_snap[:,dim_t_2]<=t2)
-                strokes_cam.append(pts_to_snap[inds, :])
-                #Hack probalby not safe
-                # if tall[-1] > t[-1]:
-                #     tall_og = tall
-                #     tall=np.array([ta for ta in tall if ta <= t[-1]])
-                #     assert (len(tall_og)-len(tall)) < 50, 'too much shit sliced out, previous 3 lines is for cleaning up loose ends not fixing major misalignments' 
+                strokes_cam.append(pts_to_snap[(pts_to_snap[:,dim_t_2]>=t1) & (pts_to_snap[:,dim_t_2]<=t2)]) 
                 # - strokes, but interpolate to use same timestamps
                 if np.any((tall<=t[0]) | (tall>=t[-1])):
-                    # print('tall',tall)
-                    # print('t',t)
-                    # assert False
                     return {}
                 tall = tall[(tall>=t[0]) & (tall<=t[-1])] # cannot extrapolate.
-                strokes_cam_interp.append(funcinterp(tall))
                 
                 # - gaps (the one preceding this stroke)
-                inds = (pts_to_snap[:,dim_t_2]>t0+finger_raise_time) & (pts_to_snap[:,dim_t_2]<t1-finger_raise_time)
-                gaps_cam.append(pts_to_snap[inds, :])
+                gaps_cam.append(pts_to_snap[(pts_to_snap[:,dim_t_2]>t0+finger_raise_time) & (pts_to_snap[:,dim_t_2]<t1-finger_raise_time)])
                 
                 # if this is the last stroke, then the rest of data is a long gap
                 if i==len(strokes_template)-1:
-                    inds = (pts_to_snap[:,dim_t_2]>t2+finger_raise_time)
-                    gaps_cam.append(pts_to_snap[inds, :])
+                    gaps_cam.append(pts_to_snap[(pts_to_snap[:,dim_t_2]>t2+finger_raise_time)])
                 
                 # - update t0 for next gap
                 t0 = t2
@@ -228,10 +213,7 @@ class HandTrack(object):
             gaps_cam = [s for s in gaps_cam if len(s)>0]        
 
             # get flatteend versions
-            pts_cam_interp = np.concatenate(strokes_cam_interp)
 
-            DAT["pts_cam_interp"] = pts_cam_interp
-            DAT["strokes_cam_interp"] = strokes_cam_interp
             DAT["strokes_cam"] = strokes_cam
             DAT["gaps_cam"] = gaps_cam
             DAT["pts_time_cam_all"] = pts_to_snap
@@ -1338,10 +1320,10 @@ class HandTrack(object):
 
             return opt_T
         
+        strokes_cam_allt = []
         strokes_cam_all = []
-        strokes_cam_allz = []
+        strokes_touch_allt = []
         strokes_touch_all = []
-        touch_interpz = []
         outcomes = {}
         for trial in trange:
 
@@ -1356,33 +1338,29 @@ class HandTrack(object):
                 continue
 
             for strok_cam, strok_touch in zip(dat["strokes_cam"], dat["strokes_touch"]):
-                strokes_cam_allz.append(np.array(strok_cam))
-                strokes_touch_all.append(np.array(strok_touch))
+                strokes_cam_allt.append(np.array(strok_cam))
+                strokes_touch_allt.append(np.array(strok_touch))
 
         assert (strokes_touch_all != {}), "No data for this expt"
 
-        #Thsi is actualyl wrong, data should all be in same times from process
-        # N = ["input_times"]
-        # for strok in strokes_cam_allz:
-        #     N.append(np.array([p[3] for p in strok]))
-
-        #Not imterpolated, just kept this name bc I didnt feel like changing al the other var names
-        touch_interp = strokes_touch_all
-
+        #Interpolate cam strokes up to match the ts times
+        interp_ts = [strok[:,2] for strok in strokes_touch_allt]
+        N = ['input_times',interp_ts]
+        strokes_cam_interp = strokesInterpolate2(strokes_cam_allt,N)
         
-        for strok in touch_interp:
-            add_z = [[p[0],p[1],0] for p in strok]
-            touch_interpz.append(np.array(add_z))
 
-        #take out z for regression
-        for strok in strokes_cam_allz:
-            strokes_cam_all.append(np.array([[p[0],p[1], p[2]] for p in strok]))
+        #add 0 for z and take out t in ts data
+        for strok in strokes_touch_allt:
+            strokes_touch_all.append(np.array([[p[0],p[1],0] for p in strok])) 
+        #take out t for regression
+        for strok in strokes_cam_interp:
+            strokes_cam_all.append(np.array([[p[0],p[1],p[2]] for p in strok]))
 
         cam_one_list = np.array([])
         touch_one_list = np.array([])
 
         #Makes one list of pts out of the middle 50% of strokes (the tail ends tend to be bad cam data and mess up regression)
-        for strok_cam, strok_touch in zip(strokes_cam_all, touch_interpz):
+        for strok_cam, strok_touch in zip(strokes_cam_all, strokes_touch_all):
             assert len(strok_cam)==len(strok_touch), "Stroke lens misaligned, maybe can just remove this assert idk"
             n = len(strok_touch)
             q1 = int(n/4)
@@ -1660,7 +1638,7 @@ class HandTrack(object):
             print("No touch screen data found here")
             return None, None, None, None, None, None
         strokes_ml2 = dat["strokes_touch"]
-        strokes_cam = dat["strokes_cam_interp"]
+        strokes_cam = dat["strokes_cam"]
 
         pts_ml2 = np.concatenate(strokes_ml2)[:,:2]
         pts_cam = np.concatenate(strokes_cam)[:,:2]
