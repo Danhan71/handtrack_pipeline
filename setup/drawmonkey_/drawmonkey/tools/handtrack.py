@@ -1062,9 +1062,8 @@ class HandTrack(object):
             volt_align and cam_align times, sliced and aligned arrays for cam and volt data
             """
 
-            #make np.arrays and lin space volt times
-            volt_times_raw = np.array(volt_times)
-            volt_times = np.linspace(volt_times_raw[0],volt_times_raw[-1],num=len(volt_times_raw))
+            #make np.arrays
+            volt_times = np.array(volt_times)
             cam_times= np.array(cam_times)
 
             #slice out the garbage at the beginning of the volt times, assuming only major time difference is at beginning. Prepend t[0] so that first diff is 0
@@ -1077,10 +1076,14 @@ class HandTrack(object):
             if voltdiff_max > 0.04:
                 assert max_ind < 5, "Comment this out if you are aware of why the first 5+ frames are bad, this is just a check as most seem to be a few frames"
                 assert len(volt_times[max_ind:]) <= len(cam_times), "Dont think volt time shsould be longer than cam times"
-                volt_align = volt_times[max_ind:]
+                volt_align_raw = volt_times[max_ind:]
             else:
-                volt_align = volt_times
+                volt_align_raw = volt_times
                 assert len(volt_times) <= len(cam_times), "Dont think volt time shsould be longer than cam times"
+
+            #lin space sliced votlt imes for extra volt thang (see above/slides)
+            volt_align = np.linspace(volt_align_raw[0],volt_align_raw[-1],num=len(volt_align))
+
             # rand_list = sample(range(len(cam_times)), len(volt_align))
             # cam_align = cam_times[rand_list]
             # pts_align = pts_in[rand_list]
