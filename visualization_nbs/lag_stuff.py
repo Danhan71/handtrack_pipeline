@@ -280,8 +280,6 @@ if __name__ == '__main__':
     with open("/home/danhan/freiwaldDrive/dhanuska/240605_diego_proc_data.pkl", 'rb') as f:
         dfs['diego2'] = pickle.load(f)
 
-    dfs['pancho2'] = {k:v for k,v in dfs['pancho2'].items() if k in list(range(50,551))}
-    dfs['diego2'] = {k:v for k,v in dfs['diego2'].items() if k in list(range(50,551))}
 
     save_df = {}
 

@@ -1367,7 +1367,10 @@ class HandTrack(object):
 
         #Makes one list of pts out of the middle 50% of strokes (the tail ends tend to be bad cam data and mess up regression)
         for strok_cam, strok_touch in zip(strokes_cam_all, strokes_touch_all):
-            assert len(strok_cam)==len(strok_touch), "Stroke lens misaligned, maybe can just remove this assert idk"
+            #Sometimes empty strokes appear I guess, so make sure we don't get hung up there
+            if len(strok_cam) == 0 or len(strok_touch) == 0:
+                continue
+            assert len(strok_cam)==len(strok_touch), f"Stroke lens misaligned ({len(strok_cam)},{len(strok_touch)}), maybe can just remove this assert idk"
             n = len(strok_touch)
             q1 = int(n/4)
             q3 = int(3*n/4)
