@@ -2157,4 +2157,264 @@ def strokes_to_hash_unique(strokes, nhash = 6, centerize=False, align_to_onset=F
     _hash = tmp[2:nhash+2]
 
     return _hash
+# Some additional functiosn for checking alignment of strokes. There may be similiar functions baove, but these ones I wrote for this specific puropose
+import pandas as pd
+import pickle
+import numpy as np
+import matplotlib.pyplot as plt
+from pythonlib.tools.stroketools import strokesInterpolate2, strokesFilter, smoothStrokes
+from sklearn.cluster import KMeans
+from sklearn.decomposition import PCA
+from scipy.optimize import minimize_scalar, minimize
+
+def euclidAlign(cam_pts, touch_pts, ploton=False, UB = 0.15):
+    plot_bound_size = 10
+
+    fig, ax = plt.subplots(1,2,figsize=(30,10))
+    large_len = len(cam_pts)
+    small_len = len(touch_pts)
+    cam_pts_xy = cam_pts[:,[0,1]]
+    touch_pts_no_time = touch_pts[:,[0,1]]
+
+    min_dist = float('inf')
+    best_index = -1
+
+    for i in range(large_len - small_len + 1):
+        window = cam_pts_xy[i:i + small_len]
+        distances = np.linalg.norm(window - touch_pts_no_time, axis=1)
+        total_dist = np.sum(distances)
+
+        if total_dist < min_dist:
+            min_dist = total_dist
+            best_index = i
+
+    lag = [touch_pts[0,2],cam_pts[best_index,3]]
+    lag_adj = lag[0] - lag[1]
+
+    touch_lag_adj = touch_pts[:,2] - lag_adj
+
+    if plot_bound_size <= best_index < len(cam_pts) - plot_bound_size:
+        plot_bounds = (best_index-plot_bound_size,best_index+plot_bound_size)
+    elif best_index < plot_bound_size and best_index < len(cam_pts) - plot_bound_size:
+        plot_bounds = (0, best_index+plot_bound_size)
+    elif best_index >= plot_bound_size and best_index > len(cam_pts) - plot_bound_size:
+        plot_bounds = (best_index-plot_bound_size,len(cam_pts)-1)
+    else:
+        plot_bounds = (0,len(cam_pts)-1)
+
+    best_ts = cam_pts[plot_bounds[0]:plot_bounds[1]+small_len,3]
+
+    if ploton:
+        ax[0].plot(best_ts,cam_pts[plot_bounds[0]:plot_bounds[1]+small_len,0], '.-', label = 'cam pts')
+        # ax[0].plot(cam_pts[:,3],cam_pts[:,0], label='all cam pts')
+        ax[0].plot(touch_lag_adj, touch_pts[:,0], '.-', label='touch lag adj')
+        ax[0].plot(touch_pts[:,2], touch_pts[:,0], '.-', color='grey', label='raw touch')
+        # ax.set_title('Trial:', trial)
+
+        ax[1].plot(best_ts,cam_pts[plot_bounds[0]:plot_bounds[1]+small_len,1], '.-', label='cam pts')
+        # ax[1].plot(cam_pts[:,3], cam_pts[:,1], label='all cam pts')
+        ax[1].plot(touch_lag_adj,touch_pts[:,1], '.-', label='touch lag adj')
+        ax[1].plot(touch_pts[:,2],touch_pts[:,1], '.-', color='grey', label='raw touch')
+        plt.legend()
+
+    return lag,fig
+
+def corrAlign(cam_pts, touch_pts, ploton=True, UB = 0.15):
+    """Aligns touch pts to cam pts based on correlation
+    Returns:
+        lag : [t0_touch, t0_stroke]. Can then align data using these nums
+        fig : 4 panel fgirue for looking at lag visually for inspection. x axis is time, y axis is x or y coordinate repsp.
+    """
+    plt.style.use('dark_background')
+    plot_bound_size = 0
+
+    fig, ax = plt.subplots(2,2,figsize=(40,20), sharex=True)
+    large_len = len(cam_pts)
+    small_len = len(touch_pts)
+    
+    touch_pts_norm = touch_pts[:,[0,1]] - np.mean(touch_pts[:,[0,1]], axis=0)
+    # touch_pts_norm = np.divide(touch_pts[:,[0,1]],np.max(touch_pts[:,[0,1]],axis=0))
+    
+    max_sim = 0
+    best_index = -1
+    
+    sim_course = []
+    false_alarms = []
+    found_good_sim = False
+    for i in range(large_len - small_len + 1):
+        window = cam_pts[i:i + small_len]
+        window_norm = window[:,[0,1]] - np.mean(window[:,[0,1]], axis=0)
+        # window_norm = np.divide(window[:,[0,1]],np.max(window[:,[0,1]],axis=0))
+        sim = np.einsum('ij,ij->', window_norm, touch_pts_norm)
+
+        this_lag = touch_pts[0,2] - cam_pts[i,2]
+        if sim > max_sim and np.abs(this_lag) < UB:
+            max_sim = sim
+            best_index = i
+            found_good_sim = True
+        elif sim > max_sim and max_sim != 0:
+            false_alarms.append(cam_pts[i,2])
+        sim_course.append((cam_pts[i,2],sim))
+    
+    #Only save if good peak found
+    sim_course = np.array(sim_course)
+    if found_good_sim:
+        lag = [touch_pts[0,2],cam_pts[best_index,2]]
+        lag_adj = lag[0] - lag[1]
+    else:
+        return None,None
+    
+    left_peak = False
+    right_peak = False
+    for i,s in enumerate(sim_course):
+        if s[0] == cam_pts[best_index,2]:
+            if i > 5:
+                left_peak = np.all(sim_course[i-5:i,1] < max_sim)
+            else:
+                left_peak = np.all(sim_course[:i,1] < max_sim)
+            if len(sim_course) > i+5:
+                right_peak = np.all(sim_course[i+1:i+6,1] < max_sim)
+            else:
+                right_peak = np.all(sim_course[i+1:,1] < max_sim)
+    if not (left_peak and right_peak):
+        return None,None
+
+    touch_lag_adj = touch_pts[:,2] - lag_adj
+
+    if plot_bound_size <= best_index < len(cam_pts) - plot_bound_size:
+        plot_bounds = (best_index-plot_bound_size,best_index+plot_bound_size)
+    elif best_index < plot_bound_size and best_index < len(cam_pts) - plot_bound_size:
+        plot_bounds = (0, best_index+plot_bound_size)
+    elif best_index >= plot_bound_size and best_index > len(cam_pts) - plot_bound_size:
+        plot_bounds = (best_index-plot_bound_size,len(cam_pts)-1)
+    else:
+        plot_bounds = (0,len(cam_pts)-1)
+
+    best_ts = cam_pts[plot_bounds[0]:plot_bounds[1]+small_len,2]
+
+    if ploton:
+        ax[0,0].plot(best_ts,cam_pts[plot_bounds[0]:plot_bounds[1]+small_len,0], '.-', label = 'cam pts y')
+        # ax[0].plot(cam_pts[:,3],cam_pts[:,0], label='all cam pts')
+        ax[0,0].plot(touch_lag_adj, touch_pts[:,0], '.-', label='touch lag adj')
+        ax[0,0].plot(touch_pts[:,2], touch_pts[:,0], '.-', color='grey', label='raw touch', alpha=0.5)
+        ax[0,0].legend()
+        # ax.set_title('Trial:', trial)
+
+        ax[0,1].plot(best_ts,cam_pts[plot_bounds[0]:plot_bounds[1]+small_len,1], '.-', label='cam pts x')
+        # ax[1].plot(cam_pts[:,3], cam_pts[:,1], label='all cam pts')
+        ax[0,1].plot(touch_lag_adj,touch_pts[:,1], '.-', label='touch lag adj')
+        ax[0,1].plot(touch_pts[:,2],touch_pts[:,1], '.-', color='grey', label='raw touch',alpha=0.5)
+        ax[0,1].legend()
+
+        ax[1,0].plot(best_ts,cam_pts[plot_bounds[0]:plot_bounds[1]+small_len,0], '.-', color = 'indianred')
+        # ax[0].plot(cam_pts[:,3],cam_pts[:,0], label='all cam pts')
+        # ax[1,0].plot(touch_lag_adj, touch_pts[:,0], '.-', label='touch lag adj')
+        ax[1,0].plot(touch_pts[:,2], touch_pts[:,0], '.-', color='indianred', label='raw touch x', alpha=0.5)
+        # ax.set_title('Trial:', trial)
+
+        ax[1,0].plot(best_ts,cam_pts[plot_bounds[0]:plot_bounds[1]+small_len,1], '.-', color = 'lightgreen')
+        # ax[1].plot(cam_pts[:,3], cam_pts[:,1], label='all cam pts')
+        # ax[1,0].plot(touch_lag_adj,touch_pts[:,1], '.-', label='touch lag adj')
+        ax[1,0].plot(touch_pts[:,2],touch_pts[:,1], '.-', color='lightgreen', label='raw touch y',alpha=0.5)
+        
+        ax[1,0].plot(cam_pts[:,2], cam_pts[:,0], label='x coord')
+        ax[1,0].plot(cam_pts[:,2], cam_pts[:,1], label = 'y coord')
+        for p in false_alarms:
+            ax[1,0].axvline(p, color='w', zorder=0, alpha = 0.1)
+        ax[1,0].legend()
+
+        ax[1,1].plot(*zip(*sim_course))
+        plt.axvline(cam_pts[best_index,2], color ='w', linestyle='--')
+
+    return lag,fig
+
+def get_lags(dfs_func, sdir, ploton=True):
+    """Function to get different types to calc lag vetween the ts and teh cam data. The euclid lag calc
+    minimizes the euclidean distacne between ts stroke and cam data. This method is not as good as corr method. 
+    Corr maximizes correlation between touch creen stroke and cam data. Nonetheless, funcotin will output results fo rboth methods.
+    Will also plot, asusmning you to plot (will be neded for manual curation of corraltions, i.e. cut out trials that have flat lines 
+    as in thes ecase the corrlation is not as good).
+
+    Args:
+        dfs_func (dict): dfs for function. Should have extracted dat from ht.process_data_single_trials with trial num keys 
+            (assuming vid indexing, 0 indexing)
+        monkey (string): Pancho, Diego, or some other third monkey
+        sdir (str, dir-like): Name of dir to save alignment plots
+
+    Returns:
+        2 dicts, with corr and euc lags indexed by trial (trial nums from input df)
+    """
+    plt.style.use('dark_background')
+    euc_lags = {}
+    corr_lags = {}
+    import os
+    import shutil
+    euc_dir = f'{sdir}/euc'
+    corr_dir = f'{sdir}/corr'
+    if os.path.exists(euc_dir):
+        shutil.rmtree(euc_dir)
+    if os.path.exists(corr_dir):
+        shutil.rmtree(corr_dir)
+    os.makedirs(euc_dir, exist_ok=True)
+    os.makedirs(corr_dir, exist_ok=True)
+    for trial, dat in dfs_func.items():
+        corr_lags[trial] = []
+        euc_lags[trial] = []
+        if len(dat) == 0:
+            continue
+        dat = dat['220914_f12_dlc']
+        if len(dat) == 0:
+            continue
+        cam_pts = dat['pts_time_cam_all']
+        trans_cam_pts = dat['trans_pts_time_cam_all']
+        strokes_touch = dat['strokes_touch']
+
+        touch_fs = 1/np.mean(np.diff(strokes_touch[0][:,2]))
+        cam_fs = 1/np.mean(np.diff(cam_pts[:,3]))
+        trans_cam_fs = 1/np.mean(np.diff(trans_cam_pts[:,3]))
+
+        
+        t_onfix_off = strokes_touch[0][-1,2]
+        t_offfix_on = strokes_touch[-1][0,2]
+
+        # filter data to be within desired times
+        all_cam = cam_pts[(cam_pts[:,3] >= t_onfix_off) & (cam_pts[:,3] <= t_offfix_on)]
+        trans_all_cam = trans_cam_pts[(trans_cam_pts[:,3] >= t_onfix_off) & (trans_cam_pts[:,3] <= t_offfix_on)]
+        
+        if len(all_cam) == 0:
+            print('Skipping trial:', trial)
+            continue
+
+        cam_interp = strokesInterpolate2([all_cam],kind='linear',N=["fsnew",1000,cam_fs])
+        cam_interp_smth = smoothStrokes(cam_interp, 1000, window_type='median')[0]
+        cam_interp_smth = cam_interp_smth[:,[0,1,3]]
+
+        trans_cam_interp = strokesInterpolate2([trans_all_cam],kind='linear',N=["fsnew",1000,trans_cam_fs])
+        trans_cam_interp_smth = smoothStrokes(trans_cam_interp, 1000, window_type='median')[0]
+        # trans_cam_interp_smth = trans_cam_interp_smth[:,[0,1,3]]
+
+        touch_interp = strokesInterpolate2(strokes_touch,kind='linear',N=["fsnew",1000,touch_fs])
+        touch_interp_noz = []
+        for stroke in touch_interp:
+            touch_interp_noz.append(stroke[:,[0,1,3]])
+        touch_interp_noz = touch_interp_noz[1:-1]
+
+        for i,touch_stroke in enumerate(touch_interp_noz):
+            touch_stroke_filt = touch_stroke
+            if len(touch_stroke_filt) == 0:
+                continue
+            euc_lag, euc_fig = euclidAlign(trans_cam_interp_smth,touch_stroke_filt, ploton=True)
+            corr_lag, corr_fig = corrAlign(cam_interp_smth,touch_stroke_filt, ploton=True)
+            corr_lags[trial].append(corr_lag)
+            euc_lags[trial].append(euc_lag)
+            if ploton:
+                if euc_fig is not None:
+                    euc_fig.savefig(f'{euc_dir}/trial{trial}-{i}_euc.png')
+                if corr_fig is not None:
+                    corr_fig.savefig(f'{corr_dir}/trial{trial}-{i}_corr.png')
+                plt.close('all')
+    return corr_lags,euc_lags
+
+
+
     
