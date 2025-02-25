@@ -1082,7 +1082,7 @@ class HandTrack(object):
                 assert len(volt_times) <= len(cam_times), "Dont think volt time shsould be longer than cam times"
 
             #lin space sliced votlt imes for extra volt thang (see above/slides)
-            volt_align = np.linspace(volt_align_raw[0],volt_align_raw[-1],num=len(volt_align))
+            volt_align = np.linspace(volt_align_raw[0],volt_align_raw[-1],num=len(volt_align_raw))
 
             # rand_list = sample(range(len(cam_times)), len(volt_align))
             # cam_align = cam_times[rand_list]
