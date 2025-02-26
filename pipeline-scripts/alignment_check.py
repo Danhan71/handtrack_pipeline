@@ -1,13 +1,12 @@
 # functions for checking alignment of camera times/trial/touch screent imes
 
 import os
-# os.chdir("/home/dhanuska/dhanuska/handtrack_pipeline/setup/drawmonkey_/drawmonkey")
 from pythonlib.tools.stroketools import *
-from tools.preprocess import *
+from pyvm.tools.preprocess import *
 from pyvm.classes.videoclass import Videos
 from pythonlib.tools.expttools import load_yaml_config
 from pyvm.globals import BASEDIR
-from tools.handtrack import HandTrack, getTrialsCameraFrametimes
+from drawmonkey.tools.handtrack import HandTrack, getTrialsCameraFrametimes
 from pyvm.utils.directories import get_metadata
 import argparse
 import matplotlib.pyplot as plt
@@ -121,7 +120,8 @@ if __name__ == "__main__":
             try:
                 dat, dict_figs, dict_reg_figs, all_day_figs = HT.process_data_wrapper(trial_ml2, ploton=False, \
                                                                     finger_raise_time=0.0, ts_cam_offset=0.0, aggregate=False)
-            except:
+            except Exception as e:
+                print(traceback.format_exc())
                 dat = []
                 print(f'Skipping trial {trial_ml2}')
             trial_dats[trial_ml2] = dat
@@ -131,26 +131,38 @@ if __name__ == "__main__":
         
 
     #DO CORR ANALYSIS
-    if os.path.exists(f'{sdir}/lag_data.pkl'):
-        print(f'Lag data already exists, plotting = {plot}')
-        with open(f'{sdir}/lag_data.pkl','rb') as f:
-            lags = pickle.load(f)
-    else:
-        lags={}
-        lags['corr_lags'],lags['euc_lags'] = get_lags(trial_dats,sdir,True)
-        with open(f'{sdir}/lag_data.pkl','wb') as f:
-            pickle.dump(lags,f)
-    if plot:
-        with open(f'{sdir}/good_inds.txt','rb') as f:
-            good_inds = f.readline().replace(' ','').split(',')
-        if len(good_inds) < 10:
-            print(f'{len(good_inds)} not enough good inds, please enter more in file {sdir}/good_inds.txt')
+    assert len(trial_dats) > 0, 'No trial dat in the dict'
+    coefs_list = []
+    for dat in trial_dats.values():
+        if len(dat) == 0:
+            continue
+        if len(dat.keys()) > 0:
+            coefs_list = dat.keys()
+            break
+    assert len(coefs_list) > 0, 'No coeffs found'
+    for coefs in coefs_list:
+        print(f'Doing lags for coefs {coefs}')
+        this_sdir = f'{sdir}/{coefs}'
+        if os.path.exists(f'{this_sdir}/lag_data.pkl'):
+            print(f'Lag data already exists, plotting = {plot}')
+            with open(f'{this_sdir}/lag_data.pkl','rb') as f:
+                lags = pickle.load(f)
         else:
-            import re
-            def is_valid_format(s):
-                return bool(re.fullmatch(r"\d+-\d+", s))
-            def validate_list(lst):
-                return all(is_valid_format(item) for item in lst)
-            assert validate_list(good_inds), f'At least some elements in {sdir}/good_inds are formatted improperly (should be comma sep list of trial-stroke as strs). Check this you fool'
-        fig = plot_alignment_data(lags,good_inds)
-        fig.savefig(f'{sdir}/lag_fig.png')
+            lags={}
+            lags['corr_lags'],lags['euc_lags'] = get_lags(trial_dats,this_sdir,coefs,True)
+            with open(f'{this_sdir}/lag_data.pkl','wb') as f:
+                pickle.dump(lags,f)
+        if plot:
+            with open(f'{this_sdir}/good_inds.txt','rb') as f:
+                good_inds = f.readline().replace(' ','').split(',')
+            if len(good_inds) < 10:
+                print(f'{len(good_inds)} not enough good inds, please enter more in file {this_sdir}/good_inds.txt')
+            else:
+                import re
+                def is_valid_format(s):
+                    return bool(re.fullmatch(r"\d+-\d+", s))
+                def validate_list(lst):
+                    return all(is_valid_format(item) for item in lst)
+                assert validate_list(good_inds), f'At least some elements in {this_sdir}/good_inds are formatted improperly (should be comma sep list of trial-stroke as strs). Check this you fool'
+            fig = plot_alignment_data(lags,good_inds)
+            fig.savefig(f'{this_sdir}/lag_fig.png')

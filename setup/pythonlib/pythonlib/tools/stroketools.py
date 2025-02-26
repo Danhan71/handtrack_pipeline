@@ -2262,7 +2262,7 @@ def corrAlign(cam_pts, touch_pts, ploton=True, UB = 0.15):
         lag = [touch_pts[0,2],cam_pts[best_index,2]]
         lag_adj = lag[0] - lag[1]
     else:
-        return None,None
+        return None,None, 'no good match found'
     
     left_peak = False
     right_peak = False
@@ -2277,7 +2277,7 @@ def corrAlign(cam_pts, touch_pts, ploton=True, UB = 0.15):
             else:
                 right_peak = np.all(sim_course[i+1:,1] < max_sim)
     if not (left_peak and right_peak):
-        return None,None
+        return None,None,'no good peak in sim course'
 
     touch_lag_adj = touch_pts[:,2] - lag_adj
 
@@ -2326,9 +2326,9 @@ def corrAlign(cam_pts, touch_pts, ploton=True, UB = 0.15):
         ax[1,1].plot(*zip(*sim_course))
         plt.axvline(cam_pts[best_index,2], color ='w', linestyle='--')
 
-    return lag,fig
+    return lag,fig,'success'
 
-def get_lags(dfs_func, sdir, ploton=True):
+def get_lags(dfs_func, sdir, coefs, ploton=True):
     """Function to get different types to calc lag vetween the ts and teh cam data. The euclid lag calc
     minimizes the euclidean distacne between ts stroke and cam data. This method is not as good as corr method. 
     Corr maximizes correlation between touch creen stroke and cam data. Nonetheless, funcotin will output results fo rboth methods.
@@ -2338,8 +2338,8 @@ def get_lags(dfs_func, sdir, ploton=True):
     Args:
         dfs_func (dict): dfs for function. Should have extracted dat from ht.process_data_single_trials with trial num keys 
             (assuming vid indexing, 0 indexing)
-        monkey (string): Pancho, Diego, or some other third monkey
         sdir (str, dir-like): Name of dir to save alignment plots
+        coefs (str): Coeff name used for coordinates
 
     Returns:
         2 dicts, with corr and euc lags indexed by trial (trial nums from input df)
@@ -2349,8 +2349,8 @@ def get_lags(dfs_func, sdir, ploton=True):
     corr_lags = {}
     import os
     import shutil
-    euc_dir = f'{sdir}/euc'
-    corr_dir = f'{sdir}/corr'
+    euc_dir = f'{sdir}/euc_figs'
+    corr_dir = f'{sdir}/corr_figs'
     if os.path.exists(euc_dir):
         shutil.rmtree(euc_dir)
     if os.path.exists(corr_dir):
@@ -2362,7 +2362,7 @@ def get_lags(dfs_func, sdir, ploton=True):
         euc_lags[trial] = []
         if len(dat) == 0:
             continue
-        dat = dat['220914_f12_dlc']
+        dat = dat[coefs]
         if len(dat) == 0:
             continue
         cam_pts = dat['pts_time_cam_all']
@@ -2397,14 +2397,14 @@ def get_lags(dfs_func, sdir, ploton=True):
         touch_interp_noz = []
         for stroke in touch_interp:
             touch_interp_noz.append(stroke[:,[0,1,3]])
-        touch_interp_noz = touch_interp_noz[1:-1]
-
+        # if len(touch_interp_noz) > 1:
+        #     touch_interp_noz = touch_interp_noz[1:-1]
         for i,touch_stroke in enumerate(touch_interp_noz):
             touch_stroke_filt = touch_stroke
             if len(touch_stroke_filt) == 0:
                 continue
             euc_lag, euc_fig = euclidAlign(trans_cam_interp_smth,touch_stroke_filt, ploton=True)
-            corr_lag, corr_fig = corrAlign(cam_interp_smth,touch_stroke_filt, ploton=True)
+            corr_lag, corr_fig, outcome = corrAlign(cam_interp_smth,touch_stroke_filt, ploton=True)
             corr_lags[trial].append(corr_lag)
             euc_lags[trial].append(euc_lag)
             if ploton:
@@ -2412,6 +2412,8 @@ def get_lags(dfs_func, sdir, ploton=True):
                     euc_fig.savefig(f'{euc_dir}/trial{trial}-{i}_euc.png')
                 if corr_fig is not None:
                     corr_fig.savefig(f'{corr_dir}/trial{trial}-{i}_corr.png')
+                else:
+                    print(f'Fail {trial}-{i}', outcome)
                 plt.close('all')
     return corr_lags,euc_lags
 

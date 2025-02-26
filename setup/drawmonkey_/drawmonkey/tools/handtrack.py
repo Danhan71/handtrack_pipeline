@@ -79,6 +79,7 @@ class HandTrack(object):
             all_day_figs: All day figure
         """
         dat = {}
+        # err_dat = {}
         figs = {}
         reg_figs = {}
         all_day_figs = {}
@@ -91,8 +92,8 @@ class HandTrack(object):
                                                             ploton=ploton, coefs=coefs, ts_cam_offset=ts_cam_offset)
                 list_dists, reg_list_dists,_, _, fig_error, reg_fig_error  = self.analy_compute_errors(trial_ml2, ploton=True, coefs=coefs)
 
-                dat["errors_ptwise"] = list_dists
-                dat["reg_errors_ptwise"] = reg_list_dists
+                # err_dat[coefs]["errors_ptwise"] = list_dists
+                # err_dat[coefs]["reg_errors_ptwise"] = reg_list_dists
 
                 figs[coefs].append(fig_error)
                 reg_figs[coefs].append(reg_fig_error)

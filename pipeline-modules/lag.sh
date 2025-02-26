@@ -14,7 +14,7 @@ help_message () {
 	echo "MAKE SURE YOU HAVE METADATA TEMPLATE FILLED OUT AND SAVED WITH EXPT NAME"
 	echo "MAKE SURE YOU ARE IN THE p_dlc ENV (or equivalent)"
 	echo ""
-	echo ">>>> Usage: pipeline lags -e [expt_name] -a [animal] --step [1 or 2] -o [output_dir] [options]"
+	echo ">>>> Usage: pipeline lags -e [expt_name] -a [animal] --step [1 or 2] [options]"
 	echo "	Options:"
 	echo "      Rq'd:"
 	echo "		-e STR			Enter the experiment name used in the metadata file (date_exptname)"
@@ -53,18 +53,20 @@ while true; do
         --step) step=$2; shift 2;;
 		-e) name="$2"; shift 2;;
 		-a) animal="$2"; shift 2;;
-        -o) sdir="$2"; shift 2;;
 		-h | --help) help_message; exit 1; shift 1;;
 		--) help_message; exit 1; shift; break;;
 		*) break;;
 	esac		
 done
 
-if [[ $step -eq 1 ]]; then;
+sdir="${data_dir}/${animal}/${name}/lag_data"
+
+if [[ $step -eq 1 ]]; then
     python ${scripts}/alignment_check.py ${name} --animal ${animal} --sdir ${sdir} --tstart ${ts} --tend ${te}
     touch ${sdir}/good_inds.txt
     echo "Initial plotting complete, please review plots and enter good trial-strokes into the file good_inds.txt as a comma seprated list."
-elif [[ $step -eq 2 ]]; then;
+elif [[ $step -eq 2 ]]; then
     python ${scripts}/alignment_check.py ${name} --animal ${animal} --sdir ${sdir} --tstart ${ts} --tend ${te} --plot
-    echo "Initial plotting complete, please review plots and enter good trial-strokes into the file good_inds.txt as a comma seprated list."
+    echo "All done, summary plot saved."
     echo "Proverbs 6:6-8 ~ Go to the ant, O sluggard; consider her ways, and be wise. Without having any chief, officer, or ruler, she prepares her bread in summer and gathers her food in harvest."
+fi

@@ -1,7 +1,7 @@
-from tools.utilsh5 import *
-from tools.calc import *
+from pyvm.tools.utilsh5 import *
+from pyvm.tools.calc import *
 from pythonlib.tools.stroketools import fakeTimesteps, check_strokes_in_temporal_order
-from tools.tasks import convertTask2Strokes
+from pyvm.tools.tasks import convertTask2Strokes
 
 import numpy as np
 import sys
