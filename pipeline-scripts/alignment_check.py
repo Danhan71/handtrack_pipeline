@@ -68,6 +68,7 @@ def plot_alignment_data(lags, good_inds):
     return fig
 
 if __name__ == "__main__":
+    import traceback
       
     parser = argparse.ArgumentParser(description="Final Plots etc")
     parser.add_argument("name", type=str, help="Experiment name/date")
@@ -124,6 +125,8 @@ if __name__ == "__main__":
                 print(traceback.format_exc())
                 dat = []
                 print(f'Skipping trial {trial_ml2}')
+            # fd['params']['sample_rate'] = fd['params']['sample_rate'][0]
+            dat['peanut_strokes'] = getTrialsStrokesByPeanuts(fd,trial_ml2)
             trial_dats[trial_ml2] = dat
         #saves extracted data to save time if need to run the function again
         with open(f'{sdir}/ht_proc_data.pkl', 'wb') as f:

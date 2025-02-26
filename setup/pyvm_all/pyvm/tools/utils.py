@@ -1448,7 +1448,7 @@ def getTrialsStrokes(filedata, trial, window_rel_go_reward=None,
 
     if window_rel_go_reward is None:
         window_rel_go_reward = []
-    from tools.calc import segmentTouchDat
+    from pyvm.tools.calc import segmentTouchDat
 
     if cleanstrokes:
         assert len(window_rel_go_reward)==0, "if want clean strokes, then implie want to use preset good window."
@@ -1499,7 +1499,8 @@ def getTrialsStrokes(filedata, trial, window_rel_go_reward=None,
             fig.savefig(f"/tmp/fig_{trial}_after.png")
 
             # assert False
-
+    
+    print(filedata['params']['sample_rate'])
     if isinstance(smooth_window, list) and len(smooth_window)==0:
         # default
         pass
@@ -1699,7 +1700,6 @@ def getTrialsStrokesByPeanuts(filedata, trial,
     if trial>filedata["params"]["max_trial_with_beheval"]:
         # then this is at end of dataset (shoudl be), and no data.
         return []
-
     strokes_orig = getTrialsStrokes(filedata, trial, 
                               only_if_part_of_stroke_postgo=only_if_part_of_stroke_postgo) # standard
 

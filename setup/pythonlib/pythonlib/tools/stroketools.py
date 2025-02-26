@@ -2367,7 +2367,7 @@ def get_lags(dfs_func, sdir, coefs, ploton=True):
             continue
         cam_pts = dat['pts_time_cam_all']
         trans_cam_pts = dat['trans_pts_time_cam_all']
-        strokes_touch = dat['strokes_touch']
+        strokes_touch = dat['peanut_strokes']
 
         touch_fs = 1/np.mean(np.diff(strokes_touch[0][:,2]))
         cam_fs = 1/np.mean(np.diff(cam_pts[:,3]))
