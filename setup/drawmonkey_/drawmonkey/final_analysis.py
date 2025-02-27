@@ -1,9 +1,9 @@
 from pythonlib.tools.stroketools import *
-from tools.preprocess import *
+from pyvm.tools.preprocess import *
 from pyvm.classes.videoclass import Videos
 from pythonlib.tools.expttools import load_yaml_config
 from pyvm.globals import BASEDIR
-from tools.handtrack import HandTrack, getTrialsCameraFrametimes
+from drawmonkey.tools.handtrack import HandTrack, getTrialsCameraFrametimes
 from pyvm.utils.directories import get_metadata
 import argparse
 import matplotlib.pyplot as plt

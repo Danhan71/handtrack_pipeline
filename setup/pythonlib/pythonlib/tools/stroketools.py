@@ -183,7 +183,7 @@ def smoothStrokes(strokes, sample_rate, window_time=0.05, window_type="hanning",
     from .timeseriestools import  smoothDat
 
     if window_type=='median':
-        #Idk median filter is probably a safe bet
+        #Idk median filter is probably a safe bet, also don't want to change code to make work
         sanity_check_endpoint_not_different = False
     window_len = np.floor(window_time/(1/sample_rate))
     if not int(window_len)&1:

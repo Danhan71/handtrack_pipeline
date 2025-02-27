@@ -374,7 +374,7 @@ def loadMultData(dattoget):
 def loadSingleDataH5(animal, date, expt, session, resave_as_dict):
     import h5py
     import numpy as np
-    from tools.utilsh5 import group2dict
+    from pyvm.tools.utilsh5 import group2dict
     fname = findFilename(animal, date, expt, session, doprint=False)[0]
     # print(fname)
     # with h5py.File(ff, "r") as f:
