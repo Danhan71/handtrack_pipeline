@@ -251,7 +251,7 @@ class HandTrack(object):
         # strokes = getTrialsStrokesClean(fd, trial_ml2)
         strokes = getTrialsStrokes(self.Fd, trial_ml2, window_rel_go_reward = [-0.1, 0.1])
         #For some reaosn is list with only one element and below function needs scalar
-        self.Fd['params']['sample_rate'] = self.Fd['params']['sample_rate'][0]
+        # self.Fd['params']['sample_rate'] = self.Fd['params']['sample_rate'][0]
         pnut_strokes = getTrialsStrokesByPeanuts(self.Fd, trial_ml2)
         strokes_task = getTrialsTaskAsStrokes(self.Fd, trial_ml2)
 

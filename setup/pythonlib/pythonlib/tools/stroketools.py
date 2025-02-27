@@ -2319,6 +2319,7 @@ def corrAlign(cam_pts, touch_pts, ploton=True, UB = 0.15):
         
         ax[1,0].plot(cam_pts[:,2], cam_pts[:,0], label='x coord')
         ax[1,0].plot(cam_pts[:,2], cam_pts[:,1], label = 'y coord')
+
         for p in false_alarms:
             ax[1,0].axvline(p, color='w', zorder=0, alpha = 0.1)
         ax[1,0].legend()
@@ -2363,23 +2364,38 @@ def get_lags(dfs_func, sdir, coefs, ploton=True):
         if len(dat) == 0:
             continue
         dat = dat[coefs]
-        if len(dat) == 1:
+        if len(dat) == 0:
             continue
         cam_pts = dat['pts_time_cam_all']
         trans_cam_pts = dat['trans_pts_time_cam_all']
-        strokes_touch = dat['pnut_strokes']
+        strokes_touch = dat['strokes_touch']
+        pnut_strokes_touch = dat['pnut_strokes']
 
         touch_fs = 1/np.mean(np.diff(strokes_touch[0][:,2]))
         cam_fs = 1/np.mean(np.diff(cam_pts[:,3]))
         trans_cam_fs = 1/np.mean(np.diff(trans_cam_pts[:,3]))
 
         
-        t_stroke_start = strokes_touch[0][0,2]
-        t_stroke_end = strokes_touch[-1][-1,2]
+        t_stroke_start = pnut_strokes_touch[0][0,2]
+        t_stroke_end = pnut_strokes_touch[-1][-1,2]
 
-        # filter data to be within desired times
+        # restrict data to be within desired times
         all_cam = cam_pts[(cam_pts[:,3] >= t_stroke_start) & (cam_pts[:,3] <= t_stroke_end)]
         trans_all_cam = trans_cam_pts[(trans_cam_pts[:,3] >= t_stroke_start) & (trans_cam_pts[:,3] <= t_stroke_end)]
+        touch_strokes_rest = []
+        for strok in strokes_touch:
+            if strok[0,2] >= t_stroke_start and strok[-1,2] <= t_stroke_end:
+                touch_strokes_rest.append(strok)
+        strokes_touch = touch_strokes_rest
+        #Temp figs for checking pnuts and reg strokes just in case
+        # temp_fig = plt.figure()
+        # for strok in strokes_touch:
+        #     plt.plot(strok[:,2],strok[:,1], color='indianred',alpha=0.5)
+        # for strok in pnut_strokes_touch:
+        #     plt.plot(strok[:,2],strok[:,1], color='lightgreen',alpha=0.5)
+        # temp_fig.savefig(f'{sdir}/{trial}-temp_fig.png')
+        assert len(strokes_touch) == len(pnut_strokes_touch), f'{len(strokes_touch)}, {len(pnut_strokes_touch)}'
+
         
         if len(all_cam) == 0:
             print('Skipping trial:', trial)
