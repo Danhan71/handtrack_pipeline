@@ -2363,11 +2363,11 @@ def get_lags(dfs_func, sdir, coefs, ploton=True):
         if len(dat) == 0:
             continue
         dat = dat[coefs]
-        if len(dat) <= 1:
+        if len(dat) == 1:
             continue
         cam_pts = dat['pts_time_cam_all']
         trans_cam_pts = dat['trans_pts_time_cam_all']
-        strokes_touch = dat['peanut_strokes']
+        strokes_touch = dat['pnut_strokes']
 
         touch_fs = 1/np.mean(np.diff(strokes_touch[0][:,2]))
         cam_fs = 1/np.mean(np.diff(cam_pts[:,3]))

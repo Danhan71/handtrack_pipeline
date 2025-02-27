@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 from sklearn.linear_model import LinearRegression
 from pythonlib.tools.stroketools import strokesInterpolate2
 from pyvm.globals import BASEDIR, NCAMS
-from .utils import getTrialsIsAbort 
+from .utils import getTrialsIsAbort, getTrialsStrokesByPeanuts 
 import os
 import traceback
 
@@ -250,6 +250,9 @@ class HandTrack(object):
         # strokes = getTrialsStrokesByPeanuts(fd, trial_ml2)
         # strokes = getTrialsStrokesClean(fd, trial_ml2)
         strokes = getTrialsStrokes(self.Fd, trial_ml2, window_rel_go_reward = [-0.1, 0.1])
+        #For some reaosn is list with only one element and below function needs scalar
+        self.Fd['params']['sample_rate'] = self.Fd['params']['sample_rate'][0]
+        pnut_strokes = getTrialsStrokesByPeanuts(self.Fd, trial_ml2)
         strokes_task = getTrialsTaskAsStrokes(self.Fd, trial_ml2)
 
         if len(pts_time_cam_all)==0:
@@ -258,6 +261,7 @@ class HandTrack(object):
         if return_in_meters:
             pts_time_cam_all = pts_time_cam_all.copy()
             pts_time_cam_all[:, :3] = convert_pix_to_meters(pts_time_cam_all[:, :3])
+
             strokes_meters = []
             for strok in strokes:
                 x = strok.copy()
@@ -271,14 +275,27 @@ class HandTrack(object):
                 x[:, :2] = convert_pix_to_meters(x[:,:2])
                 strokes_meters.append(x)
             strokes_task = strokes_meters
+
+            strokes_meters = []
+            for strok in pnut_strokes:
+                x = strok.copy()
+                x[:,:2] = convert_pix_to_meters(x[:,:2])
+                strokes_meters.append(x)
+            pnut_strokes = strokes_meters
+
         strokes_lag_adjusted = []
         for strok in strokes:
             lag_adjusted = np.array([[p[0],p[1],p[2]-ts_cam_offset] for p in strok])
             strokes_lag_adjusted.append(lag_adjusted)
+        pnuts_lag_adjusted = []
+        for strok in pnut_strokes:
+            pnut_lag_adjusted = np.array([[p[0],p[1],p[2]-ts_cam_offset] for p in strok])
+            pnuts_lag_adjusted.append(pnut_lag_adjusted)
         dat = snap_pts_to_strokes(strokes_lag_adjusted, pts_time_cam_all)
         if dat == {}:
             return {},[],[]
         dat["strokes_task"] = strokes_task
+        dat["pnut_strokes"] = pnuts_lag_adjusted
 
         # store this
         for k, v in dat.items():
