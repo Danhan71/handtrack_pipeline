@@ -123,10 +123,14 @@ if __name__ == "__main__":
                                                                     finger_raise_time=0.0, ts_cam_offset=0.0, aggregate=False)
             except Exception as e:
                 print(traceback.format_exc())
-                dat = []
-                print(f'Skipping trial {trial_ml2}')
-            # fd['params']['sample_rate'] = fd['params']['sample_rate'][0]
-            dat['peanut_strokes'] = getTrialsStrokesByPeanuts(fd,trial_ml2)
+                dat = {}
+                print(f'Skipping trial {trial_ml2}') 
+            if len(dat) == 0:
+                continue 
+            if isinstance(fd['params']['sample_rate'],np.ndarray):
+                fd['params']['sample_rate'] = fd['params']['sample_rate'][0]
+            for coefs in dat.keys():
+                dat[coefs]['peanut_strokes'] = getTrialsStrokesByPeanuts(fd,trial_ml2)
             trial_dats[trial_ml2] = dat
         #saves extracted data to save time if need to run the function again
         with open(f'{sdir}/ht_proc_data.pkl', 'wb') as f:

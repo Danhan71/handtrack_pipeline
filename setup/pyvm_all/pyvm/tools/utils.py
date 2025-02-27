@@ -1500,7 +1500,6 @@ def getTrialsStrokes(filedata, trial, window_rel_go_reward=None,
 
             # assert False
     
-    print(filedata['params']['sample_rate'])
     if isinstance(smooth_window, list) and len(smooth_window)==0:
         # default
         pass

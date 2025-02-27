@@ -1507,14 +1507,13 @@ def getTrialsStrokes(filedata, trial, window_rel_go_reward=None,
         # do smoothing
         window_type = "flat"
         window_type = "hanning"
-        strokes = smoothStrokes(strokes, filedata["params"]["sample_rate"][0], 
+        strokes = smoothStrokes(strokes, filedata["params"]["sample_rate"], 
             window_time=smooth_window, window_type=window_type,
                  adapt_win_len=adapt_win_len)
 
     if dofilter:
-        print(filedata["params"]["sample_rate"][0])
         from pythonlib.tools.stroketools import strokesFilter
-        strokes = strokesFilter(strokes, [None, filt_hi], filedata["params"]["sample_rate"][0],
+        strokes = strokesFilter(strokes, [None, filt_hi], filedata["params"]["sample_rate"],
          N=9)
 
     if only_if_part_of_stroke_postgo:
