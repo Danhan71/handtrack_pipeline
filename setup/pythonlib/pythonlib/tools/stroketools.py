@@ -2363,7 +2363,7 @@ def get_lags(dfs_func, sdir, coefs, ploton=True):
         if len(dat) == 0:
             continue
         dat = dat[coefs]
-        if len(dat) == 0:
+        if len(dat) <= 1:
             continue
         cam_pts = dat['pts_time_cam_all']
         trans_cam_pts = dat['trans_pts_time_cam_all']
@@ -2374,12 +2374,12 @@ def get_lags(dfs_func, sdir, coefs, ploton=True):
         trans_cam_fs = 1/np.mean(np.diff(trans_cam_pts[:,3]))
 
         
-        t_onfix_off = strokes_touch[0][-1,2]
-        t_offfix_on = strokes_touch[-1][0,2]
+        t_stroke_start = strokes_touch[0][0,2]
+        t_stroke_end = strokes_touch[-1][-1,2]
 
         # filter data to be within desired times
-        all_cam = cam_pts[(cam_pts[:,3] >= t_onfix_off) & (cam_pts[:,3] <= t_offfix_on)]
-        trans_all_cam = trans_cam_pts[(trans_cam_pts[:,3] >= t_onfix_off) & (trans_cam_pts[:,3] <= t_offfix_on)]
+        all_cam = cam_pts[(cam_pts[:,3] >= t_stroke_start) & (cam_pts[:,3] <= t_stroke_end)]
+        trans_all_cam = trans_cam_pts[(trans_cam_pts[:,3] >= t_stroke_start) & (trans_cam_pts[:,3] <= t_stroke_end)]
         
         if len(all_cam) == 0:
             print('Skipping trial:', trial)
