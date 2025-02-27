@@ -2219,8 +2219,14 @@ def euclidAlign(cam_pts, touch_pts, ploton=False, UB = 0.15):
 
     return lag,fig
 
-def corrAlign(cam_pts, touch_pts, ploton=True, UB = 0.15):
+def corrAlign(cam_pts, touch_pts, ploton=True, UB = 0.15, method='corr'):
     """Aligns touch pts to cam pts based on correlation
+    Params:
+        cam_pts (array)
+        touch_pts (array)
+        ploton (bool): Make plots?
+        UB (numeric): Upper bound for how big lag can be (if let be too big, can mess up)
+        method (str): 'corr' for use correlation, 'sim' for use dot product sim
     Returns:
         lag : [t0_touch, t0_stroke]. Can then align data using these nums
         fig : 4 panel fgirue for looking at lag visually for inspection. x axis is time, y axis is x or y coordinate repsp.
@@ -2235,27 +2241,62 @@ def corrAlign(cam_pts, touch_pts, ploton=True, UB = 0.15):
     touch_pts_norm = touch_pts[:,[0,1]] - np.mean(touch_pts[:,[0,1]], axis=0)
     # touch_pts_norm = np.divide(touch_pts[:,[0,1]],np.max(touch_pts[:,[0,1]],axis=0))
     
-    max_sim = 0
-    best_index = -1
-    
-    sim_course = []
-    false_alarms = []
-    found_good_sim = False
-    for i in range(large_len - small_len + 1):
-        window = cam_pts[i:i + small_len]
-        window_norm = window[:,[0,1]] - np.mean(window[:,[0,1]], axis=0)
-        # window_norm = np.divide(window[:,[0,1]],np.max(window[:,[0,1]],axis=0))
-        sim = np.einsum('ij,ij->', window_norm, touch_pts_norm)
+    if method == 'sim':
+        max_sim = 0
+        best_index = -1
+        
+        sim_course = []
+        false_alarms = []
+        found_good_sim = False
+        for i in range(large_len - small_len + 1):
+            window = cam_pts[i:i + small_len]
+            window_norm = window[:,[0,1]] - np.mean(window[:,[0,1]], axis=0)
+            # window_norm = np.divide(window[:,[0,1]],np.max(window[:,[0,1]],axis=0))
+            sim = np.einsum('ij,ij->', window_norm, touch_pts_norm)
 
-        this_lag = touch_pts[0,2] - cam_pts[i,2]
-        if sim > max_sim and np.abs(this_lag) < UB:
-            max_sim = sim
-            best_index = i
-            found_good_sim = True
-        elif sim > max_sim and max_sim != 0:
-            false_alarms.append(cam_pts[i,2])
-        sim_course.append((cam_pts[i,2],sim))
-    
+            this_lag = touch_pts[0,2] - cam_pts[i,2]
+            if sim > max_sim and np.abs(this_lag) < UB:
+                max_sim = sim
+                best_index = i
+                found_good_sim = True
+            elif sim > max_sim and max_sim != 0:
+                false_alarms.append(cam_pts[i,2])
+            sim_course.append((cam_pts[i,2],sim))
+    elif method == 'corr':
+        max_corr = 0
+        best_index=-1
+        sim_course = []
+        false_alarms = []
+        
+        # Normalize the segment
+        ts_mean = np.mean(touch_pts)
+        ts_std = np.std(touch_pts)
+        ts_norm = (touch_pts - ts_mean)/ts_std
+
+        for i in range(len(cam_pts)-touch_pts+1):
+            window = cam_pts[i:i+small_len]
+            window_mean = np.mean(window)
+            window_std = np.std(window)
+
+            # Normalize the window
+            if window_std == 0:  # Avoid division by zero
+                corr = 0
+            else:
+                window_norm = (window-window_mean)/window_std
+                corr = np.sum(ts_norm*window_norm)/small_len
+
+            this_lag = touch_pts[0,2] - cam_pts[i,2]
+            if corr > max_corr and np.abs(this_lag) < UB:
+                max_corr = corr
+                best_index = i
+                found_good_sim = True
+            elif corr > max_corr and max_corr != 0:
+                false_alarms.append(cam_pts[i,2])
+            
+            sim_course.append(cam_pts[i,2],corr) 
+    else:
+        assert False, 'Pick a valid method or learn to type fool.'
+
     #Only save if good peak found
     sim_course = np.array(sim_course)
     if found_good_sim:
