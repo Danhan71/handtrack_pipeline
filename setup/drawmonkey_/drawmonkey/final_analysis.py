@@ -91,11 +91,14 @@ if __name__ == "__main__":
 	
 
 	fails = {}
+	dat_trials = {}
 	for trial_ml2 in trange:
+		dat_trials[trial_ml2] = {}
 		finger_raise_time = 0.0
 		try:
 			dat, dict_figs, dict_reg_figs, all_day_figs = HT.process_data_wrapper(trial_ml2, ploton=True, \
-															  finger_raise_time=finger_raise_time, aggregate=True)
+															  finger_raise_time=finger_raise_time, aggregate=True,ts_cam_offset=0.043)
+			dat_trials[trial_ml2] = dat
 		except Exception as e:
 			print(traceback.format_exc())
 			fails[trial_ml2] = traceback.format_exc()
@@ -141,6 +144,8 @@ if __name__ == "__main__":
 		for coefs, figs in all_day_figs.items():
 			SAVEDIR = f"{data_dir}/{animal}/{date}_{expt}{sess_print}/{coefs}_figures"
 			figs.savefig(f"{SAVEDIR}/all_day_summary.png")
+	with open(f'{data_dir}/{animal}/{date}_{expt}{sess_print}/processed_data.pkl','wb') as f:
+		pickle.dump(dat_trials,f)
 
 
 
