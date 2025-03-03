@@ -21,18 +21,20 @@ On this 26th day of September in the 2024th year of our Lord we thus erect the r
     - ```wrapperwrapper.sh``` : Calls ```notrain_run_script``` for a list of dates
 ## Brief description of modules
 If more info needed, run the module with a --help flag, for options and usage.
-- **env-setup** : Sets up the environments needed for the pipeline, is not exhaustive so some manually additions will need made.
+- **env-setup** : Sets up the environments needed for the pipeline, is not exhaustive so some manual additions will need made.
   - Outputs: Shiny new environments.
 - **init** : Creates metadata files and directories for a given session
   - Outputs : Links data from server (optional) and makes dirs for each camera, also metadat file in expt directory and metadata file in pipeline metadata.
 - **checkerb** : Runs checkerboard for given day, some manual setup is required to make the dirs.
   - Ouputs : Checkerboard calibration matrix and also undistorted frames for review to given cameras folder.
 - **dlc-setup** : Should be run before any DLC modules, will intialize and organize data for DLC analysis. Read options carefully based on your use needs. Includes labelling GUI if new model will be trained.
-  - Creates DLC project, config file, and directories in expt/behavior/DLC.
-- **train** : Module to train a new DLC module. Has a few steps for evaluation and analysis and requires some user labelling in DLC GUI if you want to refine labels.
-  - Ouputs : Makes folders for model in expt/behavior/DLC, and various stages of analysis
+  - Outputs : DLC project, config file, and directories in expt/behavior/DLC.
+- **train** : Module to train a new DLC modle. Has a few steps for evaluation and analysis and requires some user labelling in DLC GUI if you want to refine labels.
+  - Outputs : Makes folders for model in expt/behavior/DLC, and various stages of analysis
 - **analyze** : Main module for model evaluation and data analysis. Can be used with bespoke model or general model. --skiplink flag will determine this. At the end a labelling GUI will appear for user input on quality of labels.
   - Outputs : Makes folders for model and various steps of analysis in expt/behavior/dlc/combined.../
 - **wand** : Purported last step in the pipeline, does all the data extractions, transformations, and plotting. Has a few steps, some can be skipped if you already have dlt coeffs for example.
-  - Outputs : folder in /behavior/DLC with extracted campy and DLC data and folder in expt/figures. There are a number of figures here, organuized by trial each is pretty self explanatory. fig 3 and 4 are particualrly useful for a quick look at how the analysis went. Also folder with jump_quant figures for each file. This quantifies the jumps in cam data to ensure DLC labels are sane.
+  - Outputs : folder in /behavior/DLC with extracted campy and DLC data and folder in expt/figures. There are a number of figures here, organuized by trial each is pretty self explanatory. fig 3 and 4 are particualrly useful for a quick look at how the analysis went. Also plot called all_day_fig that summarizes data across the day.
+- **lag** : Additional module used for finding the lag between touch screen and cam for a given date. The pipeline currently corrects using a value averaged over a few dates (40ms). But if for your analysis you need a more accurate lag calculation, you can run this module to find that number.
+  - Outputs : Step1 outputs plots in ```lag_data``` subdirectory to review for good lags to use in calculation. Step2 outputs a final summary fig using all the data and also a plot with the user filtered data. 
 
