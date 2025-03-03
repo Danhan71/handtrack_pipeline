@@ -2241,15 +2241,15 @@ def corrAlign(cam_pts, touch_pts, ploton=True, UB = 0.15, method='corr'):
     touch_pts_norm = touch_pts[:,[0,1]] - np.mean(touch_pts[:,[0,1]], axis=0)
     # touch_pts_norm = np.divide(touch_pts[:,[0,1]],np.max(touch_pts[:,[0,1]],axis=0))
     
+    max_sim = 0
+    best_index = -1
+    sim_course = []
+    false_alarms = []
+    found_good_sim = False
+
     if method == 'sim':
-        max_sim = 0
-        best_index = -1
-        
-        sim_course = []
-        false_alarms = []
-        found_good_sim = False
-        for i in range(large_len - small_len + 1):
-            window = cam_pts[i:i + small_len]
+        for i in range(large_len-small_len+1):
+            window = cam_pts[i:i+small_len]
             window_norm = window[:,[0,1]] - np.mean(window[:,[0,1]], axis=0)
             # window_norm = np.divide(window[:,[0,1]],np.max(window[:,[0,1]],axis=0))
             sim = np.einsum('ij,ij->', window_norm, touch_pts_norm)
@@ -2262,38 +2262,36 @@ def corrAlign(cam_pts, touch_pts, ploton=True, UB = 0.15, method='corr'):
             elif sim > max_sim and max_sim != 0:
                 false_alarms.append(cam_pts[i,2])
             sim_course.append((cam_pts[i,2],sim))
-    elif method == 'corr':
-        max_corr = 0
-        best_index=-1
-        sim_course = []
-        false_alarms = []
-        
-        # Normalize the segment
-        ts_mean = np.mean(touch_pts)
-        ts_std = np.std(touch_pts)
-        ts_norm = (touch_pts - ts_mean)/ts_std
 
-        for i in range(len(cam_pts)-touch_pts+1):
-            window = cam_pts[i:i+small_len]
-            window_mean = np.mean(window)
-            window_std = np.std(window)
+    elif method == 'corr':
+        # Normalize the segment
+        touch_pts_ = touch_pts[:,[0,1]]
+        ts_mean = np.mean(touch_pts_,axis=0)
+        ts_std = np.std(touch_pts_,axis=0)
+        ts_norm = (touch_pts_ - ts_mean)/(ts_std+1e-8)
+
+        for i in range(large_len-small_len+1):
+            window = cam_pts[i:i+small_len,[0,1]]
+            window_mean = np.mean(window,axis=0)
+            window_std = np.std(window,axis=0)
 
             # Normalize the window
-            if window_std == 0:  # Avoid division by zero
-                corr = 0
+            if np.any(window_std == 0):  # Avoid division by zero
+                corr = np.zeros(2)
             else:
-                window_norm = (window-window_mean)/window_std
-                corr = np.sum(ts_norm*window_norm)/small_len
-
+                window_norm = (window-window_mean)/(window_std+1e-8)
+                corr = np.sum(ts_norm*window_norm,axis=0)/small_len
+            total_corr = np.mean(corr)
             this_lag = touch_pts[0,2] - cam_pts[i,2]
-            if corr > max_corr and np.abs(this_lag) < UB:
-                max_corr = corr
+            if total_corr > max_sim and np.abs(this_lag) < UB:
+                max_sim = total_corr
                 best_index = i
                 found_good_sim = True
-            elif corr > max_corr and max_corr != 0:
+            elif total_corr > max_sim and max_sim != 0:
                 false_alarms.append(cam_pts[i,2])
             
-            sim_course.append(cam_pts[i,2],corr) 
+            sim_course.append((cam_pts[i,2],total_corr)) 
+
     else:
         assert False, 'Pick a valid method or learn to type fool.'
 
@@ -2365,6 +2363,7 @@ def corrAlign(cam_pts, touch_pts, ploton=True, UB = 0.15, method='corr'):
             ax[1,0].axvline(p, color='w', zorder=0, alpha = 0.1)
         ax[1,0].legend()
 
+        print(sim_course.shape)
         ax[1,1].plot(*zip(*sim_course))
         plt.axvline(cam_pts[best_index,2], color ='w', linestyle='--')
 
@@ -2420,9 +2419,11 @@ def get_lags(dfs_func, sdir, coefs, ploton=True):
         t_stroke_start = pnut_strokes_touch[0][0,2]
         t_stroke_end = pnut_strokes_touch[-1][-1,2]
 
+        cush = 0.5
+
         # restrict data to be within desired times
-        all_cam = cam_pts[(cam_pts[:,3] >= t_stroke_start) & (cam_pts[:,3] <= t_stroke_end)]
-        trans_all_cam = trans_cam_pts[(trans_cam_pts[:,3] >= t_stroke_start) & (trans_cam_pts[:,3] <= t_stroke_end)]
+        all_cam = cam_pts[(cam_pts[:,3] >= t_stroke_start-cush) & (cam_pts[:,3] <= t_stroke_end+cush)]
+        trans_all_cam = trans_cam_pts[(trans_cam_pts[:,3] >= t_stroke_start-cush) & (trans_cam_pts[:,3] <= t_stroke_end+cush)]
         touch_strokes_rest = []
         for strok in strokes_touch:
             if strok[0,2] >= t_stroke_start and strok[-1,2] <= t_stroke_end:
@@ -2449,7 +2450,6 @@ def get_lags(dfs_func, sdir, coefs, ploton=True):
         trans_cam_interp = strokesInterpolate2([trans_all_cam],kind='linear',N=["fsnew",1000,trans_cam_fs])
         trans_cam_interp_smth = smoothStrokes(trans_cam_interp, 1000, window_type='median')[0]
         # trans_cam_interp_smth = trans_cam_interp_smth[:,[0,1,3]]
-
         touch_interp = strokesInterpolate2(strokes_touch,kind='linear',N=["fsnew",1000,touch_fs])
         touch_interp_noz = []
         for stroke in touch_interp:
@@ -2461,7 +2461,7 @@ def get_lags(dfs_func, sdir, coefs, ploton=True):
             if len(touch_stroke_filt) == 0:
                 continue
             euc_lag, euc_fig = euclidAlign(trans_cam_interp_smth,touch_stroke_filt, ploton=True)
-            corr_lag, corr_fig, outcome = corrAlign(cam_interp_smth,touch_stroke_filt, ploton=True)
+            corr_lag, corr_fig, outcome = corrAlign(cam_interp_smth,touch_stroke_filt, UB=0.25, method='corr', ploton=True)
             corr_lags[trial].append(corr_lag)
             euc_lags[trial].append(euc_lag)
             if ploton:

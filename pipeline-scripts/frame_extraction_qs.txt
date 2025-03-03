@@ -1,6 +1,0 @@
-#!/bin/bash
-trials=(15 100 200 300 350 400)
-for trial in "${trials[@]}"; do
-	mkdir "t${trial}_frames"
-	ffmpeg -i vid-t${trial}.mp4 -c:v png t${trial}_frames/frame-%04d.png
-done

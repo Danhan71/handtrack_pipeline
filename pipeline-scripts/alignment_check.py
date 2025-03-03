@@ -26,13 +26,17 @@ def plot_alignment_data(lags, good_inds):
     """
     plt.style.use('dark_background')
     all_corr_lags = []
-    for trial,lags in lags.items():
-        all_corr_lags.extend([c[0]-c[1] for c in lags if c is not None])
     corr_lag_nums = []
+    for lag_trial in lags['corr_lags'].values():
+        for lag in lag_trial:
+            if lag is None:
+                continue
+            else:
+                all_corr_lags.append(lag[0]-lag[1])
     for index in good_inds:
         trial = int(index.split('-')[0])
         stroke = int(index.split('-')[1])
-        this_lag = lags[trial][stroke]
+        this_lag = lags['corr_lags'][trial][stroke]
         if this_lag is None:
             continue
         lag_num = this_lag[0]-this_lag[1]
@@ -49,7 +53,7 @@ def plot_alignment_data(lags, good_inds):
     #     euc_lag_nums.append(lag_num)
     #     # print(index,lag_num)
     bins = 30
-    fig,ax = plt.subplots(1,4,fig_size=(10,15))
+    fig,ax = plt.subplots(4,1,figsize=(15,30))
     ax[0].hist(all_corr_lags, bins=bins, color='indianred', alpha=0.5, label='corr lag')
     ax[0].set_xlabel('Lag times (pos means touch_t0 > cam_t0)')
     ax[0].set_title('All lags')
@@ -157,8 +161,8 @@ if __name__ == "__main__":
             with open(f'{this_sdir}/lag_data.pkl','wb') as f:
                 pickle.dump(lags,f)
         if plot:
-            with open(f'{this_sdir}/good_inds.txt','rb') as f:
-                good_inds = f.readline().replace(' ','').split(',')
+            with open(f'{sdir}/good_inds.txt','r') as f:
+                good_inds = [item.strip().strip("'") for item in f.readline().replace(' ', '').split(',')]      
             if len(good_inds) < 10:
                 print(f'{len(good_inds)} not enough good inds, please enter more in file {this_sdir}/good_inds.txt')
             else:
