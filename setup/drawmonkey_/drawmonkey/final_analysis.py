@@ -67,6 +67,8 @@ if __name__ == "__main__":
 	print("Vid", trange)
 
 	fd = loadSingleDataQuick(animal, date, expt, sess)
+	fd['params']['sample_rate'] = fd['params']['sample_rate'][0]
+
 	HT = HandTrack(ind1_vid, ind1_ml2, fd, sess_print=sess_print, animal=animal, date=date, expt=expt)
 	HT.load_campy_data(ind1_ml2)
 	trials_no_ts_data = []
