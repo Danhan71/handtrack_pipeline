@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from pyvm.globals import BASEDIR
 import pandas as pd
-
+import pickle
 
 class Videos(object):
     """
@@ -66,19 +66,20 @@ class Videos(object):
             # Check filesize, if below threshold, then exclude.
             if min_size_bytes is not None:
                 x = os.path.getsize(path)
-                y = cv2.VideoCapture(path)
+                
                 if x<min_size_bytes:
                     # skip
                     print(f"SKIPPING {path}, since fsize {x} < {min_size_bytes}")
                     skipped_vids[(path.split('/')[-1],cam)] = 'too small'
                     continue
-                if not y.isOpened():
-                    # skip 
-                    print(f"SKIPPING {path}, beacuse video file does not open (probably ungracefully truncated)")
-                    skipped_vids[(path.split('/')[-1],cam)] = 'truncated'
-                    continue 
+            y = cv2.VideoCapture(path)
+            if not y.isOpened():
+                # skip 
+                print(f"SKIPPING {path}, beacuse video file does not open (probably ungracefully truncated)")
+                skipped_vids[(path.split('/')[-1],cam)] = 'truncated'
+                continue 
                 
-                y.release()
+            y.release()
 
             # Each video should have unique index
             name = extractStrFromFname(path, None, None, return_entire_filename=True)
@@ -106,9 +107,11 @@ class Videos(object):
 
         #Janky
         path_here = '/'.join(D["path_base"].split('/')[:-2])
-        with open (f'{path_here}/skipped_vids.txt','w') as f:
+        with open(f'{path_here}/skipped_vids.txt','w') as f:
             for k,v in skipped_vids.items():
                 f.writelines(f"{k},{v}\n")
+        with open(f'{path_here}/skipped_vids.pkl','wb') as f:
+            pickle.dump(skipped_vids,f)
 
         # Checks
         self._check_preprocess()

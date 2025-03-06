@@ -44,6 +44,7 @@ class HandTrack(object):
         self.Regressor = {}
         self.ZMat = {}
         self.AllDay = {}
+        self.SkippedVids = {}
 
         #Will automatically extract sets of data for different coeff sets.
         #all functions that process data will adapt to number of coef sets
@@ -55,17 +56,56 @@ class HandTrack(object):
             self.Regressor[coef] = 0
             self.ZMat[coef] = [0,0,1]
             self.AllDay[coef] = {}
+            self.SkippedVids[coef] = self.load_vclass_errors(coef)
         self.Coefs = coef_dirs
         
             
 
         # trial_map = [1, 6] # if [1,6], then ml2 trial 1 is vid6
 
+    def load_vclass_errors(self,coef):
+        """
+        Function to check for video class skipped vids file, load it, and save to HT object to ensure that upstream errors aren't enocuntered once again
+        """
+        def get_trialnum_from_vname(vid_file):
+            """
+            Stupid fucntion to get the vid gtrial from the4 video file name that is passed in by videoclass
+            """
+            import re
+            match = re.search(r't(\d+)\.mp4', vid_file)
+            if match:
+                extracted_number = match.group(1)
+            else:
+                assert False, 'No trial found in this video name'
+            return int(extracted_number)
+        cams_file = f'{BASEDIR}/{self.animal}/{self.Date}_{self.Expt}{self.SessPrint}/behavior/{coef}_extracted_dlc_data/cams.txt'
+        if os.path.exists(cams_file):
+            with open(cams_file,'r') as f:
+                coefs_cams = [line.rstrip() for line in f]
+        else:
+            assert False, f'{cams_file} not found, make sure wand step 4/vclass ran properly'
+
+        fdir = f'{BASEDIR}/{self.animal}/{self.Date}_{self.Expt}{self.SessPrint}/skipped_vids.pkl'
+        if os.path.exists(fdir):
+            with open(fdir,'rb') as f:
+                skipped_vids = pickle.load(f)
+        else:
+            assert False, f'{fdir} not found. Make sure wand step 4/videoclass ran properly and produced a (possibly empty) skipped vides file'
+        coefs_skipped_vids = []
+        #Only keep vids skipped relevant to these coefs
+        for vid_info in skipped_vids.keys():
+            vid_file, cam = vid_info
+            trial = get_trialnum_from_vname(vid_file)
+            if cam in coefs_cams:
+                coefs_skipped_vids.append(trial)
+                
+        return coefs_skipped_vids
+
     def setRegressor(self,reg):
         self.Regressor = reg
 
-    def process_data_wrapper(self, trial_ml2 = None, ploton = False, aggregate = False, coefs = None, finger_raise_time=0.0, ts_cam_offset=0.0,  all_day=False):
-        """Higher level wrapper for all data process and plotting functions.
+    def process_data_wrapper(self, trial_ml2 = None, ploton = False, aggregate = False, coefs_in = None, finger_raise_time=0.0, ts_cam_offset=0.0,  all_day=False):
+        """Higher level wrapper for all data process and plotting functions. Also loads the skipped videos file from videoclass into ht param to coomunicate errors 
 
         Args:
             trial_ml2 (int): integer value for ml2 trial (i.e. usually 1 indexed trials). Rqd
@@ -83,10 +123,20 @@ class HandTrack(object):
         figs = {}
         reg_figs = {}
         all_day_figs = {}
-        for coefs in self.Coefs:
+        if coefs_in is None:
+            coefs_in = self.Coefs
+        else:
+            coefs_in = self.check_coefs(coefs_in)
+            #Just to handle case where only one coefs smoothly
+            if not isinstance(coefs_in,list):
+                coefs_in = [coefs_in]
+        for coefs in coefs_in:
             if all_day:
                 all_day_figs[coefs] = self.plot_data_all_day(coefs=coefs)
             else:
+                if trial_ml2-1 in self.SkippedVids[coefs]:
+                    print(f'Skipping vid trial {trial_ml2-1}/beh trial {trial_ml2} for {coefs} coefs bc bad video in at least one cam')
+                    continue
                 dat[coefs], figs[coefs], reg_figs[coefs] = self.process_data_singletrial(trial_ml2,\
                                                         finger_raise_time=finger_raise_time, aggregate=aggregate,\
                                                             ploton=ploton, coefs=coefs, ts_cam_offset=ts_cam_offset)
@@ -861,10 +911,12 @@ class HandTrack(object):
             list_reg_figs = []
         assert (list_figs is not None) == (list_reg_figs is not None), "why one none other not?"
 
-        if aggregate:
+        #Does not aggregate for no regressed dat, should be a somewhat quick fix but I am lazy so do not want to fix it
+        if aggregate and self.Regressor != 0:
             if trial_ml2 not in self.AllDay[coefs]:
                 self.AllDay[coefs][trial_ml2] = {}
             #Get z coords but only after fixation period happens
+            # assert False
             raw_strokes_cam = np.concatenate(datall['strokes_cam'])
             raw_gaps_cam = np.concatenate(datall['gaps_cam'])
             reg_strokes_cam = np.concatenate(datall['reg_strokes_cam'])
@@ -1353,7 +1405,7 @@ class HandTrack(object):
         for trial in trange:
 
             try:
-                dat, _, _ = self.process_data_singletrial(trial, ploton=False, finger_raise_time=0.0, coefs=coefs)
+                dat, _, _, _ = self.process_data_wrapper(trial, ploton=False, finger_raise_time=0.0, coefs_in=coefs)
             except Exception as e:
                 print(f"Not regressing trial {trial} bc failure")
                 print(traceback.format_exc())
@@ -1361,13 +1413,16 @@ class HandTrack(object):
             #Skips trials nbo data
             if dat == {}:
                 continue
-
+            dat = dat[coefs]
+            if dat == {}:
+                continue
             for strok_cam, strok_touch in zip(dat["strokes_cam"], dat["strokes_touch"]):
                 strokes_cam_allt.append(np.array(strok_cam))
                 strokes_touch_allt.append(np.array(strok_touch))
 
-        assert (strokes_touch_all != {}), "No data for this expt"
-
+        if strokes_touch_allt == []:
+            print(f'No data for these coefs {coefs}, skipping regression')
+            return
         #Interpolate cam strokes up to match the ts times
         N = ['input_times']
         for strok_touch, strok_cam in zip(strokes_touch_allt,strokes_cam_allt):
@@ -1404,6 +1459,10 @@ class HandTrack(object):
     
         #Touhc list is 'ground truth' cam list is data to fit
         assert len(cam_one_list) == len(touch_one_list), "cam, touch different lengths"
+        if len(cam_one_list) == 0:
+            #Don't do anything
+            print(f'No data for these coefs {coefs}, skipping regression')
+            return
     
         
         reg = LinearRegression().fit(cam_one_list, touch_one_list)
@@ -1759,6 +1818,10 @@ class HandTrack(object):
 
         df = pd.DataFrame.from_dict(self.AllDay[coefs], orient='index')
         df = df.dropna()
+        #If no regressor use empty placeholders bc I'm lazy and dont want ot make code flexible
+        if len(df) == 0:
+            print('No data found for these coefs, skipping plotting')
+            return None
         reg_gaps_sep = df['reg_gaps_all']
         trans_gaps_sep = df['trans_gaps_all']
         df.drop(['reg_gaps_all', 'trans_gaps_all'], axis=1, inplace=True)

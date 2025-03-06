@@ -89,11 +89,8 @@ if __name__ == "__main__":
 			import shutil
 			shutil.rmtree(SAVEDIR)
 		os.makedirs(SAVEDIR)
-
-	
-
-	fails = {}
 	dat_trials = {}
+	fails = {}
 	for trial_ml2 in trange:
 		dat_trials[trial_ml2] = {}
 		finger_raise_time = 0.0
@@ -144,8 +141,9 @@ if __name__ == "__main__":
 	_,_,_,all_day_figs = HT.process_data_wrapper(all_day=True)
 	if all_day_figs is not None:
 		for coefs, figs in all_day_figs.items():
-			SAVEDIR = f"{data_dir}/{animal}/{date}_{expt}{sess_print}/{coefs}_figures"
-			figs.savefig(f"{SAVEDIR}/all_day_summary.png")
+			if figs is not None:
+				SAVEDIR = f"{data_dir}/{animal}/{date}_{expt}{sess_print}/{coefs}_figures"
+				figs.savefig(f"{SAVEDIR}/all_day_summary.png")
 	with open(f'{data_dir}/{animal}/{date}_{expt}{sess_print}/processed_data.pkl','wb') as f:
 		pickle.dump(dat_trials,f)
 
