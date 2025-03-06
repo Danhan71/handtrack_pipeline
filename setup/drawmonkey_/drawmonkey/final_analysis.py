@@ -10,6 +10,15 @@ import matplotlib.pyplot as plt
 import os
 import pickle
 
+def flip_save_dict_keys(dict_in):
+	#Quick funciton to make df keys better instead of just generating it better
+	new_df = {}
+	for trial, coefs_dict in dict_in.items():
+		for coefs,dat in coefs_dict.items():
+			if coefs not in new_df.keys():
+				new_df[coefs] = {}
+			new_df[coefs][trial] = dat
+	return new_df
 
 if __name__ == "__main__":
 
@@ -144,8 +153,9 @@ if __name__ == "__main__":
 			if figs is not None:
 				SAVEDIR = f"{data_dir}/{animal}/{date}_{expt}{sess_print}/{coefs}_figures"
 				figs.savefig(f"{SAVEDIR}/all_day_summary.png")
+	dat_trials_good = flip_save_dict_keys(dat_trials)
 	with open(f'{data_dir}/{animal}/{date}_{expt}{sess_print}/processed_data.pkl','wb') as f:
-		pickle.dump(dat_trials,f)
+		pickle.dump(dat_trials_good,f)
 
 
 
