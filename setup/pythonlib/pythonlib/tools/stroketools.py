@@ -2474,6 +2474,124 @@ def get_lags(dfs_func, sdir, coefs, ploton=True):
                 plt.close('all')
     return corr_lags,euc_lags
 
+## Gap tools
+## General tools for gaps, may overlap with stroke tools but with different intentionbs
+def fps(x, fs):
+    '''Five point stentil function for discrete derivative, scales to m/s auto'''
+    v = [(-x[i+2] + 8*x[i+1] - 8*x[i-1] + x[i-2])/12 for i in range(len(x)) if 2<=i<len(x)-2]
+    return np.array(v) * fs
 
+def fps2(x, fs):
+    '''Same as above but for second derivative scales to m/s**2 auto'''
+    a = [(-x[i+2] + 16*x[i+1] - 30*x[i] + 16*x[i-1] - x[i-2])/12 for i in range(len(x)) if 2<=i<len(x)-2]
+    return np.array(a) * fs**2
+
+def plotTrialsTrajectories(dat, trial_ml2, data_use='trans'):
+    """Plot some relevant trajectories"""
+    plt.style.use('dark_background')
+
+    assert len(dat) > 0, "No data here"
+    if data_use == 'trans':
+        cam_pts = dat['trans_pts_time_cam_all']
+        strokes_touch = dat["strokes_touch"]
+    elif data_use == 'raw':
+        cam_pts = dat['pts_time_cam_all']
+        strokes_touch = dat["strokes_touch"]
+    else:
+        assert False, "Not sure what data you want to use"
+
+    cushion = 0.1
+    t_onfix_off = strokes_touch[0][-1,2]
+    t_offfix_on = strokes_touch[-1][0,2]
+    on_offs = {}
+    on_offs['on_fix'] = [None,t_onfix_off]
+    for i,strok in enumerate(strokes_touch[1:-1]):
+        on_offs[f'stroke_{i}'] = []
+        on_offs[f'stroke_{i}'].append(strok[0,2])
+        on_offs[f'stroke_{i}'].append(strok[-1,2])
+    on_offs['off_fix'] = [t_offfix_on,None]
+
+    # filter data to be within desired times
+    pts_cam = cam_pts[(cam_pts[:,3] >= t_onfix_off-cushion) & (cam_pts[:,3] <= t_offfix_on+cushion)]
+    cam_fs = 1/np.mean(np.diff(pts_cam[:,3]))
+    assert 49.5 <= cam_fs <= 50.5, f'cam fs of {cam_fs}hz is weird'
+
+    #Interpolate to 100 points
+    kind='linear'
+    pts_cam_int = strokesInterpolate2([pts_cam],kind=kind,N=["fsnew",1000,cam_fs])[0]
+
+    #Get z data and v data (raw and interp)
+    raw_z = pts_cam[:,2]
+    int_zt = np.column_stack((pts_cam_int[:,2],pts_cam_int[:,3]))
+    raw_vt = np.column_stack((fps(raw_z,cam_fs),pts_cam[2:-2,3]))
+    int_vt = np.column_stack((fps(pts_cam_int[:,2],1000),pts_cam_int[2:-2,3]))
+    #Smooth interp data
+    if_zt = smoothStrokes([int_zt], 1000, window_type='median')[0]
+    if_vt = smoothStrokes([int_vt], 1000, window_type='median')[0]
+
+    fig = plt.figure(figsize=(20,10))
+    #Plot data
+    plt.plot(if_vt[:,1], if_vt[:,0], label='v_filt')
+    plt.plot(if_zt[:,1], if_zt[:,0]*10, label='z_filt')
+    plt.plot(pts_cam[:,3],pts_cam[:,2], '.-',color='orange',label='raw z')
+    #Plot ts strokes
+    ymin,ymax = plt.ylim()
+    for stroke,onoff in on_offs.items():
+        if stroke == 'on_fix':
+            plt.fill_between([plt.xlim()[0],onoff[1]], plt.ylim()[0], plt.ylim()[1], fc='lightgreen',alpha=0.2, zorder=0)
+        elif stroke == 'off_fix':
+            plt.fill_between([onoff[0],plt.xlim()[1]], plt.ylim()[0], plt.ylim()[1], fc='indianred',alpha=0.2, zorder=0)
+        else:
+            plt.fill_between(onoff, plt.ylim()[0], plt.ylim()[1], fc='lightgrey',alpha=0.2, zorder=0)
+        plt.autoscale(False)
+    plt.ylim(ymin,ymax)
+    # plt.xlim(xmin,xmax)
+    plt.legend()
+    plt.title(f'Beh {trial_ml2} : Vid {trial_ml2-1}')
+    return fig
+
+def normalizeGaps(gaps):
+    """Normalize all gaps ts in list to occur in t=[0,1]. Will use minmax normal
+
+    Args:
+        gaps (array): Array of gaps (x,y,z,t)
+        coord_ind (int): Index of relevant coord (default is 2/z)
+    """
+    gaps_norm = []
+    for gap in gaps:
+        ts = gap[:,-1]
+        t_min = np.min(ts)
+        t_max = np.max(ts)
+        norm_ts = (ts - t_min)/(t_max-t_min)
+        gaps_norm.append(np.column_stack((gap[:,:-1],norm_ts)))
+    return gaps_norm
+
+    
+
+def plotGapHeat(gaps,color_ind=2):
+    """Plot heat maps of gaps, one gap per row could be normal
+
+    Args:
+        gaps (array): Array of gaps (x,y,z,t) 
+        coord_ind (int): Index of relevant coord (default is 2/z)
+    """
+    # Convert to NumPy array for easier manipulation
+    gaps = np.array(gaps, dtype=float)  # Shape: (num_gaps, num_points, 4)
+    
+    # Determine which index to use for coloring
+    
+    # Extract values for heatmap
+    color_values = gaps[:, :, color_ind]  # Extract chosen variable
+    
+    # Plot the heatmap
+    plt.figure(figsize=(10, len(gaps)))  # Adjust height based on number of gaps
+    plt.imshow(color_values, aspect='auto', cmap='viridis', interpolation='nearest')
+
+    # Label axes
+    plt.xlabel("Normalized Time (t)")
+    plt.ylabel("Gap Index")
+    plt.colorbar()
+    
+    plt.show()
 
     

@@ -638,7 +638,8 @@ class HandTrack(object):
             # print("reg gap   print(pts_after_fix)pts", reg_gaps_list)
             # assert False
 
-            
+            pnut_strokes = getTrialsStrokesByPeanuts(self.Fd, trial_ml2)
+            strokes_task = getTrialsTaskAsStrokes(self.Fd, trial_ml2)
             if return_in_meters:
                 #First do the x y pts only
                 pts_time_cam_all = reg_pts_cam.copy()
@@ -656,7 +657,7 @@ class HandTrack(object):
                     x[:, :2] = convert_pix_to_meters(x[:,:2])
                     strokes_meters.append(x)
                 strokes_task = strokes_meters
-            dat["reg_strokes_task"] = strokes_task
+            dat["strokes_task"] = strokes_task
 
             datall["reg_strokes_cam"] = reg_pts_list
             datall["reg_gaps_cam"] = reg_gaps_list
