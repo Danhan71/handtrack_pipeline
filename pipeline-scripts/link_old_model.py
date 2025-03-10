@@ -6,7 +6,7 @@ import os, os.path
 import argparse
 
 
-from initialize import find_expt_config_paths
+from pyvm.dlc.initialize import find_expt_config_paths
 from pythonlib.tools.expttools import load_yaml_config
 
 

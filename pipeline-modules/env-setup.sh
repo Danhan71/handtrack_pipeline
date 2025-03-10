@@ -48,30 +48,32 @@ fi
 #Check if envs already exist
 if [ `echo $envs | grep -c "p_drawcamera" ` -gt 0 -a $draw == true ]
 then
-	echo "_drawcamera conda env found!" && exit 1
+	echo "p_drawcamera conda env found!" && exit 1
 fi 
 
 if [ `echo $envs | grep -c "p_dlc" ` -gt 0 -a $dlc == true ]
 then
-	echo "_dlc conda env found, cancelling! If you just need 1 env sorry, no edge cases :)" && exit 1
+	echo "p_dlc conda env found, cancelling! If you just need 1 env sorry, no edge cases :)" && exit 1
 fi
 
 if [ $draw == true ]; then
-	conda env create -n p_drawcamera --file=${pipe_path}/setup/drawcamera_env.yaml
+	conda env create -n p_drawcamera --file=${pipe_path}/setup/envs/drawcamera_env.yaml
 	source activate p_drawcamera
 	conda install jupyterlab ipykernel
-	pip install -e ${pipe_path}/setup/pythonlib
-	pip install -e ${pipe_path}/setup/pyvm_all
+	pip install -e ${pyvm}
+	pip install -e ${pythonlib}
 fi
 
 if [ $dlc == true ]; then
-	conda env create -n p_dlc --file=${pipe_path}/setup/dlc_env.yaml
+	conda env create -n p_dlc --file=${pipe_path}/setup/envs/dlc_env.yaml
 	source activate p_dlc
 	conda install jupyterlab ipykernel
-	pip install -e ${pipe_path}/setup/pythonlib
-	pip install -e ${pipe_path}/setup/pyvm_all
+	pip install -e ${pythonlib}
+	pip install -e ${pyvm}
 	pip install -e ${pipe_path}/setup/deeplabcut
 	pip install torch
 	pip uninstall opencv-python
 	pip install opencv-python-headless
 fi
+
+ln -s ${pyvm}/pyvm/metadata ${pipe_path}/metadata

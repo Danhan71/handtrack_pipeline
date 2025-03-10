@@ -1,6 +1,0 @@
-README.md
-setup.py
-drawmonkey.egg-info/PKG-INFO
-drawmonkey.egg-info/SOURCES.txt
-drawmonkey.egg-info/dependency_links.txt
-drawmonkey.egg-info/top_level.txt

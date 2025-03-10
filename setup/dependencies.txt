@@ -1,0 +1,7 @@
+Custom library depedencies for proper pipeline function:
+- pythonlib
+- pyvm (in videomonkey)
+- drawmonkey
+
+** Clone these repos from Lucas's github then pip install -e them into the pipeline env
+** pipeline env-setup should handle this, so long as the proper directories are in config
