@@ -1,13 +1,6 @@
 config
-notrain_run_script.sh
-pipeline-scripts/diego_run.sh
-pipeline-scripts/pancho_run.sh
 temp_matlab_files
-setup/pyvm_all/pyvm/metadata/
-setup/pyvm_all/pyvm/metadata/Pancho/
-setup/pyvm_all/pyvm/metadata/Diego/
 pipeline-scripts/logs
-setup/pyvm_all/pyvm/globals.py
 *.pyc
 .nfs*
 checkpoints
