@@ -7,7 +7,7 @@ import argparse
 import yaml
 
 
-def generate_expt_yaml (expt_name, pipe_path, data_dir, condition, animal, list_camnames):
+def generate_expt_yaml (expt_name, pyvm_path, data_dir, condition, animal, list_camnames):
 	#Generate condition dependent parameters
 	if list_camnames is None:
 		#Somewhat dirty fix to allow for DLC metadata generation b4 other metadat generation
@@ -65,17 +65,17 @@ def generate_expt_yaml (expt_name, pipe_path, data_dir, condition, animal, list_
 		assert False, f"Condition {condition} is invalid.Please pick a valid condition (behavior, wand, or checkerboard)"
 
 
-	TEMP = load_yaml_config(f"{pipe_path}/metadata/TEMPLATE.yaml")
+	TEMP = load_yaml_config(f"{pyvm_path}/metadata/TEMPLATE.yaml")
 	varlist = [animal, list_camnames, list_conditions, list_bodyparts, list_skeletons, list_start, list_stop, list_combinecams, list_vidnums, list_numframes2pick, list_dlciternum]
 	str_varlist = ["animal", "list_camnames", "list_conditions", "list_bodyparts", "list_skeletons", "list_start", "list_stop", "list_combinecams", "list_vidnums", "list_numframes2pick", "list_dlciternum"]
 
 	for varname, var in zip(str_varlist, varlist):
 		TEMP[varname] = var 
-	with open(f"{pipe_path}/metadata/{animal}/{name}.yaml", "w") as f:
+	with open(f"{pyvm_path}/metadata/{animal}/{name}.yaml", "w") as f:
 		yaml.dump(TEMP,f, default_flow_style=False)
 
 	if condition == "checkerboard":
-		print (f"Since you will be calibrating the checkerboard, you must go into the metadata file at {pipe_path}/metadata/{name}.yaml and enter good frames for each camera. Pay attention to the camera order when doing this (can be found in the metadat.yaml file in the expt directory).")
+		print (f"Since you will be calibrating the checkerboard, you must go into the metadata file at {pyvm_path}/metadata/{name}.yaml and enter good frames for each camera. Pay attention to the camera order when doing this (can be found in the metadat.yaml file in the expt directory).")
 		print ("Enter the information as a list fo lists, with one list of frames for each camera")
 
 # BASEDIR = '/data2/camera'
@@ -87,14 +87,14 @@ if __name__ == "__main__":
 	parser = argparse.ArgumentParser(description = "Description of your script.")
 	parser.add_argument("name", type = str, help = "Experiment name/date")
 	parser.add_argument("animal", type=str, help="Alright then")
-	parser.add_argument("--pipepath", type = str, help = "Path to pipeline dir")
+	parser.add_argument("--pyvmpath", type = str, help = "Path to pyvm dir for metadata")
 	parser.add_argument("--cond", type = str, help = "Conditon for this expt")
 	parser.add_argument("--datadir", type = str, help = "Directory for data")
 	parser.add_argument("--skiplink", type = str, help = "skiplinking vids", default=False)
 	args = parser.parse_args()
 
 	name  =  args.name
-	pipe_path = args.pipepath
+	pyvm_path = args.pyvmpath
 	data_dir = args.datadir
 	condition = args.cond
 	animal = args.animal
@@ -105,16 +105,16 @@ if __name__ == "__main__":
 		skiplink = False
 	# condition = args.cond
 	# name = "240510_2"
-	# pipe_path = "/home/danhan/Documents/pipeline"
+	# pyvm_path = "/home/danhan/Documents/pipeline"
 	# data_dir = f"{BASEDIR}/{name}/Camera1"
 
 	
 	#First pass to get info needed by get_metadata function
-	generate_expt_yaml(expt_name=name, pipe_path=pipe_path, data_dir=data_dir, condition=condition, animal=animal, list_camnames=None)
+	generate_expt_yaml(expt_name=name, pyvm_path=pyvm_path, data_dir=data_dir, condition=condition, animal=animal, list_camnames=None)
 	METADAT = get_metadata(name, animal=animal, condition=condition)
 	list_camnames = METADAT["list_camnames"]
 	#Second pass to put in proper cam names 
-	generate_expt_yaml(expt_name=name, pipe_path=pipe_path, data_dir=data_dir, condition=condition, animal=animal, list_camnames=list_camnames)
+	generate_expt_yaml(expt_name=name, pyvm_path=pyvm_path, data_dir=data_dir, condition=condition, animal=animal, list_camnames=list_camnames)
 	#Doing it in this way allows for flexible camera copying, as cameras with missing data will
 	#not make it to the end. There is propanly a cleaner wauy to do this but thtta would require changing
 	#too much code so this is what yo get.
@@ -147,7 +147,7 @@ if __name__ == "__main__":
 		metadat = load_yaml_config(f"{data_dir}/{name}/metadat.yaml")
 		cam_dirs = metadat["conditions_dict"][condition]["map_camname_to_path"]
 
-		config = load_yaml_config(f"{pipe_path}/metadata/{animal}/{name}.yaml")
+		config = load_yaml_config(f"{pyvm_path}/metadata/{animal}/{name}.yaml")
 		vid_inds = config["list_vidnums"][0]
 
 		if not skiplink:

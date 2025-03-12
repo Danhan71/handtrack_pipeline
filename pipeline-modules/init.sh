@@ -122,7 +122,7 @@ fi
 if [ -f "${pipe_path}/${name}.yaml" ]; then
 	rm "${pipe_path}/${name}.yaml"
 fi
-python3 ${scripts}/make_dirs.py ${name} ${animal} --pipepath ${pipe_path} --datadir "${data_dir}/${animal}" --cond ${cond} --skiplink ${skiplink}
+python3 ${scripts}/make_dirs.py ${name} ${animal} --pyvmpath ${pyvm} --datadir "${data_dir}/${animal}" --cond ${cond} --skiplink ${skiplink}
 
 checkpoints="${data_dir}/${animal}/${name}/checkpoints"
 mkdir -p $checkpoints

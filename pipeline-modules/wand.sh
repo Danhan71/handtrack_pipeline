@@ -179,7 +179,7 @@ elif [ $step == 4 ]; then
 		rm -r $trans_path
 	fi
 elif [ $step == 5 ]; then
-	python3 ${draw_monk}/final_analysis.py ${name} --animal ${animal} --reg ${reg} --supp ${supp} --pipe ${pipe_path} --data ${data_dir}
+	python3 ${draw_monk}/final_analysis.py ${name} --animal ${animal} --reg ${reg} --supp ${supp} --pyvm ${pyvm} --data ${data_dir}
 	checkpoints="${data_dir}/${animal}/${name}/checkpoints"
 	touch "${checkpoints}/wand5"
 	touch "${checkpoints}/done"
