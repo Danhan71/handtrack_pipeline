@@ -37,9 +37,6 @@ help_message () {
 	echo "			(4) --cond	STR	Condition type (default = behavior)"
 	echo "			(5) --noreg	Do not do linear regression on cam pts (one regression for whole day applied to each trial) "
 	echo "			Default:	True, do regression (also outputs non-regressed data)"
-	echo "			(5) --supp"
-	echo "			Use supplemental data stored in supp_reg_pts directory (one file for test data and oen for ground truth)"
-	echo "			Names should be xyz_pts_dlt.csv for test and xyz_pts_gt.csv for gt. Off by default."
 	echo ""
 	echo "			ALSO make sure to update config with current dlt_coeffs"
 	echo ""
@@ -59,7 +56,7 @@ if [[ $? -ne 0 ]]; then
 fi
 
 #default params
-setup=false; cond='behavior'; reg=1; supp=0
+setup=false; cond='behavior'; reg=1;
 
 while true; do
 	case "$1" in
@@ -68,7 +65,6 @@ while true; do
 		--cond) cond="$2"; shift 2;;
 		# --rmcam) rmcam="$2"; shift 2;;
 		--noreg) reg=0; shift 1;;
-		--supp) supp=1; shift 1;;
 		-e) name="$2"; shift 2;;
 		-a) animal="$2"; shift 2;;
 		-h | --help) help_message; exit 1; shift 1;;
@@ -179,7 +175,7 @@ elif [ $step == 4 ]; then
 		rm -r $trans_path
 	fi
 elif [ $step == 5 ]; then
-	python3 ${draw_monk}/final_analysis.py ${name} --animal ${animal} --reg ${reg} --supp ${supp} --pyvm ${pyvm} --data ${data_dir}
+	python3 ${draw_monk}/final_analysis.py ${name} --animal ${animal} --reg ${reg} --pyvm ${pyvm} --data ${data_dir}
 	checkpoints="${data_dir}/${animal}/${name}/checkpoints"
 	touch "${checkpoints}/wand5"
 	touch "${checkpoints}/done"
