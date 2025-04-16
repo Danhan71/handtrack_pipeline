@@ -37,6 +37,8 @@ help_message () {
 	echo "			(4) --cond	STR	Condition type (default = behavior)"
 	echo "			(5) --noreg	Do not do linear regression on cam pts (one regression for whole day applied to each trial) "
 	echo "			Default:	True, do regression (also outputs non-regressed data)"
+	echo "			(5) --ploton	Generate plots (default is false)"
+	echo "			(5) --force_redo_regression	Force redo of regression even if it exists"
 	echo ""
 	echo "			ALSO make sure to update config with current dlt_coeffs"
 	echo ""
@@ -65,6 +67,8 @@ while true; do
 		--cond) cond="$2"; shift 2;;
 		# --rmcam) rmcam="$2"; shift 2;;
 		--noreg) reg=0; shift 1;;
+		--ploton) plot_flag='--ploton'; shift 1;;
+		--force_redo_regression) force_reg_flag='--force_redo_regression'; shift 1;;
 		-e) name="$2"; shift 2;;
 		-a) animal="$2"; shift 2;;
 		-h | --help) help_message; exit 1; shift 1;;
@@ -175,7 +179,7 @@ elif [ $step == 4 ]; then
 		rm -r $trans_path
 	fi
 elif [ $step == 5 ]; then
-	python3 ${draw_monk}/final_analysis.py ${name} --animal ${animal} --reg ${reg} --pyvm ${pyvm} --data ${data_dir}
+	python3 ${draw_monk}/final_analysis.py ${name} --animal ${animal} --reg ${reg} --pyvm ${pyvm} --data ${data_dir} $plot_flag $force_reg_flag
 	checkpoints="${data_dir}/${animal}/${name}/checkpoints"
 	touch "${checkpoints}/wand5"
 	touch "${checkpoints}/done"

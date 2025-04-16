@@ -23,6 +23,8 @@ help_message () {
 	echo "		--loop			Loop through a date folder will skip wandgrids"
 	echo "						If this is selected enter the date for the name"
 	echo "						loop mode also tracks checkpoints"
+	echo "		--ploton		Generate final plots (default is false)"
+	echo "		--help			Print this help message"
 	echo ""
 }
 
@@ -51,6 +53,7 @@ while true; do
 		-l) dir="late"; loop_dir="${server_dir}/ltian/camera_late_2023_onwards/${animal}/${name}"; shift 1;;
 		-g) dir="early"; loop_dir="${server_dir}/ltian/backup/gorilla/gorilla2/camera/${animal}/${name}"; shift 1;;
 		--loop) loop=true; shift 1;;
+		--ploton) plot_flag='--ploton'; shift 1;;
 		--) help_message; exit 1; shift; break;;
 		*) break;;
 	esac
@@ -119,7 +122,7 @@ if [ ${loop} = true ]; then
 			fi
 
 			if [ ! -f "${checkpoints}/wand5" ]; then
-				yes | pipeline wand -e ${expt} --step 5 -a ${animal}
+				yes | pipeline wand -e ${expt} --step 5 -a ${animal} $plot_flag
 			else
 				echo "Day is fully run, skipping. If you want to rerun the day from certain step\
 				 delete files and checkpoints"
