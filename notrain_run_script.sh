@@ -90,7 +90,7 @@ if [ ${loop} = true ]; then
 
 			if [ ! -f "${checkpoints}/init" ]; then
 				yes | pipeline init -e ${expt} -a ${animal} -c ${cond} -d ${dir}
-			elif  [ ! -f "${expt_files}/${animal}/${expt}" ]; then
+			elif  [ ! -f "${expt_files}/${animal}/${expt}.yaml" ]; then
 				yes | pipeline init -e ${expt} -a ${animal} -c ${cond} -d ${dir} --skiplink
 			else
 				echo "Skipping pipeline init, checkpoint found"
