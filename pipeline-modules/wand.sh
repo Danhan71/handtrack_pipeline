@@ -179,7 +179,7 @@ elif [ $step == 4 ]; then
 		rm -r $trans_path
 	fi
 elif [ $step == 5 ]; then
-	python3 ${draw_monk}/ht_preprocess.py ${name} --animal ${animal} --reg ${reg} --pyvm ${pyvm} --data ${data_dir} $plot_flag $force_reg_flag
+	python3 ${draw_monk}/tools/ht_preprocess.py ${name} --animal ${animal} --reg ${reg} --pyvm ${pyvm} --data ${data_dir} $plot_flag $force_reg_flag 
 	checkpoints="${data_dir}/${animal}/${name}/checkpoints"
 	touch "${checkpoints}/wand5"
 	touch "${checkpoints}/done"
