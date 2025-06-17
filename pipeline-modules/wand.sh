@@ -157,6 +157,7 @@ elif [ $step == 3 ]; then
 	checkpoints="${data_dir}/${animal}/${name}/checkpoints"
 	touch "${checkpoints}/wand3"
 elif [ $step == 4 ]; then
+	echo RUNNING THIS STEP DELETES ANY DATA ALREADY EXTRACTED/TRIANGULATED
 	#  python3 ${pyvm}/run/dlc_xyz_extraction.py ${name} ${animal} --cond ${cond} --pipe ${pipe_path} --coeff ${calib_prefix} --step 1
 	# Uncomment the following line and remove the previous line if you want to use auto coeff names
 	python3 ${pyvm}/run/dlc_xyz_extraction.py ${name} ${animal} --cond ${cond} --pipe ${pipe_path} --step 1
@@ -178,6 +179,11 @@ elif [ $step == 4 ]; then
 		echo "Removing old regression and transformation matrices"
 		rm -r $trans_path
 	fi
+	echo "And I turned to see the voice that spake with me.\
+And being turned, I saw seven golden candlesticks;\
+And in the midst of the seven candlesticks one like unto the Son of man,\
+clothed with a garment down to the foot,\
+and girt about the paps with a golden girdle. ~~ Revelation 1:12–13"
 elif [ $step == 5 ]; then
 	python3 ${draw_monk}/tools/ht_preprocess.py ${name} --animal ${animal} --reg ${reg} --pyvm ${pyvm} --data ${data_dir} $plot_flag $force_reg_flag 
 	checkpoints="${data_dir}/${animal}/${name}/checkpoints"
