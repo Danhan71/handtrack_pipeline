@@ -72,16 +72,6 @@ while true; do
 	esac		
 done
 
-while true; do
-    read -p "Is the expt name correct? ${name} (y/n)" yn
-    case $yn in
-        [Yy]* ) break;;
-        [Nn]* ) exit;;
-        * ) echo "Please answer y or n.";;
-    esac
-done
-
-
 if [ ! -d "${data_dir}/${animal}" ]; then
 	echo "###### ERROR"
 	echo "Base data directory ${data_dir}/${animal} is not found please update the config file with the proper directory"

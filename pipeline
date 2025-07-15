@@ -26,7 +26,7 @@ help_message () {
 	echo ""
 	echo "See /pipeline-modules for module code"
 	echo "See /pipeline-scripts for some useful little scripts"
-	echo "See /setup for a majority of the source code"
+	echo "See /setup for some programs"
 	echo "Don't contact me with issues"
 	echo ""
 }

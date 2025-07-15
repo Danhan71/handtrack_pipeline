@@ -82,14 +82,6 @@ if [ $setup == true ]; then
 	exit 0
 fi
 
-while true; do
-    read -p "Is the expt name correct ${name} (y/n)" yn
-    case $yn in
-        [Yy]* ) break;;
-        [Nn]* ) exit;;
-        * ) echo "Please answer y or n.";;
-    esac
-done
 if [ "$step" == "cb" ]; then
 	if [ ! -d "${checkb_dir}" ]; then
 		echo "###### ERROR"

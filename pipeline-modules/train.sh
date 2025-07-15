@@ -79,15 +79,6 @@ while true; do
 	esac		
 done
 
-while true; do
-    read -p "Is the expt name correct ${name} (y/n)" yn
-    case $yn in
-        [Yy]* ) break;;
-        [Nn]* ) exit;;
-        * ) echo "Please answer y or n.";;
-    esac
-done
-
 if [ $step -lt 3 ]; then
 	python ${pyvm}/dlc/run.py ${name} --step ${step} --iters ${iters} --cond ${conditions} --checkp ${checkpath} --tver 'new' --frac ${gpu_frac}
 	checkpoints="${data_dir}/${animal}/${name}/checkpoints"

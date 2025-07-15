@@ -61,15 +61,6 @@ while true; do
 	esac		
 done
 
-while true; do
-    read -p "Is the expt name correct ${name} (y/n)" yn
-    case $yn in
-        [Yy]* ) break;;
-        [Nn]* ) exit;;
-        * ) echo "Please answer y or n.";;
-    esac
-done
-
 if [ $label_only == false ]
 then
 	echo "Initializing ${name} mode..."
