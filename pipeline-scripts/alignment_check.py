@@ -93,5 +93,8 @@ if __name__ == "__main__":
                 def validate_list(lst):
                     return all(is_valid_format(item) for item in lst)
                 assert validate_list(good_inds), f'At least some elements in {this_sdir}/good_inds are formatted improperly (should be comma sep list of trial-stroke as strs). Check this you fool'
-            fig,corr_lag = finalize_alignment_data(lags,good_inds)
+            fig,corr_lag, lags = finalize_alignment_data(lags,good_inds)
             fig.savefig(f'{this_sdir}/lag_fig.png')
+            if True:
+                with open(f'/home/danhan/code/test_data/lags/{expt_with_sess}_lags.pkl') as f:
+                    pickle.dump(lags,f)
