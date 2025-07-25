@@ -59,14 +59,12 @@ while true; do
 	esac		
 done
 
-sdir="${data_dir}/${animal}/${name}/lag_data"
 
 if [[ $step -eq 1 ]]; then
-    python ${scripts}/alignment_check.py ${name} --animal ${animal} --sdir ${sdir} --tstart ${ts} --tend ${te}
-    touch ${sdir}/good_inds.txt
+    python ${scripts}/alignment_check.py ${name} --animal ${animal} --tstart ${ts} --tend ${te}
     echo "Initial plotting complete, please review plots and enter good trial-strokes into the file good_inds.txt as a comma seprated list."
 elif [[ $step -eq 2 ]]; then
-    python ${scripts}/alignment_check.py ${name} --animal ${animal} --sdir ${sdir} --tstart ${ts} --tend ${te} --plot
+    python ${scripts}/alignment_check.py ${name} --animal ${animal} --tstart ${ts} --tend ${te} --plot
     echo "All done, summary plot saved."
     echo "Proverbs 6:6-8 ~ Go to the ant, O sluggard; consider her ways, and be wise. Without having any chief, officer, or ruler, she prepares her bread in summer and gathers her food in harvest."
 fi

@@ -145,7 +145,7 @@ if __name__ == "__main__":
 			print("[NOTE!] now you have to move the correct videos into their directories")
 		# Now move all videos
 		metadat = load_yaml_config(f"{data_dir}/{name}/metadat.yaml")
-		if condition not in meatdat["conditions_dict"].keys():
+		if condition not in metadat["conditions_dict"].keys():
 			assert False, f'{condition} not in data, sometimes this happens if linked from wrong dir. To fix this try manually linking from other dir (i.e. change -d late to -d early).'
 		cam_dirs = metadat["conditions_dict"][condition]["map_camname_to_path"]
 
